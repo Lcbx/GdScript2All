@@ -54,7 +54,7 @@ def transpile(filename, outname):
 	parser.transpile()
 
 	print(outname)
-	text = transpiler.text
+	text = transpiler.get_result()
 	with open(outname,'w+') as wf:
 		wf.write(text);
 		print("SUCCESS -- " + outname)

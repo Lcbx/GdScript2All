@@ -1,3 +1,4 @@
+from io import StringIO
 import godotReference as ref
 
 class CSharpTranspiler:
@@ -5,38 +6,53 @@ class CSharpTranspiler:
 	# TODO: move header and C# translations here
 	
 	def __init__(self):
-		self.text = ref.header
 		self.level = 0
-		self.onready = False
 		self.onreadyMembers = ""
+		
+		self._text = StringIO()
+		self += ref.header
 	
-	def add(self, txt):
-		if self.onready: self.onreadyMembers += text
-		else: self.text += txt
+	# += operator override
+	def __iadd__(self, txt):
+		# automatic indentation
+		if '\n' in txt:
+			print("line!")
+			txt = txt.replace('\n', self.newline())
+		self._text.write(txt)
+		return self
+	
+	def newline(self):
+		return '\n' + '\t' * self.level
+	
+	def get_result(self):
+		# to close the class (hack-ish, C# has no script-level definitions)
+		self.DownScope()
+		return self._text.getvalue()
 	
 	def UpScope(self):
-		self.newLine()
+		self += "\n{"
 		self.level += 1
-		self.add("{")
 	
 	def DownScope(self):
-		self.newLine()
 		self.level -= 1
-		self.add("}")
-	
-	def newLine(self):
-		self.add('\n' + '\t' * self.level)
+		self += "\n}"
 	
 	def define_class(self, name, base_class, is_tool):
-		self.newLine()
-		self.add('[Tool]\n' if is_tool else '')
-		self.add(f"public partial class {name} : {base_class}")
+		self += ('[Tool]\n' if is_tool else '\n')
+		self += f'public partial class {name} : {base_class}'
+		self.UpScope()
 	
 	def annotation(self, name, params):
 		# TODO: match properly (use a dict ?)
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		self.add(f'[{name}("{params}")]\n' if params else f'[{name}]\n')
+		self += f'[{name}("{params}")]\n' if params else f'[{name}]\n'
+	
+	def line_comment(self, content):
+		self += f"// {content}"
+	
+	def multiline_comment(self, content):
+		self += f"/* {content} */"
 
 
 
