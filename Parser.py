@@ -11,7 +11,7 @@ class Parser:
 		self.level = 0
 		# line number in original script (starting at 0)
 		self.line = 0
-		# transpiler renamed out for brevity
+		# transpiler renamed 'out' for brevity
 		self.out = transpiler
 		# separation into tokens (tokens kept as strings to avoid adding 1k+ code)
 		text = text.replace(' ' * 4, '\t') # 4 whitespaces = 1 tab
@@ -24,52 +24,52 @@ class Parser:
 	
 	def expect(self, token, n = 1):
 		
-		# fast fail : check first char
-		first = token[0]
 		current = self.current()
-		if first != current[0]: return False
+		
+		# fast fail : check first char
+		token0 = token[0]
+		current0 = current[0]
+		if current0 != token0 : return False
 		
 		found = ''.join(self.tokens[self.index:self.index+n]) if n>1 else current
 		match = token == found
 		
-		if match and token == '\n': 
+		if match and token == '\n':
 			self.line += 1
-			self.out += self.out.newline()
-			#print('#######################################')
-		
-		elif found and found not in ' \r\n':
-			_found = found.replace('\n','EOL')
-			_token = token.replace('\n','EOL')
-			print(f'{_token} ? => {_found}')
+			#print('********** line')
+		elif found:
+			print(f'{token} ? => {found}')
 		
 		if match: self.index+=n
 		
 		return match
 	
 	def consume(self, n = 1):
+		if self.tokens[self.index] == '\n': print("a line has been seen", self.index)
 		found = ''.join(self.tokens[self.index:self.index+n]) if n>1 else self.tokens[self.index]
-		print('consumed', found)
+		print('+', found)
 		self.index+=n
 		return found
 	
+	# NOTE: consumes token being checked for wihout adding it to the result
 	def consumeUntil(self, token, n = 1):
-		# fast fail : check first char
 		start = self.index
 		while not self.expect(token, n): self.consume()
 		return ' '.join(self.tokens[start:self.index-n])
+	
+	
 	
 	""" parsing / transpiling """
 	
 	def comments(self):
 		if self.expect('#'):
 			content = self.consumeUntil('\n')
-			self.out.line_comment(content)
+			self.out.line_comment(content + '\n')
 		elif self.expect('"""', 3):
 			content = self.consumeUntil('"""', 3)
 			self.out.multiline_comment(content)
 	
 	def endStatement(self):
-		#print("new line")
 		while True:
 			lvl = 0
 			# count indentation
@@ -83,17 +83,19 @@ class Parser:
 				elif lvl < self.level: self.out.DownScope()
 				self.level = lvl
 				return
+			self.out += '\n'
+	
 	
 	def transpile(self):
 		
+		# in case there is a file header (in comments)
 		self.endStatement()
 		
+		# file beginning specific statements
 		is_tool = self.expect('@tool', 2); self.endStatement()
 		base_class = self.consume() if self.expect('extends') else "Godot.Object"; self.endStatement()
-		class_name = self.consume() if self.expect('class_name') else os.path.basename(outname).split('.')[0]
+		class_name = self.consume() if self.expect('class_name') else os.path.basename(outname).split('.')[0] # file without extension
 		self.out.define_class(class_name, base_class, is_tool); # no endStatement (see while loop later)
-		
-		#print(self.line, self.current())
 		
 		# script-level
 		end = len(self.tokens)
@@ -119,9 +121,9 @@ class Parser:
 		
 		if self.expect('@'):
 			name = self.consume()
-			if expect('('):
-				params = ""
-				while not expect(')'):
+			params = ""
+			if self.expect('('):
+				while not self.expect(')'):
 					params += self.consume() + " "
 			self.out.annotation(name, params)
 		
@@ -130,7 +132,9 @@ class Parser:
 		# TODO: handle get set
 	
 	def variable_declaration(self):
-		if self.expect('var'):
+		constant = self.expect('const')
+		if not constant and self.expect('var'):
 			name = self.consume()
 			if self.expect(":"):
-				pass
+				if self.current()[0].isalpha():
+					type 

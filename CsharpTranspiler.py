@@ -1,6 +1,11 @@
 from io import StringIO
 import godotReference as ref
 
+
+def toPascal(text):
+	under0 = text[0] == '_'
+	return ('_' if under0 else '') + text.replace("_", " ").title().replace(" ", "")
+
 class CSharpTranspiler:
 	
 	# TODO: move header and C# translations here
@@ -12,17 +17,14 @@ class CSharpTranspiler:
 		self._text = StringIO()
 		self += ref.header
 	
+	
 	# += operator override
 	def __iadd__(self, txt):
+		print(">", txt.replace("\n", "<EOL>"))
 		# automatic indentation
-		if '\n' in txt:
-			print("line!")
-			txt = txt.replace('\n', self.newline())
+		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
 		self._text.write(txt)
 		return self
-	
-	def newline(self):
-		return '\n' + '\t' * self.level
 	
 	def get_result(self):
 		# to close the class (hack-ish, C# has no script-level definitions)
@@ -38,24 +40,26 @@ class CSharpTranspiler:
 		self += "\n}"
 	
 	def define_class(self, name, base_class, is_tool):
-		self += ('[Tool]\n' if is_tool else '\n')
+		if is_tool: self += '[Tool]\n'
 		self += f'public partial class {name} : {base_class}'
 		self.UpScope()
 	
 	def annotation(self, name, params):
-		# TODO: match properly (use a dict ?)
+		# TODO: fill replacements
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		self += f'[{name}("{params}")]\n' if params else f'[{name}]\n'
+		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + ('(' if params else '')
+		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
 	
 	def line_comment(self, content):
 		self += f"// {content}"
 	
 	def multiline_comment(self, content):
 		self += f"/* {content} */"
+	
 
 
-
+# TODO : await => await ToSignal(....)"
 # TODO : $Path => GetNode()
 # TODO : Rename Functions => All defined in this class or any variable that is or instances any of these types https://docs.godotengine.org/en/3.2/classes/index.html
 # TODO : Rename Vars
