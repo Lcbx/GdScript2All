@@ -14,7 +14,10 @@ class CSharpTranspiler:
 		self.level = 0
 		self.onreadyMembers = ""
 		
+		# stringBuilder
 		self._text = StringIO()
+		
+		# default imports
 		self += ref.header
 	
 	

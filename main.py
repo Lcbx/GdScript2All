@@ -37,32 +37,40 @@ if os.path.isdir(input):
 else:
 	files = [input]
 
-print(f"files to process :\n{files}")
 
 def transpile(filename, outname):
-	# Open the file in read/write mode
 	with open(filename,'r+') as f:
 		text = f.read()
-		
-	print("PROCESSING -- " + filename)
+	
+	# script name without extension
+	script_name = os.path.basename(filename).split('.')[0]
 	
 	transpiler = CsharpTranspiler.CSharpTranspiler()
 	
-	parser = Parser.Parser(text, transpiler)
+	parser = Parser.Parser(script_name, text, transpiler)
+	
+	#print(outname)
 	#print(transpiler.tokens)
 	
 	parser.transpile()
-
-	print(outname)
 	text = transpiler.get_result()
+	
+	print("")
+	print("****************  generated code  ****************")
+	print(text)
+	print("**************************************************")
+	
 	with open(outname,'w+') as wf:
 		wf.write(text);
-		print("SUCCESS -- " + outname)
 
+
+print("")
+print(f"files to process :\n{files}")
 
 total = len(files)
 for i, file in enumerate(files):
 	outname = file.replace(input, output).replace('.gd', '')
 	outname = outname + '.cs' if not outname.endswith('.cs') else outname
 	transpile(file, outname)
+	
 	print(f"Converted {file} to {outname} ({i+1}/{total})")

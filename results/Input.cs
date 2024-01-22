@@ -1,4 +1,3 @@
-
 using System;
 using Godot;
 using Dictionary = Godot.Collections.Dictionary;
@@ -15,8 +14,6 @@ public partial class Character : CharacterBody3D
 	// * change gravity into a non - linear acceleration ?
 	
 	/* movement physics */
-	
-	[Export]
 	
 	
 }

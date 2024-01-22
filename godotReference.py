@@ -1,7 +1,6 @@
 
 # Default imports and aliases that almost every class needs.
-header = """
-using System;
+header = """using System;
 using Godot;
 using Dictionary = Godot.Collections.Dictionary;
 using Array = Godot.Collections.Array;

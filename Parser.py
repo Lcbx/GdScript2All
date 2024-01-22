@@ -1,10 +1,12 @@
 import re
+import os
 import godotReference as ref
 
 class Parser:
 	
 	
-	def __init__(self, text, transpiler):
+	def __init__(self, filename, text, transpiler):
+		self.script_name = filename
 		# char index in original script
 		self.index = 0
 		# indentation level
@@ -23,7 +25,6 @@ class Parser:
 		return self.tokens[self.index]
 	
 	def expect(self, token, n = 1):
-		
 		current = self.current()
 		
 		# fast fail : check first char
@@ -94,7 +95,7 @@ class Parser:
 		# file beginning specific statements
 		is_tool = self.expect('@tool', 2); self.endStatement()
 		base_class = self.consume() if self.expect('extends') else "Godot.Object"; self.endStatement()
-		class_name = self.consume() if self.expect('class_name') else os.path.basename(outname).split('.')[0] # file without extension
+		class_name = self.consume() if self.expect('class_name') else self.script_name
 		self.out.define_class(class_name, base_class, is_tool); # no endStatement (see while loop later)
 		
 		# script-level
