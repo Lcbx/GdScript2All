@@ -12,7 +12,6 @@ public partial class test4 : Godot.Node
 	{
 		
 		
-		
 	}
 	public partial class Nested2 : Godot.Object
 	{
@@ -20,5 +19,9 @@ public partial class test4 : Godot.Node
 		
 		
 	}
+	enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
+	enum Named  {THING_1, THING_2, ANOTHER_THING = -1}
+	
+	[Export("Date,Param")]
 	
 }

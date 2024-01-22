@@ -39,6 +39,11 @@ class CSharpTranspiler:
 		self.level -= 1
 		self += "\n}\n"
 	
+	def line_comment(self, content):
+		self += f"// {content}"
+	
+	def multiline_comment(self, content):
+		self += f"/* {content}*/"
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
@@ -46,6 +51,10 @@ class CSharpTranspiler:
 		self += f'public partial class {name} : {base_class}'
 		self.UpScope()
 	
+	# NOTE: gdscript, C# and cpp share the same syntax for enums.
+	# so I'm taking the lazy route and passing the enum definition as-is
+	def enum(self, name, definition):
+		self += f'enum {name} {definition}' if name else f'enum {definition}'
 	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements
@@ -59,17 +68,11 @@ class CSharpTranspiler:
 		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + ('(' if params else '')
 		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
 	
-	
-	def line_comment(self, content):
-		self += f"// {content}"
-	
-	def multiline_comment(self, content):
-		self += f"/* {content}*/"
-	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)
 		# then add onready assignments first and clear onready array
 		pass
+		
 	
 
 

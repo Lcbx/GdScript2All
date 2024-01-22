@@ -2,7 +2,6 @@
 extends Node
 
 class Nested1 extends test:
-
 class Nested2:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}

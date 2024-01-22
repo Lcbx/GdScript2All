@@ -67,12 +67,13 @@ class Parser:
 		return found
 	
 	# NOTE: consumes the end token wihout adding it to the result
-	def consumeUntil(self, end, n = 1, ignore = []):
+	def consumeUntil(self, end, n = 1, keep_end = False, ignore = []):
 		# storing index makes us keep spaces past the 1st token
 		start = self.index
 		while not self.expect(end, n): self.index += 1
 		range = self.tokens[start:self.index-n]
 		if ignore: range = [item for item in range if item not in ignore]
+		if keep_end: range.append(end)
 		return ''.join(range)
 	
 	
@@ -81,13 +82,14 @@ class Parser:
 	
 	def comments(self):
 		if self.expect('#'):
-			content = self.consumeUntil('\n')
-			self.out.line_comment(f'{content}\n')
+			content = self.consumeUntil('\n', keep_end=True)
+			self.out.line_comment(content)
 		elif self.expect('"""', 3):
 			content = self.consumeUntil('"""', 3)
 			self.out.multiline_comment(content)
 	
 	def endline(self):
+		found_EOL = False
 		while True:
 			lvl = 0
 			# count indentation
@@ -96,12 +98,14 @@ class Parser:
 			self.comments()
 			# ignore empty lines
 			if not self.expect('\n'):
-				# go up and down in scope
-				# NOTE: we assume scope is managed the same way across languages
-				if lvl > self.level: self.out.UpScope()
-				elif lvl < self.level: self.out.DownScope()
-				self.level = lvl
+				if found_EOL:
+					# go up and down in scope
+					# NOTE: we assume scope is managed the same way across languages
+					if lvl > self.level: self.out.UpScope()
+					elif lvl < self.level: self.out.DownScope()
+					self.level = lvl
 				return
+			found_EOL = True
 			self.out += '\n'
 	
 	
@@ -164,9 +168,11 @@ class Parser:
 	
 	def enum(self):
 		if self.expect('enum'):
-			name = consume() if self.tkn_is_text() else ''
-			# TODO: {}
-	
+			name = self.consume() if self.tkn_is_text() else ''
+			# NOTE: gdscript, C# and cpp have similar syntax for enums.
+			# so I'm taking the lazy route and passing the enum definition as-is
+			definition = self.consumeUntil('}', keep_end=True)
+			self.out.enum(name, definition)
 	
 	# class member 
 	def member(self):
