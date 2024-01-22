@@ -6,7 +6,7 @@ class_name Character
 # * implement fall damage
 # * hold crouch key to increase gravity ?
 # * hold jump key to lower gravity strength ?
-# * change gravity into a non-linear acceleration?
+# * change gravity into a non-linear acceleration ?
 
 """ movement physics """
 

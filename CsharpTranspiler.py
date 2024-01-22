@@ -8,17 +8,15 @@ def toPascal(text):
 
 class CSharpTranspiler:
 	
-	# TODO: move header and C# translations here
-	
 	def __init__(self):
+		# scope level
 		self.level = 0
-		self.onreadyMembers = ""
-		
 		# stringBuilder
 		self._text = StringIO()
-		
 		# default imports
 		self += ref.header
+		# onready assignments that need to be moved to the ready function
+		self.onready = []
 	
 	
 	# += operator override
@@ -30,35 +28,48 @@ class CSharpTranspiler:
 		return self
 	
 	def get_result(self):
-		# to close the class (hack-ish, C# has no script-level definitions)
-		self.DownScope()
 		return self._text.getvalue()
 	
 	def UpScope(self):
 		self += "\n{"
 		self.level += 1
+		self += "\n"
 	
 	def DownScope(self):
 		self.level -= 1
-		self += "\n}"
+		self += "\n}\n"
+	
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
+		if base_class in ref.godot_types: base_class = f'Godot.{base_class}'
 		self += f'public partial class {name} : {base_class}'
 		self.UpScope()
 	
+	
+	def end_script(self):
+		# TODO: add ready function if missing and there are onready assignements
+		pass
+	
+	
 	def annotation(self, name, params):
-		# TODO: fill replacements
+		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
 		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + ('(' if params else '')
 		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
 	
+	
 	def line_comment(self, content):
 		self += f"// {content}"
 	
 	def multiline_comment(self, content):
-		self += f"/* {content} */"
+		self += f"/* {content}*/"
+	
+	def define_method(self, name, return_type):
+		# TODO: check if called _ready and at script level (self.level==1)
+		# then add onready assignments first and clear onready array
+		pass
 	
 
 

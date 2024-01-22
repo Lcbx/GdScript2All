@@ -1,14 +1,24 @@
 @tool
 extends Node
 
+class Nested1 extends test:
+
+class Nested2:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
-@export(Date,Param)      const Date = preload("res://path")
+@export(Date,Param)	const Date = preload("res://path")
 const ABC = true
-var G:float setget setterA, getterA
+
+@export_flags("Self:4", "Allies:8", "Foes:16")
+var G:float : set = _set_state, get = _get_state
+
 var DEF = -0.1 # Step
+	set (value):
+		set_sprite_offset(value)
+	get:
+		return sprite_offset
 
 var f = typeof(4+6/12)
 

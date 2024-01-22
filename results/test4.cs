@@ -5,8 +5,20 @@ using Array = Godot.Collections.Array;
 
 
 
-
 [Tool]
-public partial class test4 : Node
+public partial class test4 : Godot.Node
 {
+	public partial class Nested1 : test
+	{
+		
+		
+		
+	}
+	public partial class Nested2 : Godot.Object
+	{
+		
+		
+		
+	}
+	
 }
