@@ -15,11 +15,13 @@ class CSharpTranspiler:
 		self._text = StringIO()
 		# default imports
 		self += ref.header
+		
 		# onready assignments that need to be moved to the ready function
 		self.onready = []
+		# unnamed enums don't exist in C#, so we give them a name
+		self.unnamed_enums = 0
 	
-	
-	# += operator override
+	# += operator override to generate code
 	def __iadd__(self, txt):
 		print(">", txt.replace("\n", "<EOL>"))
 		# automatic indentation
@@ -45,35 +47,52 @@ class CSharpTranspiler:
 	def multiline_comment(self, content):
 		self += f"/* {content}*/"
 	
+	def end_statement(self):
+		self += ';'
+	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
 		if base_class in ref.godot_types: base_class = f'Godot.{base_class}'
 		self += f'public partial class {name} : {base_class}'
 		self.UpScope()
 	
-	# NOTE: gdscript, C# and cpp share the same syntax for enums.
-	# so I'm taking the lazy route and passing the enum definition as-is
+	# NOTE: enums have similar syntax in gdscript, C# and cpp
+	# lazily passing the enum definition as-is for now
 	def enum(self, name, definition):
-		self += f'enum {name} {definition}' if name else f'enum {definition}'
-	
-	def end_script(self):
-		# TODO: add ready function if missing and there are onready assignements
-		pass
-	
+		# unnamed enums not supported in C#
+		if not name:
+			name  = f'Enum{self.unnamed_enums}'
+			self.unnamed_enums += 1
+		self += f'enum {name} {definition}'
 	
 	def annotation(self, name, params):
 		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + ('(' if params else '')
-		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
+		name = ref.export_replacements[name] if name in ref.export_replacements else ( toPascal(name) + ('(' if params else '') )
+		self += f'[{name}("{params}")]\n' if params else f'[{name}]\n'
+	
+	def declare_variable(self, type, name, constant):
+		if type in ref.godot_types: type = f'Godot.{type}'
+		elif type == float: type = 'double' # C# uses doubles
+		const_decl = 'const ' if constant else ''
+		self += f'public {const_decl}{type} {name}'
+	
+	def assignment(self):
+		self += f' = '
+	
+	def literal(self, type, value):
+		self += str(value)
 	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)
 		# then add onready assignments first and clear onready array
 		pass
-		
 	
+	
+	def end_script(self):
+		# TODO: add ready function if missing and there are onready assignements in onready array
+		pass
 
 
 # TODO : await => await ToSignal(....)"

@@ -7,8 +7,10 @@ class Nested2:
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
-@export(Date,Param)	const Date = preload("res://path")
-const ABC = true
+const i = 0
+
+@export(Date,Param)	var Date = preload("res://path")
+var ABC = true
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
 var G:float : set = _set_state, get = _get_state

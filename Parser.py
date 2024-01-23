@@ -19,9 +19,19 @@ class Parser:
 		self.line_index = 0
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
-		# separation into tokens (tokens kept as strings to avoid adding 1k+ code)
+		
+		# splitting text into tokens
 		text = text.replace(' ' * 4, '\t') # 4 whitespaces = 1 tab
-		self.tokens =  [token for token in re.split('(\W)', text) if token != ''] # empty strings...
+		# split into tokens (we consider non-words full tokens)
+		self.tokens = re.split('(\W)', text)
+		# ignore empty strings...
+		self.tokens =  [token for token in self.tokens if token != '']
+		
+		# NOTES:
+		# * tokens kept as strings to avoid adding 1k+ code
+		# * it might be more memory-friendly to use re.finditer instead of re.split
+		# 	so we have an iterator and not an array of tokens
+	
 	
 	""" parsing utils """
 	
@@ -30,7 +40,16 @@ class Parser:
 		return ''.join(self.tokens[self.index:self.index+n]) if n>1 else self.tokens[self.index]
 	
 	def tkn_is_text(self):
-		return self.current()[0].isalpha()
+		tkn0 = self.current()[0]
+		return tkn0.isalpha() or tkn0 in '_'
+	
+	def tkn_is_int(self):
+		return self.current().isdigit() and self.current(2)[-1] != '.'
+	
+	def tkn_is_float(self):
+		currrent = self.current()
+		next = self.tokens[self.index+1]
+		return (currrent.isdigit() and next == '.') or (next.isdigit() and currrent == '.')
 	
 	def skip_whitespace(self):
 		while self.current() in ' \r': self.index +=1
@@ -67,25 +86,24 @@ class Parser:
 		return found
 	
 	# NOTE: consumes the end token wihout adding it to the result
-	def consumeUntil(self, end, n = 1, keep_end = False, ignore = []):
+	def consumeUntil(self, end, n = 1, keep_end = True, ignore = []):
 		# storing index makes us keep spaces past the 1st token
 		start = self.index
-		while not self.expect(end, n): self.index += 1
-		range = self.tokens[start:self.index-n]
+		while not self.current(n) == end: self.index += 1
+		self.index += n
+		range = self.tokens[start:self.index - (0 if keep_end else n)]
 		if ignore: range = [item for item in range if item not in ignore]
-		if keep_end: range.append(end)
 		return ''.join(range)
-	
 	
 	
 	""" parsing / transpiling """
 	
 	def comments(self):
 		if self.expect('#'):
-			content = self.consumeUntil('\n', keep_end=True)
+			content = self.consumeUntil('\n')
 			self.out.line_comment(content)
 		elif self.expect('"""', 3):
-			content = self.consumeUntil('"""', 3)
+			content = self.consumeUntil('"""', 3, keep_end=False)
 			self.out.multiline_comment(content)
 	
 	def endline(self):
@@ -126,10 +144,8 @@ class Parser:
 		last_index = -1
 		while self.index < end and self.index != last_index:
 			last_index = self.index
-			
-			# class level statements
+			# script/class level statements
 			self.class_body()
-		
 		# end script class
 		self.out.DownScope()
 		
@@ -155,7 +171,8 @@ class Parser:
 		if self.expect('class'):
 			class_name = self.consume()
 			base_class = self.consume() if self.expect('extends') else 'Object'
-			# TODO: can inner classes be tools ?
+			# NOTE: can inner classes be tools ?
+			# are they the same as their script class ?
 			self.out.define_class(class_name, base_class, False)
 			self.expect(':')
 			
@@ -165,27 +182,23 @@ class Parser:
 				# NOTE: no annotations in inner classes
 				self.class_body()
 	
-	
+	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
+	# NOTE: enums have similar syntax in gdscript, C# and cpp
+	# lazily passing the enum definition as-is for now
 	def enum(self):
 		if self.expect('enum'):
 			name = self.consume() if self.tkn_is_text() else ''
-			# NOTE: gdscript, C# and cpp have similar syntax for enums.
-			# so I'm taking the lazy route and passing the enum definition as-is
+			self.skip_whitespace()
 			definition = self.consumeUntil('}', keep_end=True)
 			self.out.enum(name, definition)
 	
 	# class member 
 	def member(self):
-		
-		# NOTE: special case for onready
-		# to make handling it easier (moving the assignment into ready function)
-		is_onready = self.expect('@onready')
+		# NOTE: special case for onready (needs moving the assignment into ready function)
 		# TODO: call out.assignement with onready flag (later)
-		
+		is_onready = self.expect('@onready')
 		self.annotation()
-		# NOTE: used in statements too
 		self.variable_declaration()
-		
 		# TODO: handle get set
 	
 	
@@ -194,7 +207,7 @@ class Parser:
 		if self.expect('@'):
 			name = self.consume()
 			# NOTE: this should work for most cases
-			params = self.consumeUntil(')', ignore=['"', "'"]) if self.expect('(') else ""
+			params = self.consumeUntil(')', keep_end=False, ignore=['"', "'"]) if self.expect('(') else ""
 			self.out.annotation(name, params)
 	
 	
@@ -204,10 +217,50 @@ class Parser:
 		constant = self.expect('const') 
 		if constant or self.expect('var'):
 			name = self.consume()
-			if self.expect(":"):
-				if self.tkn_is_text():
-					type = self.consume()
-					print(f"declaring var", name, type)
+			type = self.consume() if self.expect(":") and self.tkn_is_text() else ''
+			type_, definition = self.assignment()
+			type = type if type else type_ if type_ else 'Object'
+			self.out.declare_variable(type, name, constant)
+			if definition:definition()
+			self.out.end_statement()
+	
+	
+	# assignement and all expression returns a tuple -> (type : str, effect:closure)
+	
+	# util
+	def create_effect(self, type, value, transparisation):
+		return (type, lambda:transparisation(type, value))
+	
+	def assignment(self):
+		if self.expect('='):
+			type, expression = self.expression()
+			if not expression: return type, expression
+			def effect():
+				self.out.assignment()
+				if expression: expression()
+			return type, effect
+		return '', None
+	
+	def expression(self):
+		# ternary : boolean [[if boolean]1+ else boolean]?
+		# boolean : comparison [and|or comparison]*
+		# comparison : arithmetic [<|>|==|... arithmetic]?
+		# arithmetic : literal [*|/|+|-|... literal]*
+		# ternary : [(ternary)]?|int|float|string|array|dict]
+		return self.literal()
+	
+	def literal(self):
+		if self.tkn_is_int():
+			val = int(self.consume())
+			return self.create_effect(int, val, self.out.literal)
+		elif self.tkn_is_float():
+			val = float(self.consumeUntil('.') + (self.consume() if self.tkn_is_int() else ''))
+			return self.create_effect(float, val, self.out.literal)
+		elif self.current() in ('true', 'false'):
+			val = self.consume() == 'true'
+			return self.create_effect(bool, val, self.out.literal)
+		return '', None
+	
 	
 	def statement(self):
 		self.expect('pass')

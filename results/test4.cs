@@ -19,9 +19,11 @@ public partial class test4 : Godot.Node
 		
 		
 	}
-	enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
-	enum Named  {THING_1, THING_2, ANOTHER_THING = -1}
+	enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
+	enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 	
-	[Export("Date,Param")]
+	public const <class 'int'> i = 0;
 	
+	[Export(("Date,Param")]
+	public Godot.Object Date;
 }

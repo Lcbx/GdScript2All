@@ -5,7 +5,7 @@ import godotReference as ref
 import Parser
 import CsharpTranspiler
 
-
+# supports both folders and files
 input = "tests"
 output = "results"
 files = []
