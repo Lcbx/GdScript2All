@@ -18,12 +18,14 @@ public partial class test4 : Godot.Node
 	{
 		
 		
+		
 	}
 	public partial class Nested2 : Godot.Object
 	{
 		
 		public partial class Nested3 : Godot.Object
 		{
+			
 			
 			
 			

@@ -106,24 +106,27 @@ class Parser:
 			content = self.consumeUntil('"""', 3, keep_end=False)
 			self.out.multiline_comment(content)
 	
+	# ignore 
 	def endline(self):
-		found_EOL = False
+		lvl = -1
 		while True:
-			lvl = 0
-			# count indentation
-			while self.expect('\t'): lvl +=1
 			# ignore comments
 			self.comments()
-			# ignore empty lines
+			# setting scope level only when we encounter non-whitespace
 			if not self.expect('\n'):
-				if found_EOL:
-					# go up and down in scope
-					# NOTE: we assume scope is managed the same way across languages
+				# go up and down in scope
+				# NOTE: we assume scope is managed the same way across languagesgit 
+				if lvl != -1:
 					while lvl > self.level: self.out.UpScope(); self.level +=1
 					while lvl < self.level: self.out.DownScope(); self.level -=1
 				return
-			found_EOL = True
+			
+			# add endline in generated code to match script
 			self.out += '\n'
+			
+			# count indentation to determine scope level
+			lvl = 0
+			while self.expect('\t'): lvl +=1
 	
 	
 	def transpile(self):

@@ -8,8 +8,10 @@ extends Node
 """
 
 class Nested1 extends test:
+			
 class Nested2:
 	class Nested3:
+	
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
