@@ -85,7 +85,6 @@ class Parser:
 		self.index+=n
 		return found
 	
-	# NOTE: consumes the end token wihout adding it to the result
 	def consumeUntil(self, end, n = 1, keep_end = True, ignore = []):
 		# storing index makes us keep spaces past the 1st token
 		start = self.index
@@ -131,7 +130,7 @@ class Parser:
 	
 	def transpile(self):
 		
-		# in case there is a file header (in comments)
+		# in case there is a file header / comments at start
 		self.endline()
 		
 		# script start specific statements
@@ -220,9 +219,10 @@ class Parser:
 		if constant or self.expect('var'):
 			name = self.consume()
 			type = self.consume() if self.expect(':') and self.tkn_is_text() else ''
-			# discarding array type, for now
-			if type == 'Array' and self.expect('['): self.consume(); self.expect(']')
-			assignment = self.assignment()
+			# discarding array content's type, for now
+			if type == 'Array' and self.expect('['):
+				self.consume(); self.expect(']')
+			assignment = self.assignment_value()
 			type_ = next(assignment)
 			type = type if type else type_ if type_ else 'Object'
 			self.out.declare_variable(type, name, constant)
@@ -230,13 +230,19 @@ class Parser:
 			self.out.end_statement()
 	
 	
+	def statement(self):
+		self.expect('pass')
+		
+		# NOTE: reassignment and method call start the same :
+		# <variable|class>[.<function|property>]* then differ  -> '(...)' for call, '=' for reassignment
+	
 	# assignment and all expression use generator/coroutine for type inference
 	# the format expected is :
 	# yield <type>
 	# <emit code>
 	# yield None
 	
-	def assignment(self):
+	def assignment_value(self):
 		if self.expect('='):
 			expression = self.expression()
 			yield next(expression)
@@ -250,32 +256,63 @@ class Parser:
 		# boolean : comparison [and|or comparison]*
 		# comparison : arithmetic [<|>|==|... arithmetic]?
 		# arithmetic : value [*|/|+|-|... value]*
-		# value : [(ternary)]?|literal|collection|function|method]
+		# value : [(ternary)]?|literal|function|method]
+		# literal : int|float|string|array|dict
 		# function : <function>([expression[, expression]*]?)
 		# method : <variable>.<method>([expression[, expression]*]?)
-		# collection : array, dict
 		# array : \[ [expresssion [, expression]*]? \]
 		# dict : { [expresssion:expression [, expresssion:expression]*]? }
-		# literal : int|float|string
 		return self.literal()
 	
 	def literal(self):
+		# int
 		if self.tkn_is_int():
 			val = int(self.consume())
 			yield 'int'
 			self.out.literal(val)
+		# float
 		elif self.tkn_is_float():
 			val = float(self.consumeUntil('.') + (self.consume() if self.tkn_is_int() else ''))
 			yield 'float'
 			self.out.literal(val)
+		# bool
 		elif self.current() in ('true', 'false'):
 			val = self.consume() == 'true'
 			yield 'bool'
 			self.out.literal(val)
+		# string (both "" and '')
+		elif self.expect('"'):
+			val = self.consumeUntil('"', keep_end = False)
+			yield 'string'
+			self.out.literal(val)
+		elif self.expect("'"):
+			val = self.consumeUntil("'", keep_end = False)
+			yield 'string'
+			self.out.literal(val)
+		# array
+		elif self.expect('['):
+			yield 'Array'
+			self.out.create_array()
+			while not self.expect(']'):
+				val = self.expression()
+				# discarding types
+				next(val)
+				self.out.array_entry(val)
+				if self.expect(','): self.out.value_separator()
+			self.out.end_array()
+			yield None
+		# dictionary
+		elif self.expect('{'):
+			yield 'Dictionary'
+			self.out.create_dict()
+			while not self.expect('}'):
+				key = self.expression()
+				val = self.expression()
+				# discarding types
+				next(key); self.expect(':'); next(val)
+				self.out.dict_entry(key, val)
+				if self.expect(','):self.out.value_separator()
+			self.out.end_dict()
 		# nothing found, return empties
 		else: yield ''
 		yield None
-	
-	
-	def statement(self):
-		self.expect('pass')

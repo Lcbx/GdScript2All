@@ -11,6 +11,9 @@ def translate_type(type):
 	elif type == 'float': type = 'double' # C# uses doubles
 	return type
 
+# trick for generator values
+get = next
+
 class CSharpTranspiler:
 	
 	def __init__(self):
@@ -23,7 +26,7 @@ class CSharpTranspiler:
 		
 		# onready assignments that need to be moved to the ready function
 		self.onready = []
-		# unnamed enums don't exist in C#, so we give them a name
+		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
 	
 	# += operator override to generate code
@@ -87,7 +90,26 @@ class CSharpTranspiler:
 	def assignment(self):
 		self += f' = '
 	
+	def value_separator(self):
+		self += f','
+	
+	def create_array(self):
+		self += 'new Array{'
+	def array_entry(self, value):
+		get(value)
+	def end_array(self):
+		self += '}'
+		
+	def create_dict(self):
+		self += 'new Dictionary{'
+	def dict_entry(self, key, value):
+		self += '{'; get(key); self += ','; get(value); self+= '}'
+	def end_dict(self):
+		self += '}'
+	
 	def literal(self, value):
+		# surround string value in quotes and escape the quotes inside
+		if isinstance(value, str): value = '"' + value.replace('"', '\\"') + '"'
 		self += str(value)
 	
 	def define_method(self, name, return_type):

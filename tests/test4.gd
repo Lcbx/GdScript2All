@@ -17,14 +17,17 @@ enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
 var foo
-
-const _i = 0
+const bar = 'the fox said "get off my lawn"'
 
 @export(Date,Param)
-var ABC = true
+var ABC := true
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
-var a : Array[int] = [0]
+var _i = 0
+
+var a : Array[int] = [0,1,2]
+
+var d := {0:1, 1:2, 2:3}
 
 var Date = preload("res://path")
 

@@ -36,8 +36,7 @@ public partial class test4 : Godot.Node
 	enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 	
 	public Godot.Object foo;
-	
-	protected const int _i = 0;
+	public const string bar = "the fox said \"get off my lawn\"";
 	
 	[Export(("Date,Param")]
 	
@@ -45,5 +44,11 @@ public partial class test4 : Godot.Node
 	
 	[Export(PropertyHint.Flags,("Self:4, Allies:8, Foes:16")]
 	
-	public Godot.Array a = ;
+	protected int _i = 0;
+	
+	public Array a = new Array{0,1,2};
+	
+	public Dictionary d = new Dictionary{{0,1},{1,2},{2,3}};
+	
+	public Godot.Object Date = ;
 }

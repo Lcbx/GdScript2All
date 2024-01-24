@@ -48,20 +48,25 @@ def transpile(filename, outname):
 	transpiler = CsharpTranspiler.CSharpTranspiler()
 	
 	parser = Parser.Parser(script_name, text, transpiler)
-	
 	#print(outname)
 	#print(transpiler.tokens)
 	
-	parser.transpile()
-	text = transpiler.get_result()
+	def getResult():
+		code = transpiler.get_result()
+		print("")
+		print("****************  generated code  ****************")
+		print(code)
+		print("**************************************************")
+		return code
 	
-	print("")
-	print("****************  generated code  ****************")
-	print(text)
-	print("**************************************************")
+	try:
+		parser.transpile()
+	except:
+		getResult()
+		raise
 	
 	with open(outname,'w+') as wf:
-		wf.write(text);
+		wf.write(getResult());
 
 
 print("")
