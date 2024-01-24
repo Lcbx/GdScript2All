@@ -119,9 +119,8 @@ class Parser:
 				if found_EOL:
 					# go up and down in scope
 					# NOTE: we assume scope is managed the same way across languages
-					if lvl > self.level: self.out.UpScope()
-					elif lvl < self.level: self.out.DownScope()
-					self.level = lvl
+					while lvl > self.level: self.out.UpScope(); self.level +=1
+					while lvl < self.level: self.out.DownScope(); self.level -=1
 				return
 			found_EOL = True
 			self.out += '\n'
@@ -217,49 +216,62 @@ class Parser:
 		constant = self.expect('const') 
 		if constant or self.expect('var'):
 			name = self.consume()
-			type = self.consume() if self.expect(":") and self.tkn_is_text() else ''
-			type_, definition = self.assignment()
+			type = self.consume() if self.expect(':') and self.tkn_is_text() else ''
+			# discarding array type, for now
+			if type == 'Array' and self.expect('['): self.consume(); self.expect(']')
+			assignment = self.assignment()
+			type_ = next(assignment)
 			type = type if type else type_ if type_ else 'Object'
 			self.out.declare_variable(type, name, constant)
-			if definition:definition()
+			next(assignment)
 			self.out.end_statement()
 	
 	
-	# assignement and all expression returns a tuple -> (type : str, effect:closure)
-	
-	# util
-	def create_effect(self, type, value, transparisation):
-		return (type, lambda:transparisation(type, value))
+	# assignment and all expression use generator/coroutine for type inference
+	# the format expected is :
+	# yield <type>
+	# <emit code>
+	# yield None
 	
 	def assignment(self):
 		if self.expect('='):
-			type, expression = self.expression()
-			if not expression: return type, expression
-			def effect():
-				self.out.assignment()
-				if expression: expression()
-			return type, effect
-		return '', None
+			expression = self.expression()
+			yield next(expression)
+			self.out.assignment()
+			yield next(expression)
+		# nothing found, return empties
+		else: yield ''; yield None
 	
 	def expression(self):
-		# ternary : boolean [[if boolean]1+ else boolean]?
+		# ternary : boolean [if boolean else boolean]*
 		# boolean : comparison [and|or comparison]*
 		# comparison : arithmetic [<|>|==|... arithmetic]?
-		# arithmetic : literal [*|/|+|-|... literal]*
-		# ternary : [(ternary)]?|int|float|string|array|dict]
+		# arithmetic : value [*|/|+|-|... value]*
+		# value : [(ternary)]?|literal|collection|function|method]
+		# function : <function>([expression[, expression]*]?)
+		# method : <variable>.<method>([expression[, expression]*]?)
+		# collection : array, dict
+		# array : \[ [expresssion [, expression]*]? \]
+		# dict : { [expresssion:expression [, expresssion:expression]*]? }
+		# literal : int|float|string
 		return self.literal()
 	
 	def literal(self):
 		if self.tkn_is_int():
 			val = int(self.consume())
-			return self.create_effect(int, val, self.out.literal)
+			yield 'int'
+			self.out.literal(val)
 		elif self.tkn_is_float():
 			val = float(self.consumeUntil('.') + (self.consume() if self.tkn_is_int() else ''))
-			return self.create_effect(float, val, self.out.literal)
+			yield 'float'
+			self.out.literal(val)
 		elif self.current() in ('true', 'false'):
 			val = self.consume() == 'true'
-			return self.create_effect(bool, val, self.out.literal)
-		return '', None
+			yield 'bool'
+			self.out.literal(val)
+		# nothing found, return empties
+		else: yield ''
+		yield None
 	
 	
 	def statement(self):

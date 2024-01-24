@@ -6,6 +6,11 @@ def toPascal(text):
 	under0 = text[0] == '_'
 	return ('_' if under0 else '') + text.replace("_", " ").title().replace(" ", "")
 
+def translate_type(type):
+	if type in ref.godot_types: type = f'Godot.{type}'
+	elif type == 'float': type = 'double' # C# uses doubles
+	return type
+
 class CSharpTranspiler:
 	
 	def __init__(self):
@@ -72,16 +77,17 @@ class CSharpTranspiler:
 		name = ref.export_replacements[name] if name in ref.export_replacements else ( toPascal(name) + ('(' if params else '') )
 		self += f'[{name}("{params}")]\n' if params else f'[{name}]\n'
 	
+	
 	def declare_variable(self, type, name, constant):
-		if type in ref.godot_types: type = f'Godot.{type}'
-		elif type == float: type = 'double' # C# uses doubles
+		type = translate_type(type)
 		const_decl = 'const ' if constant else ''
-		self += f'public {const_decl}{type} {name}'
+		exposed = 'protected' if name[0] == '_' else 'public'
+		self += f'{exposed} {const_decl}{type} {name}'
 	
 	def assignment(self):
 		self += f' = '
 	
-	def literal(self, type, value):
+	def literal(self, value):
 		self += str(value)
 	
 	def define_method(self, name, return_type):

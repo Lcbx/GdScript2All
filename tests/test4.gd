@@ -1,18 +1,31 @@
 @tool
 extends Node
 
+# line comment
+
+""" multiline
+   comment
+"""
+
 class Nested1 extends test:
 class Nested2:
+	class Nested3:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
-const i = 0
+var foo
 
-@export(Date,Param)	var Date = preload("res://path")
+const _i = 0
+
+@export(Date,Param)
 var ABC = true
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
+var a : Array[int] = [0]
+
+var Date = preload("res://path")
+
 var G:float : set = _set_state, get = _get_state
 
 var DEF = -0.1 # Step

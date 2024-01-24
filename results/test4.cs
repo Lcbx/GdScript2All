@@ -5,6 +5,12 @@ using Array = Godot.Collections.Array;
 
 
 
+// line comment
+
+/* multiline
+   comment
+*/
+
 [Tool]
 public partial class test4 : Godot.Node
 {
@@ -16,14 +22,26 @@ public partial class test4 : Godot.Node
 	public partial class Nested2 : Godot.Object
 	{
 		
-		
+		public partial class Nested3 : Godot.Object
+		{
+			
+			
+			
+		}
 		
 	}
 	enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 	enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 	
-	public const <class 'int'> i = 0;
+	public Godot.Object foo;
+	
+	protected const int _i = 0;
 	
 	[Export(("Date,Param")]
-	public Godot.Object Date;
+	
+	public bool ABC = True;
+	
+	[Export(PropertyHint.Flags,("Self:4, Allies:8, Foes:16")]
+	
+	public Godot.Array a = ;
 }
