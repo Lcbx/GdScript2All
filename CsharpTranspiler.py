@@ -3,8 +3,11 @@ import godotReference as ref
 
 
 def toPascal(text):
-	under0 = text[0] == '_'
-	return ('_' if under0 else '') + text.replace("_", " ").title().replace(" ", "")
+	text0is_ = text[0] == '_'
+	if text0is_: text[0] = '*'
+	val = text.replace("_", " ").title().replace(" ", "")
+	if text0is_: val[0] = '_'
+	return val
 
 def translate_type(type):
 	if type in ref.godot_types: type = f'Godot.{type}'

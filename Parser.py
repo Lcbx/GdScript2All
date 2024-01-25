@@ -25,7 +25,7 @@ class Parser:
 		# split into tokens (we consider non-words full tokens)
 		self.tokens = re.split('(\W)', text)
 		# ignore empty strings...
-		self.tokens =  [token for token in self.tokens if token != '']
+		self.tokens =  [token for token in self.tokens if token]
 		
 		# NOTES:
 		# * tokens kept as strings to avoid adding 1k+ code
@@ -36,7 +36,6 @@ class Parser:
 	""" parsing utils """
 	
 	def current(self, n = 1):
-		#print(n, self.tokens[self.index-1], self.tokens[self.index], self.tokens[self.index+1])
 		return ''.join(self.tokens[self.index:self.index+n]) if n>1 else self.tokens[self.index]
 	
 	def tkn_is_text(self):
@@ -208,7 +207,7 @@ class Parser:
 		if self.expect('@'):
 			name = self.consume()
 			# NOTE: this should work for most cases
-			params = self.consumeUntil(')', keep_end=False, ignore=['"', "'"]) if self.expect('(') else ""
+			params = self.consumeUntil(')', keep_end=False, ignore=['"', "'"]) if self.expect('(') else ''
 			self.out.annotation(name, params)
 	
 	
@@ -224,7 +223,7 @@ class Parser:
 				self.consume(); self.expect(']')
 			assignment = self.assignment_value()
 			type_ = next(assignment)
-			type = type if type else type_ if type_ else 'Object'
+			type = type or type_ or 'Object'
 			self.out.declare_variable(type, name, constant)
 			next(assignment)
 			self.out.end_statement()
