@@ -19,5 +19,9 @@ public partial class Character : Godot.CharacterBody3D
 	public const double MIN_JUMP_VELOCITY = 3.5;
 	public const double MAX_Y_SPEED = 10.0;
 	
-	public const Godot.Object XZ = ;
+	public const Godot.Vector3 XZ = Vector3(1.0,0.0,1.0);
+	public const Godot.Vector3 YZ = Vector3(0.0,1.0,1.0);
+	public const Godot.Vector3 XY = Vector3(1.0,1.0,0.0);
+	
+	
 }

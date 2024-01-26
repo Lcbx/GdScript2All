@@ -80,8 +80,8 @@ class CSharpTranspiler:
 		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = ref.export_replacements[name] if name in ref.export_replacements else ( toPascal(name) + ('(' if params else '') )
-		self += f'[{name}("{params}")]\n' if params else f'[{name}]\n'
+		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + (params and '(')
+		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
 	
 	
 	def declare_variable(self, type, name, constant):
@@ -91,23 +91,28 @@ class CSharpTranspiler:
 		self += f'{exposed} {const_decl}{type} {name}'
 	
 	def assignment(self):
-		self += f' = '
+		self += ' = '
 	
-	def value_separator(self):
-		self += f','
+	def subexpression(self, expression):
+		self += '('; get(expression); self += ')'
 	
-	def create_array(self):
+	def call(self, name, params):
+		self += name + '('
+		for p in params[:-1]:
+			get(p); self += ','
+		if len(params)>1: get(params[-1])
+		self += ')'
+	
+	def create_array(self, values):
 		self += 'new Array{'
-	def array_entry(self, value):
-		get(value)
-	def end_array(self):
+		for value in values:
+			get(value); self += ','
 		self += '}'
 		
-	def create_dict(self):
+	def create_dict(self, kv):
 		self += 'new Dictionary{'
-	def dict_entry(self, key, value):
-		self += '{'; get(key); self += ','; get(value); self+= '}'
-	def end_dict(self):
+		for key, value in kv:
+			self += '{'; get(key); self += ','; get(value); self+= '},'
 		self += '}'
 	
 	def literal(self, value):

@@ -17,21 +17,26 @@ enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
 var foo
-const bar = 'the fox said "get off my lawn"'
+const string = 'the fox said "get off my lawn"'
+var int = 0
+var _bool := true
 
-@export(Date,Param)
-var ABC := true
+@export
+var array : Array[int] = [0,1,2]
+
+@export(param1, param2)
+var dict := {0:1, 1:2, 2:3}
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
-var _i = 0
+var parenthesis := (42)
 
-var a : Array[int] = [0,1,2]
+var preload_resource = preload("res://path")
+var load_resource = load("res://path")
 
-var d := {0:1, 1:2, 2:3}
+var get_node = $node
+var get_global_node = %global_node
 
-var Date = preload("res://path")
-
-var G:float : set = _set_state, get = _get_state
+var getset_var:float : set = _set_state, get = _get_state
 
 var DEF = -0.1 # Step
 	set (value):

@@ -239,7 +239,7 @@ class Parser:
 	# the format expected is :
 	# yield <type>
 	# <emit code>
-	# yield None
+	# yield
 	
 	def assignment_value(self):
 		if self.expect('='):
@@ -248,37 +248,47 @@ class Parser:
 			self.out.assignment()
 			yield next(expression)
 		# nothing found, return empties
-		else: yield ''; yield None
+		else: yield; yield
+	
+	## GRAMMAR
+	# expression : subexpression | ternary
+	# ternary : [boolean [if boolean else boolean]* ]
+	# subexpression : (expression)
+	# boolean : comparison [and|or comparison]*
+	# comparison : arithmetic [<|>|==|... arithmetic]?
+	# arithmetic : value [*|/|+|-|... value]*
+	# value : literal|variable|reference|call
+	# literal : int|float|string|array|dict
+	# variable : name
+	# reference : [variable|call][.name?]
+	# call : reference([expression[, expression]*]?)
+	# array : \[ [expresssion [, expression]*]? \]
+	# dict : { [expresssion:expression [, expresssion:expression]*]? }
 	
 	def expression(self):
-		# ternary : boolean [if boolean else boolean]*
-		# boolean : comparison [and|or comparison]*
-		# comparison : arithmetic [<|>|==|... arithmetic]?
-		# arithmetic : value [*|/|+|-|... value]*
-		# value : [(ternary)]?|literal|function|method]
-		# literal : int|float|string|array|dict
-		# function : <function>([expression[, expression]*]?)
-		# method : <variable>.<method>([expression[, expression]*]?)
-		# array : \[ [expresssion [, expression]*]? \]
-		# dict : { [expresssion:expression [, expresssion:expression]*]? }
-		return self.literal()
+		ret = self.value
+		return ret()
 	
-	def literal(self):
+	def value(self):
+		
 		# int
 		if self.tkn_is_int():
 			val = int(self.consume())
 			yield 'int'
 			self.out.literal(val)
+			
 		# float
 		elif self.tkn_is_float():
 			val = float(self.consumeUntil('.') + (self.consume() if self.tkn_is_int() else ''))
 			yield 'float'
 			self.out.literal(val)
+			
 		# bool
 		elif self.current() in ('true', 'false'):
 			val = self.consume() == 'true'
 			yield 'bool'
 			self.out.literal(val)
+			
 		# string (both "" and '')
 		elif self.expect('"'):
 			val = self.consumeUntil('"', keep_end = False)
@@ -288,30 +298,64 @@ class Parser:
 			val = self.consumeUntil("'", keep_end = False)
 			yield 'string'
 			self.out.literal(val)
+			
 		# array
 		elif self.expect('['):
 			yield 'Array'
-			self.out.create_array()
-			while not self.expect(']'):
-				val = self.expression()
-				# discarding types
-				next(val)
-				self.out.array_entry(val)
-				if self.expect(','): self.out.value_separator()
-			self.out.end_array()
-			yield None
+			def iter():
+				while not self.expect(']'):
+					val = self.expression();
+					next(val) # discarding type
+					self.expect(',')
+					yield val
+			values = [*iter()]
+			self.out.create_array(values)
+			
 		# dictionary
 		elif self.expect('{'):
 			yield 'Dictionary'
-			self.out.create_dict()
-			while not self.expect('}'):
-				key = self.expression()
-				val = self.expression()
-				# discarding types
-				next(key); self.expect(':'); next(val)
-				self.out.dict_entry(key, val)
-				if self.expect(','):self.out.value_separator()
-			self.out.end_dict()
-		# nothing found, return empties
-		else: yield ''
-		yield None
+			def iter():
+				while not self.expect('}'):
+					key = self.expression()
+					val = self.expression()
+					next(key); self.expect(':'); next(val)
+					self.expect(',')
+					yield (key, val)
+			kv = [*iter()]
+			self.out.create_dict(kv)
+			
+		# subexpression
+		elif self.expect('('):
+			enclosed = self.expression()
+			yield next(enclosed)
+			self.out.subexpression(enclosed)
+			self.expect(')')
+			yield
+		
+		# variable|reference|call
+		else:
+			while self.tkn_is_text():
+				# variable value
+				# TODO: determine if existing variable / property
+				name = self.consume()
+				
+				# call : reference([expression[, expression]*]?)
+				if self.expect('('):
+					yield name if name in ref.godot_types else 'Object'
+					# TODO: determine function return types
+					def iter():
+						while not self.expect(')'):
+							exp = self.expression();next(exp)
+							yield exp
+							self.expect(',')
+					params = [*iter()]
+					self.out.call(name, params)
+					yield
+				
+				# reference : [variable|call].name
+				if self.expect('.'):
+					def ret():
+						yield 'test'
+						yield
+			yield
+		yield
