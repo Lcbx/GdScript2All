@@ -52,8 +52,14 @@ public partial class test4 : Godot.Node
 	
 	public int parenthesis = (42);
 	
-	public Godot.Object preload_resource = preload();
-	public Godot.Object load_resource = load();
+	public Godot.Object variable = foo;
+	public Godot.Object reference = foo.bar;
+	public Godot.Object function = foo();
+	public Godot.Object functionParams = foo(a,b);
+	public Godot.Object method = foo.bar();
+	public Godot.Object functionMethodParams = foo(a,b)foo.bar(c,d);
+	public Godot.Object refMethod = foo.bar.baz();
+	public Godot.Object methodRef = foo.bar()bar.baz;
 	
 	public Godot.Object get_node = ;
 }

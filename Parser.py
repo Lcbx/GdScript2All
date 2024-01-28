@@ -69,8 +69,8 @@ class Parser:
 			self.line += 1
 			self.line_index = self.index
 			#print('********** line')
-		elif found:
-			print(f'{token} ? => {found}')
+		#elif found:
+		#	print(f'{token} ? => {found}')
 		
 		if match: self.index+=n
 		
@@ -215,6 +215,7 @@ class Parser:
 	def variable_declaration(self):
 		# NOTE: constants should only be declared at script/inner class level
 		constant = self.expect('const') 
+		static = self.expect('static') 
 		if constant or self.expect('var'):
 			name = self.consume()
 			type = self.consume() if self.expect(':') and self.tkn_is_text() else ''
@@ -224,7 +225,7 @@ class Parser:
 			assignment = self.assignment_value()
 			type_ = next(assignment)
 			type = type or type_ or 'Object'
-			self.out.declare_variable(type, name, constant)
+			self.out.declare_variable(type, name, constant, static)
 			next(assignment)
 			self.out.end_statement()
 	
@@ -239,7 +240,6 @@ class Parser:
 	# the format expected is :
 	# yield <type>
 	# <emit code>
-	# yield
 	
 	def assignment_value(self):
 		if self.expect('='):
@@ -257,11 +257,12 @@ class Parser:
 	# boolean : comparison [and|or comparison]*
 	# comparison : arithmetic [<|>|==|... arithmetic]?
 	# arithmetic : value [*|/|+|-|... value]*
-	# value : literal|variable|reference|call
+	# value : literal|textCode
 	# literal : int|float|string|array|dict
-	# variable : name
-	# reference : [variable|call][.name?]
-	# call : reference([expression[, expression]*]?)
+	# textCode : variable|reference|call
+	# variable : <name>
+	# reference : textCode.textCode
+	# call : textCode([expression[, expression]*]?)
 	# array : \[ [expresssion [, expression]*]? \]
 	# dict : { [expresssion:expression [, expresssion:expression]*]? }
 	
@@ -324,38 +325,75 @@ class Parser:
 			kv = [*iter()]
 			self.out.create_dict(kv)
 			
-		# subexpression
+		# subexpression : (expression)
 		elif self.expect('('):
 			enclosed = self.expression()
 			yield next(enclosed)
 			self.out.subexpression(enclosed)
 			self.expect(')')
-			yield
 		
-		# variable|reference|call
-		else:
-			while self.tkn_is_text():
-				# variable value
-				# TODO: determine if existing variable / property
+		# textCode : variable|reference|call
+		elif self.tkn_is_text():
+			content = self.textCode()
+			yield next(content)
+			next(content)
+		
+		yield; yield
+	
+	
+	#TODO: fix this (use recursion with an inner func instead ?)
+	
+	# textCode : variable|reference|call
+	def textCode(self, originType = None):
+	
+		# closures to emit code after determining type
+		emissions = []
+		def addEmission(params, func):
+			if isinstance(params, tuple):
+				def inner():
+					func(*params)
+			else:
+				def inner():
+					func(params)
+			emissions.append(inner)
+		
+		lastIndex = -1
+		while lastIndex != self.index:
+			lastIndex = self.index
+			
+			if self.tkn_is_text():
 				name = self.consume()
+				# TODO: check if this is :
+				# - a script declared variable/property
+				# - a static global from godot (ex: RenderingServer)
+				type = 'Object'
+			
+			# call : ([expression[, expression]*]?)
+			if self.expect('('):
+				# TODO: check the method or function's return type
+				type = name if name in ref.godot_types else 'Object'
 				
-				# call : reference([expression[, expression]*]?)
-				if self.expect('('):
-					yield name if name in ref.godot_types else 'Object'
-					# TODO: determine function return types
-					def iter():
-						while not self.expect(')'):
-							exp = self.expression();next(exp)
-							yield exp
-							self.expect(',')
-					params = [*iter()]
-					self.out.call(name, params)
-					yield
+				# determine params
+				def iter():
+					while not self.expect(')'):
+						exp = self.expression();next(exp)
+						yield exp
+						self.expect(',')
+				params = [*iter()]
 				
-				# reference : [variable|call].name
-				if self.expect('.'):
-					def ret():
-						yield 'test'
-						yield
-			yield
+				addEmission( (name, params), self.out.call )
+			
+			# reference : .textCode
+			elif self.expect('.'):
+				# TODO: check if is a method or member of the class <originType>
+				
+				addEmission(name, self.out.reference)
+				
+			# variable : <name> (at start and possibly end)
+			else:
+				
+				addEmission(name, self.out.variable)
+		
+		yield type
+		for c in emissions[:-1]: c()
 		yield

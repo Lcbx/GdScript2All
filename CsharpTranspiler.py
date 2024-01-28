@@ -84,9 +84,9 @@ class CSharpTranspiler:
 		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
 	
 	
-	def declare_variable(self, type, name, constant):
+	def declare_variable(self, type, name, constant, static):
 		type = translate_type(type)
-		const_decl = 'const ' if constant else ''
+		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
 	
@@ -119,6 +119,12 @@ class CSharpTranspiler:
 		# surround string value in quotes and escape the quotes inside
 		if isinstance(value, str): value = '"' + value.replace('"', '\\"') + '"'
 		self += str(value)
+	
+	def variable(self, name):
+		self += name
+	
+	def reference(self, name):
+		self += name + '.'
 	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)

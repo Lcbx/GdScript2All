@@ -30,11 +30,19 @@ var dict := {0:1, 1:2, 2:3}
 @export_flags("Self:4", "Allies:8", "Foes:16")
 var parenthesis := (42)
 
-var preload_resource = preload("res://path")
-var load_resource = load("res://path")
+var variable = foo
+var reference = foo.bar
+var function = foo()
+var functionParams = foo(a,b)
+var method = foo.bar()
+var functionMethodParams = foo(a,b).bar(c,d)
+var refMethod = foo.bar.baz()
+var methodRef = foo.bar().baz
 
 var get_node = $node
 var get_global_node = %global_node
+var preload_resource = preload("res://path")
+var load_resource = load("res://path")
 
 var getset_var:float : set = _set_state, get = _get_state
 
