@@ -57,9 +57,6 @@ public partial class test4 : Godot.Node
 	public Godot.Object function = foo();
 	public Godot.Object functionParams = foo(a,b);
 	public Godot.Object method = foo.bar();
-	public Godot.Object functionMethodParams = foo(a,b)foo.bar(c,d);
-	public Godot.Object refMethod = foo.bar.baz();
-	public Godot.Object methodRef = foo.bar()bar.baz;
-	
-	public Godot.Object get_node = ;
+	public Godot.Object functionMethodParams = foo(a,b).bar(c,d);
+	public Godot.Object refMethod = foo.bar;
 }

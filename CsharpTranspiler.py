@@ -96,12 +96,6 @@ class CSharpTranspiler:
 	def subexpression(self, expression):
 		self += '('; get(expression); self += ')'
 	
-	def call(self, name, params):
-		self += name + '('
-		for p in params[:-1]:
-			get(p); self += ','
-		if len(params)>1: get(params[-1])
-		self += ')'
 	
 	def create_array(self, values):
 		self += 'new Array{'
@@ -124,7 +118,14 @@ class CSharpTranspiler:
 		self += name
 	
 	def reference(self, name):
-		self += name + '.'
+		self += '.' + name
+	
+	def call(self, name, params):
+		self += name + '('
+		for p in params[:-1]:
+			get(p); self += ','
+		if len(params)>0: get(params[-1])
+		self += ')'
 	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)

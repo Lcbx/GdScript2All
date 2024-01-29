@@ -236,6 +236,8 @@ class Parser:
 		# NOTE: reassignment and method call start the same :
 		# <variable|class>[.<function|property>]* then differ  -> '(...)' for call, '=' for reassignment
 	
+	
+	
 	# assignment and all expression use generator/coroutine for type inference
 	# the format expected is :
 	# yield <type>
@@ -289,12 +291,15 @@ class Parser:
 			val = self.consume() == 'true'
 			yield 'bool'
 			self.out.literal(val)
-			
-		# string (both "" and '')
+		
+		# TODO: support multiline (""") string
+		
+		# "" string
 		elif self.expect('"'):
 			val = self.consumeUntil('"', keep_end = False)
 			yield 'string'
 			self.out.literal(val)
+		# '' string
 		elif self.expect("'"):
 			val = self.consumeUntil("'", keep_end = False)
 			yield 'string'
@@ -341,59 +346,59 @@ class Parser:
 		yield; yield
 	
 	
-	#TODO: fix this (use recursion with an inner func instead ?)
-	
-	# textCode : variable|reference|call
-	def textCode(self, originType = None):
-	
-		# closures to emit code after determining type
-		emissions = []
-		def addEmission(params, func):
-			if isinstance(params, tuple):
-				def inner():
-					func(*params)
-			else:
-				def inner():
-					func(params)
-			emissions.append(inner)
+	# textCode : variable|call|reference
+	def textCode(self):
+		name = self.consume()
+		# TODO: check if this is :
+		# - a script declared variable/property
+		# - a static global from godot (ex: RenderingServer)
+		type = 'Object'
 		
-		lastIndex = -1
-		while lastIndex != self.index:
-			lastIndex = self.index
-			
-			if self.tkn_is_text():
-				name = self.consume()
-				# TODO: check if this is :
-				# - a script declared variable/property
-				# - a static global from godot (ex: RenderingServer)
-				type = 'Object'
-			
-			# call : ([expression[, expression]*]?)
-			if self.expect('('):
-				# TODO: check the method or function's return type
-				type = name if name in ref.godot_types else 'Object'
-				
-				# determine params
-				def iter():
-					while not self.expect(')'):
-						exp = self.expression();next(exp)
-						yield exp
-						self.expect(',')
-				params = [*iter()]
-				
-				addEmission( (name, params), self.out.call )
-			
-			# reference : .textCode
-			elif self.expect('.'):
-				# TODO: check if is a method or member of the class <originType>
-				
-				addEmission(name, self.out.reference)
-				
-			# variable : <name> (at start and possibly end)
-			else:
-				
-				addEmission(name, self.out.variable)
+		if self.expect('('):
+			call = self.call(type, name)
+			yield next(call)
+			next(call)
+		elif self.expect('.'):
+			reference = self.reference(type)
+			yield next(reference)
+			self.out.variable(name)
+			next(reference)
+		else:
+			yield type
+			self.out.variable(name)
+		yield
 		
-		yield type
-		for c in emissions[:-1]: c()
+	def call(self, type, name):
+		# TODO: check the method or function's return type
+		type = name if name in ref.godot_types else 'Object'
+		
+		# determine params
+		def iter():
+			while not self.expect(')'):
+				exp = self.expression();next(exp)
+				yield exp
+				self.expect(',')
+		params = [*iter()]
+		
+		if self.expect('.'):
+			reference = self.reference(type)
+			yield next(reference)
+			self.out.call(name, params)
+			next(reference)
+		else:
+			yield type
+			self.out.call(name, params)
+		yield
+	
+	def reference(self, type):
+		name = self.consume()
+		# TODO: check if is a method or member of type
+		if self.expect('('):
+			call = self.call(type, name)
+			yield next(call)
+			self.out.reference('') # let function emit name
+			next(call)
+		else:
+			yield type
+			self.out.reference(name)
 		yield
