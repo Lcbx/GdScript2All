@@ -2,20 +2,6 @@ from io import StringIO
 import godotReference as ref
 
 
-def toPascal(text):
-	text0is_ = text[0] == '_'
-	if text0is_: text[0] = '*'
-	val = text.replace("_", " ").title().replace(" ", "")
-	if text0is_: val[0] = '_'
-	return val
-
-def translate_type(type):
-	if type in ref.godot_types: type = f'Godot.{type}'
-	elif type == 'float': type = 'double' # C# uses doubles
-	return type
-
-# trick for generator values
-get = next
 
 class CSharpTranspiler:
 	
@@ -137,6 +123,22 @@ class CSharpTranspiler:
 		# TODO: add ready function if missing and there are onready assignements in onready array
 		pass
 
+## Utils
+
+def toPascal(text):
+	text0is_ = text[0] == '_'
+	if text0is_: text[0] = '*'
+	val = text.replace("_", " ").title().replace(" ", "")
+	if text0is_: val[0] = '_'
+	return val
+
+def translate_type(type):
+	if type in ref.godot_types: type = f'Godot.{type}'
+	elif type == 'float': type = 'double' # C# uses doubles
+	return type
+
+# trick for generator values
+get = next
 
 # TODO : await => await ToSignal(....)"
 # TODO : $Path => GetNode()

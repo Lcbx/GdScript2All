@@ -40,7 +40,7 @@ var refMethod = foo.bar.baz()
 var methodRef = foo.bar().baz
 
 var get_node = $node
-var get_global_node = %global_node
+var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 

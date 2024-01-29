@@ -238,7 +238,7 @@ class Parser:
 	
 	
 	
-	# assignment and all expression use generator/coroutine for type inference
+	# assignment and all expression use generator/passthrough for type inference
 	# the format expected is :
 	# yield <type>
 	# <emit code>
@@ -337,6 +337,18 @@ class Parser:
 			self.out.subexpression(enclosed)
 			self.expect(')')
 		
+		# get_node shortcuts : $node => get_node("node") -> Node
+		elif self.expect('$'):
+			name = self.consume()
+			yield 'Node'
+			self.out.call("get_node", (passthrough(self.out.literal, name) ,) )
+			
+		# scene-unique nodes : %node => get_node("%node") -> Node
+		elif self.expect('%'):
+			name = self.consume()
+			yield 'Node'
+			self.out.call("get_node", (passthrough(self.out.literal, f'%{name}') ,) )
+		
 		# textCode : variable|reference|call
 		elif self.tkn_is_text():
 			content = self.textCode()
@@ -344,7 +356,6 @@ class Parser:
 			next(content)
 		
 		yield; yield
-	
 	
 	# textCode : variable|call|reference
 	def textCode(self):
@@ -375,10 +386,9 @@ class Parser:
 		# determine params
 		def iter():
 			while not self.expect(')'):
-				exp = self.expression();next(exp)
-				yield exp
+				exp = self.expression(); next(exp); yield exp
 				self.expect(',')
-		params = [*iter()]
+		params = ( *iter() ,)
 		
 		if self.expect('.'):
 			reference = self.reference(type)
@@ -398,7 +408,17 @@ class Parser:
 			yield next(call)
 			self.out.reference('') # let function emit name
 			next(call)
+		elif self.expect('.'):
+			reference = self.reference(type)
+			yield next(reference)
+			self.out.reference(name)
+			next(reference)
 		else:
 			yield type
 			self.out.reference(name)
 		yield
+
+## Utils
+
+def passthrough(closure, *values):
+	closure(*values); yield

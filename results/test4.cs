@@ -58,5 +58,13 @@ public partial class test4 : Godot.Node
 	public Godot.Object functionParams = foo(a,b);
 	public Godot.Object method = foo.bar();
 	public Godot.Object functionMethodParams = foo(a,b).bar(c,d);
-	public Godot.Object refMethod = foo.bar;
+	public Godot.Object refMethod = foo.bar.baz();
+	public Godot.Object methodRef = foo.bar().baz;
+	
+	public Godot.Node get_node = get_node("node");
+	public Godot.Node get_unique_node = get_node("%unique_node");
+	public Godot.Object preload_resource = preload("res://path");
+	public Godot.Object load_resource = load("res://path");
+	
+	public double getset_var;
 }
