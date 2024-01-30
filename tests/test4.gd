@@ -17,8 +17,8 @@ enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
 var foo
+var i = 0
 const string = 'the fox said "get off my lawn"'
-var int = 0
 var _bool := true
 
 @export
@@ -39,12 +39,29 @@ var functionMethodParams = foo(a,b).bar(c,d)
 var refMethod = foo.bar.baz()
 var methodRef = foo.bar().baz
 
+# test type inference on local class members
+var j = self.i
+
+# determine type based on godot doc
+var x = Vector3().x 
+static var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+const flag = RenderingServer.NO_INDEX_ARRAY
+
+# Gdscript special syntax
 var get_node = $node
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
-var getset_var:float : set = _set_state, get = _get_state
+# methods
+func empty(v:float):
+	pass
+
+func returning()->float:
+	empty(7.)
+	return 1.
+
+var getset_var:float : set = _set, get = _get
 
 var DEF = -0.1 # Step
 	set (value):
@@ -71,28 +88,22 @@ const _default_data = {
 	"t":{"e":{"g":1,"f":2},},
 };
 
-func setterA(v:float):
-	return
-	pass
-
-func getterA()->float:
-	return 1.
 
 func ready():
 	var s = range(abs(-1),randi())
 	
-	.ready();
+	ready();
 
-    if ABC: # Comment
-        assert(false)
-    elif false:
-        print("Hello"+" "+"World")
-    else:
-        (a+b)()
-    return [
-    [0,e,[0,{}]], # a
-    [1,{},[0,{}]],
-    ];
+	if ABC:
+		assert(false)
+	elif false:
+		print("Hello"+" "+"World")
+	else:
+		(a+b)()
+	return [
+		[0,e,[0,{}]], # a
+		[1,{},[0,{}]],
+	];
 
 # Do stuff
 func r(value:T,val=false,s)->bool:

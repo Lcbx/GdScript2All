@@ -8,15 +8,8 @@ class Parser:
 	
 	
 	def __init__(self, filename, text, transpiler):
+		# keep track of the script being transpiled
 		self.script_name = filename
-		# char index in original script
-		self.index = 0
-		# indentation level
-		self.level = 0
-		# line number in original script (starting at 0)
-		self.line = 0
-		# token index corresponding to line start
-		self.line_index = 0
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
 		
@@ -26,6 +19,21 @@ class Parser:
 		self.tokens = re.split('(\W)', text)
 		# ignore empty strings...
 		self.tokens =  [token for token in self.tokens if token]
+		
+		# char index in original script
+		self.index = 0
+		# indentation level
+		self.level = 0
+		# line number in original script (starting at 0)
+		self.line = 0
+		# token index corresponding to line start
+		self.line_index = 0
+		
+		# script class data
+		self.is_tool = None
+		self.base_class = None
+		self.class_name = None
+		self.data = ref.ClassData()
 		
 		# NOTES:
 		# * tokens kept as strings to avoid adding 1k+ code
@@ -113,7 +121,7 @@ class Parser:
 			# setting scope level only when we encounter non-whitespace
 			if not self.expect('\n'):
 				# go up and down in scope
-				# NOTE: we assume scope is managed the same way across languagesgit 
+				# NOTE: we assume scope is managed the same way across languages
 				if lvl != -1:
 					while lvl > self.level: self.out.UpScope(); self.level +=1
 					while lvl < self.level: self.out.DownScope(); self.level -=1
@@ -133,11 +141,12 @@ class Parser:
 		self.endline()
 		
 		# script start specific statements
-		is_tool = self.expect('@tool', 2); self.endline()
-		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
-		class_name = self.consume() if self.expect('class_name') else self.script_name
+		self.is_tool = self.expect('@tool', 2); self.endline()
+		self.base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
+		self.class_name = self.consume() if self.expect('class_name') else self.script_name
+		
 		# no endline after class name since we declare the class before that
-		self.out.define_class(class_name, base_class, is_tool); self.endline()
+		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
 		
 		# script-level loop
 		end = len(self.tokens)
@@ -224,7 +233,8 @@ class Parser:
 				self.consume(); self.expect(']')
 			assignment = self.assignment_value()
 			type_ = next(assignment)
-			type = type or type_ or 'Object'
+			type = type or type_ or 'Variant'
+			self.data.members[name] = type
 			self.out.declare_variable(type, name, constant, static)
 			next(assignment)
 			self.out.end_statement()
@@ -254,19 +264,19 @@ class Parser:
 	
 	## GRAMMAR
 	# expression : subexpression | ternary
-	# ternary : [boolean [if boolean else boolean]* ]
-	# subexpression : (expression)
-	# boolean : comparison [and|or comparison]*
-	# comparison : arithmetic [<|>|==|... arithmetic]?
-	# arithmetic : value [*|/|+|-|... value]*
-	# value : literal|textCode
-	# literal : int|float|string|array|dict
-	# textCode : variable|reference|call
-	# variable : <name>
-	# reference : textCode.textCode
-	# call : textCode([expression[, expression]*]?)
-	# array : \[ [expresssion [, expression]*]? \]
-	# dict : { [expresssion:expression [, expresssion:expression]*]? }
+	# ternary : [boolean [if boolean else boolean]* ]					----> TODO
+	# subexpression : (expression)										
+	# boolean : comparison [and|or comparison]*							----> TODO
+	# comparison : arithmetic [<|>|==|... arithmetic]?					----> TODO
+	# arithmetic : value [*|/|+|-|... value]*							----> TODO
+	# value : literal|textCode											
+	# literal : int|float|string|array|dict								
+	# textCode : variable|reference|call								
+	# variable : <name>													
+	# reference : textCode.textCode										
+	# call : textCode([expression[, expression]*]?)						
+	# array : \[ [expresssion [, expression]*]? \]						
+	# dict : { [expresssion:expression [, expresssion:expression]*]? }	
 	
 	def expression(self):
 		ret = self.value
@@ -359,29 +369,45 @@ class Parser:
 	
 	# textCode : variable|call|reference
 	def textCode(self):
-		name = self.consume()
-		# TODO: check if this is :
-		# - a script declared variable/property
-		# - a static global from godot (ex: RenderingServer)
-		type = 'Object'
+		 
+		 # ignoring 'self.' for now
+		self.expect('self.', 2)
 		
+		name = self.consume()
+		
+		# call
 		if self.expect('('):
-			call = self.call(type, name)
+			call = self.call(None, name)
 			yield next(call)
+			##if this : self.out.this()
 			next(call)
+		
+		# reference
 		elif self.expect('.'):
+			# type could be a singleton (ex: RenderingServer) or a call to a static function
+			singleton = name in ref.godot_types
+			type = self.data.members.get(name, None) or (name if singleton else None)
 			reference = self.reference(type)
 			yield next(reference)
-			self.out.variable(name)
+			##if this : self.out.this()
+			self.out.singleton(name) if singleton else self.out.variable(name)
 			next(reference)
+		
+		# lone variable or global
 		else:
-			yield type
+			yield self.data.members.get(name, None)
+			#if this : self.out.this()
 			self.out.variable(name)
 		yield
 		
 	def call(self, type, name):
-		# TODO: check the method or function's return type
-		type = name if name in ref.godot_types else 'Object'
+		
+		# determine return type
+		type = name if name in ref.godot_types \
+			else self.methods[name] if name in self.data.methods \
+			else ref.godot_types[type].methods[name] if \
+				type in ref.godot_types and name in ref.godot_types[type].methods \
+			else None
 		
 		# determine params
 		def iter():
@@ -402,19 +428,32 @@ class Parser:
 	
 	def reference(self, type):
 		name = self.consume()
-		# TODO: check if is a method or member of type
+		member_type = ref.godot_types[type].members[name] if \
+				type in ref.godot_types and name in ref.godot_types[type].members \
+			else None
+		
+		# call
 		if self.expect('('):
 			call = self.call(type, name)
 			yield next(call)
 			self.out.reference('') # let function emit name
 			next(call)
+		
+		# other reference
 		elif self.expect('.'):
-			reference = self.reference(type)
+			reference = self.reference(member_type)
 			yield next(reference)
 			self.out.reference(name)
 			next(reference)
+		
+		# could be a constant
+		elif type and name in ref.godot_types[type].constants:
+			yield 'int'
+			self.out.constant(name)
+		
+		# end leaf
 		else:
-			yield type
+			yield member_type
 			self.out.reference(name)
 		yield
 

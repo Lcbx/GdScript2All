@@ -82,7 +82,6 @@ class CSharpTranspiler:
 	def subexpression(self, expression):
 		self += '('; get(expression); self += ')'
 	
-	
 	def create_array(self, values):
 		self += 'new Array{'
 		for value in values:
@@ -100,8 +99,18 @@ class CSharpTranspiler:
 		if isinstance(value, str): value = '"' + value.replace('"', '\\"') + '"'
 		self += str(value)
 	
+	def constant(self, name):
+		# Note: in c++ this would be ::<name>
+		self += '.' + name
+	
+	##def this(self):
+	##	self += 'this.'
+	
 	def variable(self, name):
 		self += name
+	
+	def singleton(self, name):
+		self += translate_type(name)
 	
 	def reference(self, name):
 		self += '.' + name
@@ -118,28 +127,31 @@ class CSharpTranspiler:
 		# then add onready assignments first and clear onready array
 		pass
 	
-	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
+		# TODO : in cpp, add member and method bindings
 		pass
 
 ## Utils
 
 def toPascal(text):
 	text0is_ = text[0] == '_'
-	if text0is_: text[0] = '*'
+	if text0is_: text[0] = '*' # trick to preserve first underscore
 	val = text.replace("_", " ").title().replace(" ", "")
 	if text0is_: val[0] = '_'
 	return val
 
 def translate_type(type):
-	if type in ref.godot_types: type = f'Godot.{type}'
+	if not type in ['Array', 'Dictionary'] and type in ref.godot_types: type = f'Godot.{type}'
 	elif type == 'float': type = 'double' # C# uses doubles
 	return type
 
 # trick for generator values
 get = next
 
+# TODO: support self => this more
+# TODO: support adding user-defined classes to ref.godot_type
+# TODO: support 'as' keyword
 # TODO : await => await ToSignal(....)"
 # TODO : $Path => GetNode()
 # TODO : Rename Functions => All defined in this class or any variable that is or instances any of these types https://docs.godotengine.org/en/3.2/classes/index.html
