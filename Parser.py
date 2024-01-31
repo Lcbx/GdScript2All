@@ -263,20 +263,35 @@ class Parser:
 		else: yield; yield
 	
 	## GRAMMAR
-	# expression : subexpression | ternary
-	# ternary : [boolean [if boolean else boolean]* ]					----> TODO
-	# subexpression : (expression)										
-	# boolean : comparison [and|or comparison]*							----> TODO
-	# comparison : arithmetic [<|>|==|... arithmetic]?					----> TODO
-	# arithmetic : value [*|/|+|-|... value]*							----> TODO
-	# value : literal|textCode											
-	# literal : int|float|string|array|dict								
-	# textCode : variable|reference|call								
-	# variable : <name>													
-	# reference : textCode.textCode										
-	# call : textCode([expression[, expression]*]?)						
-	# array : \[ [expresssion [, expression]*]? \]						
-	# dict : { [expresssion:expression [, expresssion:expression]*]? }	
+	
+	# Script
+	#  |->Block = [<Statement>|<Member>]1+
+	
+	# Member -> [@annotation[(*params)]?]? [const| [static]? var] <name> [:<type>]? [= Expression ] 
+	
+	# Statement
+	#  |->NoOperation    -> pass
+	#  |->Declaration    -> def <variable> = <Expression>										----> TODO
+	#  |->IfStatement    -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?     ----> TODO
+	#  |->WhileStatement -> while <boolean>: <Block>                                            ----> TODO
+	#  |->ForStatement   -> for <variable> in <Expression> | : <Block>                          ----> TODO
+	#  |->Assignment     -> <variable> = <Expression>                                           ----> TODO
+	#  |->Expression (see below)                                                                ----> TODO
+	
+	# Expression	-> ternary
+	# ternary		-> [boolean [if boolean else boolean]* ]			----> TODO
+	# boolean		-> comparison [and|or comparison]*                  ----> TODO
+	# comparison	-> arithmetic [<|>|==|... arithmetic]?              ----> TODO
+	# arithmetic	-> value [*|/|+|-|... value]*                       ----> TODO
+	# value			-> literal|subexpression|textCode
+	# literal		-> int|float|string|array|dict
+	# array			-> \[ [expresssion [, expression]*]? \]	
+	# dict			-> { [expresssion:expression [, expresssion:expression]*]? }
+	# subexpression	-> (expression)
+	# textCode		-> variable|reference|call
+	# variable		-> <name>
+	# reference		-> textCode.textCode
+	# call			-> textCode([*params]?)	
 	
 	def expression(self):
 		ret = self.value

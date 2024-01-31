@@ -8,7 +8,7 @@ class ClassData:
 		self.methods = {}	# {name:return_type}
 		self.constants = []	# [name]
 
-# { 'class: ClassData}
+# { 'class': ClassData }
 godot_types = {}
 
 docFolder = 'GodotAPI'
