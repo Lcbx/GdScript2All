@@ -20,9 +20,10 @@ var foo
 var i = 0
 const string = 'the fox said "get off my lawn"'
 var _bool := true
+var array = [0,1,2]
 
 @export
-var array : Array[int] = [0,1,2]
+var string_array : Array[string] = ['0','1']
 
 @export(param1, param2)
 var dict := {0:1, 1:2, 2:3}
@@ -38,13 +39,16 @@ var method = foo.bar()
 var functionMethodParams = foo(a,b).bar(c,d)
 var refMethod = foo.bar.baz()
 var methodRef = foo.bar().baz
+var subscription = self.dict[0]
 
 # test type inference on local class members
 var j = self.i
+var k = string_array[0]
 
 # determine type based on godot doc
 var x = Vector3().x 
 static var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY
 
 # Gdscript special syntax

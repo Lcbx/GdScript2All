@@ -47,8 +47,8 @@ for path in classDocPaths:
 		for cons in klass.constants.constant:
 			data.constants.append(cons['name'])
 
-pprint(godot_types)
-pprint(dir(godot_types["RenderingServer"]))
+#pprint(godot_types)
+#pprint(dir(godot_types["RenderingServer"]))
 
 
 # TODO: support global scope functions

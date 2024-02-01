@@ -227,13 +227,15 @@ class Parser:
 		static = self.expect('static') 
 		if constant or self.expect('var'):
 			name = self.consume()
-			type = self.consume() if self.expect(':') and self.tkn_is_text() else ''
+			type = self.consume() if self.expect(':') and self.tkn_is_text() else None
 			# discarding array content's type, for now
 			if type == 'Array' and self.expect('['):
-				self.consume(); self.expect(']')
+				# convert to the way docs specify an array type
+				type = self.consume() + '[]'
+				self.expect(']')
 			assignment = self.assignment_value()
-			type_ = next(assignment)
-			type = type or type_ or 'Variant'
+			expression_type = next(assignment)
+			type = type or expression_type or 'Variant'
 			self.data.members[name] = type
 			self.out.declare_variable(type, name, constant, static)
 			next(assignment)
@@ -242,9 +244,6 @@ class Parser:
 	
 	def statement(self):
 		self.expect('pass')
-		
-		# NOTE: reassignment and method call start the same :
-		# <variable|class>[.<function|property>]* then differ  -> '(...)' for call, '=' for reassignment
 	
 	
 	
@@ -288,10 +287,11 @@ class Parser:
 	# array			-> \[ [expresssion [, expression]*]? \]	
 	# dict			-> { [expresssion:expression [, expresssion:expression]*]? }
 	# subexpression	-> (expression)
-	# textCode		-> variable|reference|call
+	# textCode		-> variable|reference|call|subscription
 	# variable		-> <name>
 	# reference		-> textCode.textCode
-	# call			-> textCode([*params]?)	
+	# call			-> textCode([*params]?)
+	# subscription	-> textcode[<index>]
 	
 	def expression(self):
 		ret = self.value
@@ -390,39 +390,48 @@ class Parser:
 		
 		name = self.consume()
 		
+		# type could be a singleton (ex: RenderingServer) or a call to a static function
+		singleton = name in ref.godot_types
+		type = self.data.members.get(name, None) or (name if singleton else None)
+		
 		# call
 		if self.expect('('):
 			call = self.call(None, name)
 			yield next(call)
-			##if this : self.out.this()
 			next(call)
 		
 		# reference
 		elif self.expect('.'):
-			# type could be a singleton (ex: RenderingServer) or a call to a static function
-			singleton = name in ref.godot_types
-			type = self.data.members.get(name, None) or (name if singleton else None)
 			reference = self.reference(type)
 			yield next(reference)
-			##if this : self.out.this()
 			self.out.singleton(name) if singleton else self.out.variable(name)
 			next(reference)
+		
+		# subscription
+		elif self.expect('['):
+			s = self.subscription(type)
+			yield next(s)
+			self.out.variable(name)
+			next(s)
 		
 		# lone variable or global
 		else:
 			yield self.data.members.get(name, None)
-			#if this : self.out.this()
 			self.out.variable(name)
 		yield
 		
 	def call(self, type, name):
 		
 		# determine return type
-		type = name if name in ref.godot_types \
+		constructor = name in ref.godot_types
+		type = name if constructor \
 			else self.methods[name] if name in self.data.methods \
 			else ref.godot_types[type].methods[name] if \
 				type in ref.godot_types and name in ref.godot_types[type].methods \
 			else None
+		
+		# emission of code 
+		emit = lambda : self.out.constructor(name, params) if constructor else self.out.call(name, params)
 		
 		# determine params
 		def iter():
@@ -431,14 +440,24 @@ class Parser:
 				self.expect(',')
 		params = ( *iter() ,)
 		
+		# reference
 		if self.expect('.'):
-			reference = self.reference(type)
-			yield next(reference)
-			self.out.call(name, params)
-			next(reference)
+			r = self.reference(type)
+			yield next(r)
+			emit()
+			next(r)
+		
+		# subscription
+		elif self.expect('['):
+			s = self.subscription(type)
+			yield next(s)
+			emit()
+			next(s)
+		
+		# end
 		else:
 			yield type
-			self.out.call(name, params)
+			emit()
 		yield
 	
 	def reference(self, type):
@@ -451,15 +470,23 @@ class Parser:
 		if self.expect('('):
 			call = self.call(type, name)
 			yield next(call)
-			self.out.reference('') # let function emit name
+			# emit '.' while call() emits <name>(...)
+			self.out.reference('') 
 			next(call)
 		
 		# other reference
 		elif self.expect('.'):
-			reference = self.reference(member_type)
-			yield next(reference)
+			r = self.reference(member_type)
+			yield next(r)
 			self.out.reference(name)
-			next(reference)
+			next(r)
+		
+		# subscription
+		elif self.expect('['):
+			s = self.subscription(type)
+			yield next(s)
+			self.out.reference(name)
+			next(s)
 		
 		# could be a constant
 		elif type and name in ref.godot_types[type].constants:
@@ -470,6 +497,30 @@ class Parser:
 		else:
 			yield member_type
 			self.out.reference(name)
+		yield
+	
+	def subscription(self, type):
+		# NOTE: we only deternmine the type if it's a typed array
+		type = type.replace('[]', '') if type and '[]' in type else None
+		key = self.expression();next(key)
+		self.expect(']')
+		
+		# call
+		if self.expect('('):
+			call = self.call(type, '')
+			yield next(call)
+			next(call)
+		
+		# reference
+		elif self.expect('.'):
+			refer = self.reference(type)
+			yield next(refer)
+			self.out.subscription(key)
+		
+		# end leaf
+		else:
+			yield type
+			self.out.subscription(key)
 		yield
 
 ## Utils

@@ -122,6 +122,13 @@ class CSharpTranspiler:
 		if len(params)>0: get(params[-1])
 		self += ')'
 	
+	def constructor(self, name, params):
+		self += 'new '
+		self.call(name, params)
+	
+	def subscription(self, key):
+		self+= '['; get(key); self += ']'
+	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)
 		# then add onready assignments first and clear onready array
@@ -142,13 +149,16 @@ def toPascal(text):
 	return val
 
 def translate_type(type):
-	if not type in ['Array', 'Dictionary'] and type in ref.godot_types: type = f'Godot.{type}'
-	elif type == 'float': type = 'double' # C# uses doubles
+	if type in ['Array', 'Dictionary']: return type
+	if type in ref.godot_types: return f'Godot.{type}'
+	if type.endswith('[]'): return f'Array<{type[:-2]}>'
+	if type == 'float': return 'double' # C# uses doubles
 	return type
 
 # trick for generator values
 get = next
 
+# TODO: use 'new' before constructor
 # TODO: support self => this more
 # TODO: support adding user-defined classes to ref.godot_type
 # TODO: support 'as' keyword

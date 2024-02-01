@@ -39,10 +39,11 @@ public partial class test4 : Godot.Node
 	public int i = 0;
 	public const string string = "the fox said \"get off my lawn\"";
 	protected bool _bool = True;
+	public Array array = new Array{0,1,2,};
 	
 	[Export]
 	
-	public Array array = new Array{0,1,2,};
+	public Array<string> string_array = new Array{"0","1",};
 	
 	[Export("param1, param2")]
 	
@@ -60,13 +61,16 @@ public partial class test4 : Godot.Node
 	public Godot.Variant functionMethodParams = foo(a,b).bar(c,d);
 	public Godot.Variant refMethod = foo.bar.baz();
 	public Godot.Variant methodRef = foo.bar().baz;
+	public Godot.Variant subscription = dict[0];
 	
 	// test type inference on local class members
 	public int j = i;
+	public string k = string_array[0];
 	
 	// determine type based on godot doc
-	public double x = Vector3().x;
+	public double x = new Vector3().x;
 	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
+	public Dictionary classes = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	
 	// Gdscript special syntax
