@@ -158,11 +158,13 @@ def translate_type(type):
 # trick for generator values
 get = next
 
-# TODO: use 'new' before constructor
+# TODO: support match statment
+# TODO: support break statment
+# TODO: support continue statment
+# TODO : await => await ToSignal(....)"
 # TODO: support self => this more
 # TODO: support adding user-defined classes to ref.godot_type
 # TODO: support 'as' keyword
-# TODO : await => await ToSignal(....)"
 # TODO : $Path => GetNode()
 # TODO : Rename Functions => All defined in this class or any variable that is or instances any of these types https://docs.godotengine.org/en/3.2/classes/index.html
 # TODO : Rename Vars
