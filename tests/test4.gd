@@ -65,6 +65,10 @@ var delayed = \
 var delayed_wComment = \ # comment
 	2
 
+var arithmetic = - j * .5
+var comparison = arithmetic >= .5 and arithmetic == 6.
+var ternary = not true if false && true else 5 > 6
+var nested_ternary = true if false else 5 > 6 if true else 7 < 0
 
 # methods
 func empty(v:float):

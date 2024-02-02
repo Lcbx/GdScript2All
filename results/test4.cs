@@ -37,16 +37,14 @@ public partial class test4 : Godot.Node
 	
 	public Godot.Variant foo;
 	public int i = 0;
-	public const string str = "the fox said \"get off my lawn\"";
-	public string big_str = @"
-	this is a multiline string
-	";
-	protected bool _protected_bool = True;
+	public const string str = ;
+	public string big_str = ;
+	protected bool _protected_bool = true;
 	public Array array = new Array{0,1,2,};
 	
 	[Export]
 	
-	public Array<string> string_array = new Array{"0","1",};
+	public Array<string> string_array = new Array{,,};
 	
 	[Export("param1, param2")]
 	
@@ -72,20 +70,24 @@ public partial class test4 : Godot.Node
 	
 	// determine type based on godot doc
 	public double x = new Vector3().x;
-	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
+	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting();
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	
 	// Gdscript special syntax
-	public Godot.Node get_node = get_node("node");
-	public Godot.Node get_unique_node = get_node("%unique_node");
-	public Godot.Variant preload_resource = preload("res://path");
-	public Godot.Variant load_resource = load("res://path");
+	public Godot.Node get_node = get_node();
+	public Godot.Node get_unique_node = get_node();
+	public Godot.Variant preload_resource = preload();
+	public Godot.Variant load_resource = load();
 	
 	public int delayed = 1;
 	// comment
 	public int delayed_wComment = 2;
 	
+	public double arithmetic =  - j * 0.5;
+	public bool comparison = arithmetic >= 0.5 && arithmetic == 6.0;
+	public bool ternary = ( false && true ? !true : 5 > 6 );
+	public bool nested_ternary = ( false ? true : ( true ? 5 > 6 : 7 < 0 ) );
 	
 	// methods
 	

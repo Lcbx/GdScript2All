@@ -44,6 +44,7 @@ class Parser:
 	""" parsing utils """
 	
 	def current(self, n = 1):
+		self.skip_whitespace()
 		return ''.join(self.tokens[self.index:self.index+n]) if n>1 else self.tokens[self.index]
 	
 	def tkn_is_text(self):
@@ -59,19 +60,18 @@ class Parser:
 		return (currrent.isdigit() and next == '.') or (next.isdigit() and currrent == '.')
 	
 	def skip(self, tokens):
-		while self.current() in tokens: self.index +=1
+		while self.tokens[self.index] in tokens: self.index +=1
 	
 	def skip_whitespace(self):
 		self.skip(' \r')
-		if self.current() == '\\':
+		if self.tokens[self.index] == '\\':
 			self.index +=1
-			while self.current() in ' \r\t\n':
+			while self.tokens[self.index] in ' \r\t\n':
 				self.skip(' \r\t\n')
 				self.comments()
 	
 	
 	def expect(self, token, n = 1):
-		self.skip_whitespace()
 		
 		# fast fail : check first char
 		current = self.current()
@@ -176,39 +176,37 @@ class Parser:
 	
 	def class_body(self):
 		# gdscript 4 accepts nested classes
-		self.nested_class()
+		if self.expect('class'): self.nested_class()
 		# enum definition
-		self.enum()
+		elif self.expect('enum'): self.enum()
 		# class member definition
-		self.member()
+		else: self.member()
 		# end statement
 		self.endline()
 	
 	
 	def nested_class(self):
-		if self.expect('class'):
-			class_name = self.consume()
-			base_class = self.consume() if self.expect('extends') else 'Object'
-			# NOTE: can inner classes be tools ?
-			# are they the same as their script class ?
-			self.out.define_class(class_name, base_class, False)
-			self.expect(':')
-			
-			self.level += 1
-			class_lvl = self.level
-			while self.level >= class_lvl:
-				# NOTE: no annotations in inner classes
-				self.class_body()
+		class_name = self.consume()
+		base_class = self.consume() if self.expect('extends') else 'Object'
+		# NOTE: can inner classes be tools ?
+		# are they the same as their script class ?
+		self.out.define_class(class_name, base_class, False)
+		self.expect(':')
+		
+		self.level += 1
+		class_lvl = self.level
+		while self.level >= class_lvl:
+			# NOTE: no annotations in inner classes
+			self.class_body()
 	
 	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
 	def enum(self):
-		if self.expect('enum'):
-			name = self.consume() if self.tkn_is_text() else ''
-			self.skip_whitespace()
-			definition = self.consumeUntil('}', keep_end=True)
-			self.out.enum(name, definition)
+		name = self.consume() if self.tkn_is_text() else ''
+		self.skip_whitespace()
+		definition = self.consumeUntil('}', keep_end=True)
+		self.out.enum(name, definition)
 	
 	# class member 
 	def member(self):
@@ -234,26 +232,28 @@ class Parser:
 		# NOTE: constants should only be declared at script/inner class level
 		constant = self.expect('const') 
 		static = self.expect('static') 
+		
 		if constant or self.expect('var'):
 			name = self.consume()
 			type = self.consume() if self.expect(':') and self.tkn_is_text() else None
-			# discarding array content's type, for now
+			
+			# convert to the way docs specify an array type
 			if type == 'Array' and self.expect('['):
-				# convert to the way docs specify an array type
 				type = self.consume() + '[]'
 				self.expect(']')
-			assignment = self.assignment_value()
+			
+			# parsing
+			assignment = self.assignment()
+			
+			# get type
 			expression_type = next(assignment)
 			type = type or expression_type or 'Variant'
 			self.data.members[name] = type
+			
+			# emit code
 			self.out.declare_variable(type, name, constant, static)
 			next(assignment)
 			self.out.end_statement()
-	
-	
-	def statement(self):
-		self.expect('pass')
-	
 	
 	
 	# assignment and all expression use generator/passthrough for type inference
@@ -261,7 +261,7 @@ class Parser:
 	# yield <type>
 	# <emit code>
 	
-	def assignment_value(self):
+	def assignment(self):
 		if self.expect('='):
 			expression = self.expression()
 			yield next(expression)
@@ -273,26 +273,33 @@ class Parser:
 	## GRAMMAR
 	
 	# Script
-	#  |->Block = [<Statement>|<Member>]1+
+	#  |->Block = [<Statement>|<Member>|<Method>]1+
 	
-	# Member -> [@annotation[(*params)]?]? [const| [static]? var] <name> [:<type>]? [= Expression ] 
+	# Member -> [@<annotation>[(*<params>)]?]? [const|[static]? var] <name> [:<type>]? [<Assignment>]?
+	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
 	
 	# Statement
 	#  |->NoOperation     -> pass
-	#  |->Declaration     -> var <variable> = <Expression>										----> TODO
+	#  |->Declaration     -> var <variable> <Assignment>										----> TODO
 	#  |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?    ----> TODO
 	#  |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
 	#  |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
 	#  |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
 	#  |->Assignment      -> <variable> = <Expression>                                          ----> TODO
 	#  |->ReturnStatement -> return <Expression>                                                ----> TODO
-	#  |->Expression (see below)                                                                ----> TODO
+	#  |->Expression (see after statement implementation)
+	
+	
+	def statement(self):
+		self.expect('pass')
+		
+		# should be after testing other statements (if expect('if'): ...)
+		exp = self.expression(); next(exp); next(exp);
 	
 	# Expression	-> ternary
-	# ternary		-> [boolean [if boolean else boolean]* ]			----> TODO
-	# boolean		-> comparison [and|or comparison]*                  ----> TODO
-	# comparison	-> arithmetic [<|>|==|... arithmetic]?              ----> TODO
-	# arithmetic	-> value [*|/|+|-|... value]*                       ----> TODO
+	# ternary		-> [boolean [if boolean else boolean]* ]
+	# boolean		-> arithmetic [and|or|<|>|==|...  arithmetic]*
+	# arithmetic	-> [+|-|~] value [*|/|+|-|... value]*
 	# value			-> literal|subexpression|textCode
 	# literal		-> int|float|string|array|dict
 	# array			-> \[ [expresssion [, expression]*]? \]	
@@ -305,11 +312,80 @@ class Parser:
 	# subscription	-> textcode[<index>]
 	
 	def expression(self):
-		ret = self.value
-		return ret()
+		return self.ternary()
 	
-	def arithmetic():
-		while self.current(2) in ('*', '**', '/', ''):pass
+	
+	def ternary(self):
+		cmp1 = self.comparison()
+		yield next(cmp1)
+		if self.expect('if'):
+			cmp2 = self.comparison(); next(cmp2)
+			self.expect('else')
+			ter2 = self.ternary(); next(ter2)
+			self.out.ternary(cmp2, cmp1, ter2)
+		else:
+			next(cmp1)
+		yield
+	
+	
+	def comparison(self):
+		ar1 = self.arithmetic()
+		ar_type = next(ar1)
+		
+		op = self.consume(2) if self.current(2) in ('==', '!=', '<=', '>=', '||', '&&') \
+			else self.consume() if self.current() in ('<', '>', 'and', 'or') \
+			else None
+		
+		if op:
+			ar2 = self.comparison()
+			ar_type = next(ar2)
+			yield 'bool'
+			next(ar1)
+			self.out.operator(op)
+			next(ar2)
+		else:
+			yield ar_type
+			next(ar1)
+		yield
+	
+	
+	def arithmetic(self):
+		
+		# unary operator ex: i = -4
+		pre_op = self.consume() if self.current() in ('~', '+', '-', '!', 'not') else None
+		
+		ar = self._arithmetic()
+		yield next(ar);
+		if pre_op: self.out.operator(pre_op)
+		next(ar); yield
+	
+	def _arithmetic(self):
+		value1 = self.value()
+		value_type = next(value1)
+		
+		# check to avoid || and && is ugly
+		# that's what we get for not using a real tokenizer
+		op = self.consume(2) if self.current(2) in ('<<', '>>', '**') \
+			else self.consume() if self.current() in '*+-/%+&^|' \
+			and self.current(2) not in ('||', '&&') \
+			else None
+		
+		# this is not exact, but simpler to do this way
+		# for arithemetic assigment ex: i += 1
+		if op and self.expect('='): op += '='
+		
+		if op:
+			value2 = self._arithmetic()
+			value_type = next(value2)
+			yield value_type
+			next(value1)
+			self.out.operator(op)
+			next(value2)
+		else:
+			yield value_type
+			next(value1)
+		yield
+		
 	
 	def value(self):
 		
@@ -436,7 +512,8 @@ class Parser:
 			yield self.data.members.get(name, None)
 			self.out.variable(name)
 		yield
-		
+	
+	
 	def call(self, type, name):
 		
 		# determine return type
@@ -477,6 +554,7 @@ class Parser:
 			emit()
 		yield
 	
+	
 	def reference(self, type):
 		name = self.consume()
 		member_type = ref.godot_types[type].members[name] if \
@@ -515,6 +593,7 @@ class Parser:
 			yield member_type
 			self.out.reference(name)
 		yield
+	
 	
 	def subscription(self, type):
 		# NOTE: we only deternmine the type if it's a typed array

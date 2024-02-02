@@ -20,7 +20,7 @@ class CSharpTranspiler:
 	
 	# += operator override to generate code
 	def __iadd__(self, txt):
-		print(">", txt.replace("\n", "<EOL>"))
+		#print(">", txt.replace("\n", "<EOL>"))
 		# automatic indentation
 		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
 		self._text.write(txt)
@@ -101,7 +101,10 @@ class CSharpTranspiler:
 			else:
 				value = value.replace('"', '\\"')
 				value = f'"{value}"'
-		self += str(value)
+		elif isinstance(value, bool):
+			self += str(value).lower()
+		else:
+			self += str(value)
 	
 	def constant(self, name):
 		# Note: in c++ this would be ::<name>
@@ -133,6 +136,19 @@ class CSharpTranspiler:
 	
 	def subscription(self, key):
 		self+= '['; get(key); self += ']'
+		
+	def operator(self, op):
+		op = '&&' if op == 'and' \
+			else '||' if op == 'or' \
+			else '!' if op == 'not' \
+			else op
+		if op == '!': self += op
+		else: self += f' {op} '
+	
+	def ternary(self, condition, valueIfTrue, valueIfFalse):
+		self += '( '; get(condition); self += ' ? ';
+		get(valueIfTrue); self += ' : '
+		get(valueIfFalse); self += ' )'
 	
 	def define_method(self, name, return_type):
 		# TODO: check if called _ready and at script level (self.level==1)
@@ -163,6 +179,14 @@ def translate_type(type):
 # trick for generator values
 get = next
 
+# TODO: support special literals like:
+# * floating exponents : 58e-10
+# * base16 int : 0x8E
+# * bineary int : 0b1010
+# * raw strings r"hello"
+# * string names &"name"
+# * nodepath : ^"parent/child"
+
 # TODO: support match statment
 # TODO: support break statment
 # TODO: support continue statment
@@ -170,14 +194,8 @@ get = next
 # TODO: support self => this more
 # TODO: support adding user-defined classes to ref.godot_type
 # TODO: support 'as' keyword
-# TODO : $Path => GetNode()
-# TODO : Rename Functions => All defined in this class or any variable that is or instances any of these types https://docs.godotengine.org/en/3.2/classes/index.html
-# TODO : Rename Vars
-# TODO : Turn all final regex into lexical words
 # TODO : Rename {Builtin_Class}.aa_bb_cc to AaBbCc (Eg Engine.is_editor_hint)
 # TODO : unnamed enums
-# TODO : If extend Node, convert all Node function to capitalized forms
-# TODO : Process entire folders at once, recursively -r flag
 
 
 
