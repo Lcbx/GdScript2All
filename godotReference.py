@@ -1,54 +1,70 @@
 import os
-from untangle import parse
-from pprint import pprint
 
-class ClassData:
-	def __init__(self):
-		self.members = {} 	# {name:type}
-		self.methods = {}	# {name:return_type}
-		self.constants = []	# [name]
+# small and fast serialization
+from pickle import dump as save, load
+
+# useful to see data structures
+#from pprint import pprint
+
+# see ClassData.py
+from ClassData import ClassData
+
+SAVEFILE = 'godot_types.pickle'
 
 # { 'class': ClassData }
 godot_types = {}
 
-docFolder = 'GodotAPI'
-classDocPaths = [
-	os.path.join(root, file)
-	for root, dirs, files in os.walk(docFolder)
-	for file in files
-	if os.path.splitext(file)[1] == '.xml'
-]
 
-for path in classDocPaths:
+if __name__ != "__main__":
+	# simply load class datas
+	with open(SAVEFILE, 'rb') as f:
+		godot_types = load(f)
 	
-	# ignore globals for now
-	if '@GlobalScope' in path: continue
+else:
+	# generate the pickle file
+	from untangle import parse
 	
-	klass = parse(path).class_
-	klass_name = klass['name']
-	
-	# skip native types
-	if klass_name in ['float', 'int', 'bool']: continue 
-	
-	data = ClassData()
-	godot_types[klass_name] = data
-	
-	if 'methods' in klass:
-		for meth in klass.methods.method:
-			meth_name = meth['name']
-			data.methods[meth_name] = meth.return_['type']
-	
-	if 'members' in klass:
-		for memb in klass.members.member:
-			memb_name = memb['name']
-			data.members[memb_name] = memb['type']
-	
-	if 'constants' in klass:
-		for cons in klass.constants.constant:
-			data.constants.append(cons['name'])
+	docFolder = 'GodotAPI'
+	classDocPaths = [
+		os.path.join(root, file)
+		for root, dirs, files in os.walk(docFolder)
+		for file in files
+		if os.path.splitext(file)[1] == '.xml'
+	]
 
-#pprint(godot_types)
-#pprint(dir(godot_types["RenderingServer"]))
+	for path in classDocPaths:
+		
+		# ignore globals for now
+		if '@GlobalScope' in path: continue
+		
+		klass = parse(path).class_
+		klass_name = klass['name']
+		
+		# skip native types
+		if klass_name in ['float', 'int', 'bool']: continue 
+		
+		data = ClassData()
+		godot_types[klass_name] = data
+		
+		if 'methods' in klass:
+			for meth in klass.methods.method:
+				meth_name = meth['name']
+				data.methods[meth_name] = meth.return_['type']
+		
+		if 'members' in klass:
+			for memb in klass.members.member:
+				memb_name = memb['name']
+				data.members[memb_name] = memb['type']
+		
+		if 'constants' in klass:
+			for cons in klass.constants.constant:
+				data.constants.append(cons['name'])
+		
+		with open(SAVEFILE, 'wb+') as f:
+			save(godot_types, f)
+
+	#pprint(godot_types)
+	#pprint(dir(godot_types["RenderingServer"]))
 
 
 # TODO: support global scope functions
