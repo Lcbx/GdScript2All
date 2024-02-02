@@ -401,8 +401,8 @@ class Parser:
 	
 	# textCode : variable|call|reference
 	def textCode(self):
-		 
-		 # ignoring 'self.' for now
+		
+		 # ignoring 'self.' for now, it messes with type inference
 		self.expect('self.', 2)
 		
 		name = self.consume()

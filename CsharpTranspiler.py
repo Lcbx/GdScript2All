@@ -111,6 +111,7 @@ class CSharpTranspiler:
 	##	self += 'this.'
 	
 	def variable(self, name):
+		name = 'this' if name == 'self' else name
 		self += name
 	
 	def singleton(self, name):

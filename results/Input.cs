@@ -25,8 +25,8 @@ public partial class Character : Godot.CharacterBody3D
 	
 	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
 	
-	public Godot.Variant coyoteTime = Utils.createTimer(self,0.15);
-	public Godot.Variant jumpCoolDown = Utils.createTimer(self,0.15);
+	public Godot.Variant coyoteTime = Utils.createTimer(this,0.15);
+	public Godot.Variant jumpCoolDown = Utils.createTimer(this,0.15);
 	
 	
 	
