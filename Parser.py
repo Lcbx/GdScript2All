@@ -58,8 +58,17 @@ class Parser:
 		next = self.tokens[self.index+1]
 		return (currrent.isdigit() and next == '.') or (next.isdigit() and currrent == '.')
 	
+	def skip(self, tokens):
+		while self.current() in tokens: self.index +=1
+	
 	def skip_whitespace(self):
-		while self.current() in ' \r': self.index +=1
+		self.skip(' \r')
+		if self.current() == '\\':
+			self.index +=1
+			while self.current() in ' \r\t\n':
+				self.skip(' \r\t\n')
+				self.comments()
+	
 	
 	def expect(self, token, n = 1):
 		self.skip_whitespace()
@@ -76,26 +85,24 @@ class Parser:
 		if match and token == '\n':
 			self.line += 1
 			self.line_index = self.index
-			#print('********** line')
-		#elif found:
-		#	print(f'{token} ? => {found}')
 		
 		if match: self.index+=n
 		
 		self.skip_whitespace()
+		
 		return match
 	
 	def consume(self, n = 1):
-		if self.tokens[self.index] == '\n': print("an EOL has been consumed !", self.index)
+		self.skip_whitespace()
 		found = self.current(n)
 		print('+', found)
 		self.index+=n
 		return found
 	
-	def consumeUntil(self, end, n = 1, keep_end = True, ignore = []):
+	def consumeUntil(self, token, n = 1, keep_end = True, ignore = []):
 		# storing index makes us keep spaces past the 1st token
 		start = self.index
-		while not self.current(n) == end: self.index += 1
+		while not self.current(n) == token: self.index += 1
 		self.index += n
 		range = self.tokens[start:self.index - (0 if keep_end else n)]
 		if ignore: range = [item for item in range if item not in ignore]
@@ -105,10 +112,12 @@ class Parser:
 	""" parsing / transpiling """
 	
 	def comments(self):
-		if self.expect('#'):
+		if self.current() == '#':
+			self.index += 1
 			content = self.consumeUntil('\n')
 			self.out.line_comment(content)
-		elif self.expect('"""', 3):
+		elif self.current(3) == '"""':
+			self.index += 3
 			content = self.consumeUntil('"""', 3, keep_end=False)
 			self.out.multiline_comment(content)
 	
@@ -116,7 +125,7 @@ class Parser:
 	def endline(self):
 		lvl = -1
 		while True:
-			# ignore comments
+			# handle comments
 			self.comments()
 			# setting scope level only when we encounter non-whitespace
 			if not self.expect('\n'):
@@ -270,7 +279,7 @@ class Parser:
 	
 	# Statement
 	#  |->NoOperation     -> pass
-	#  |->Declaration     -> def <variable> = <Expression>										----> TODO
+	#  |->Declaration     -> var <variable> = <Expression>										----> TODO
 	#  |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?    ----> TODO
 	#  |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
 	#  |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
@@ -299,6 +308,9 @@ class Parser:
 		ret = self.value
 		return ret()
 	
+	def arithmetic():
+		while self.current(2) in ('*', '**', '/', ''):pass
+	
 	def value(self):
 		
 		# int
@@ -319,8 +331,11 @@ class Parser:
 			yield 'bool'
 			self.out.literal(val)
 		
-		# TODO: support multiline (""") string
-		
+		# multiline (""") string
+		elif self.expect('"""', 3):
+			val = self.consumeUntil('"""',3, keep_end = False)
+			yield 'string'
+			self.out.literal(val)
 		# "" string
 		elif self.expect('"'):
 			val = self.consumeUntil('"', keep_end = False)

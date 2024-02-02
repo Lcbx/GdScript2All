@@ -18,8 +18,11 @@ enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
 var foo
 var i = 0
-const string = 'the fox said "get off my lawn"'
-var _bool := true
+const str = 'the fox said "get off my lawn"'
+var big_str : string = """
+this is a multiline string
+"""
+var _protected_bool := true
 var array = [0,1,2]
 
 @export
@@ -56,6 +59,12 @@ var get_node = $node
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
+
+var delayed = \
+	1
+var delayed_wComment = \ # comment
+	2
+
 
 # methods
 func empty(v:float):

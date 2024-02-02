@@ -39,10 +39,10 @@ class CSharpTranspiler:
 		self += "\n}\n"
 	
 	def line_comment(self, content):
-		self += f"// {content}"
+		self += f"//{content}"
 	
 	def multiline_comment(self, content):
-		self += f"/* {content}*/"
+		self += f"/*{content}*/"
 	
 	def end_statement(self):
 		self += ';'
@@ -95,8 +95,12 @@ class CSharpTranspiler:
 		self += '}'
 	
 	def literal(self, value):
-		# surround string value in quotes and escape the quotes inside
-		if isinstance(value, str): value = '"' + value.replace('"', '\\"') + '"'
+		if isinstance(value, str):
+			# add quotes / escape the quotes inside if necessary
+			if '\n' in value: value = f'@"{value}"'
+			else:
+				value = value.replace('"', '\\"')
+				value = f'"{value}"'
 		self += str(value)
 	
 	def constant(self, name):

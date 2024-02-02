@@ -37,8 +37,11 @@ public partial class test4 : Godot.Node
 	
 	public Godot.Variant foo;
 	public int i = 0;
-	public const string string = "the fox said \"get off my lawn\"";
-	protected bool _bool = True;
+	public const string str = "the fox said \"get off my lawn\"";
+	public string big_str = @"
+	this is a multiline string
+	";
+	protected bool _protected_bool = True;
 	public Array array = new Array{0,1,2,};
 	
 	[Export]
@@ -70,7 +73,7 @@ public partial class test4 : Godot.Node
 	// determine type based on godot doc
 	public double x = new Vector3().x;
 	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
-	public Dictionary classes = Godot.ProjectSettings.get_global_class_list()[10];
+	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	
 	// Gdscript special syntax
@@ -78,6 +81,11 @@ public partial class test4 : Godot.Node
 	public Godot.Node get_unique_node = get_node("%unique_node");
 	public Godot.Variant preload_resource = preload("res://path");
 	public Godot.Variant load_resource = load("res://path");
+	
+	public int delayed = 1;
+	// comment
+	public int delayed_wComment = 2;
+	
 	
 	// methods
 	
