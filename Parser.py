@@ -20,6 +20,8 @@ class Parser:
 		# ignore empty strings...
 		self.tokens =  [token for token in self.tokens if token]
 		
+		# size of tokens array
+		self.tokens_end = len(self.tokens)
 		# char index in original script
 		self.index = 0
 		# indentation level
@@ -158,9 +160,8 @@ class Parser:
 		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
 		
 		# script-level loop
-		end = len(self.tokens)
 		last_index = -1
-		while self.index < end and self.index != last_index:
+		while self.index < self.tokens_end and self.index != last_index:
 			last_index = self.index
 			# script/class level statements
 			self.class_body()
@@ -170,7 +171,7 @@ class Parser:
 		# tell the transpiler we're done
 		self.out.end_script()
 		
-		preview = min(end-last_index, 5)
+		preview = min(self.tokens_end-last_index, 5)
 		print("stopping at", self.line, self.index - self.line_index, f'<{self.current(preview)}>')
 	
 	
@@ -179,6 +180,8 @@ class Parser:
 		if self.expect('class'): self.nested_class()
 		# enum definition
 		elif self.expect('enum'): self.enum()
+		# TODO: method
+		elif self.expect('func'): print("TODO: methods")
 		# class member definition
 		else: self.member()
 		# end statement
@@ -213,48 +216,45 @@ class Parser:
 		# NOTE: special case for onready (needs moving the assignment into ready function)
 		# TODO: call out.assignement with onready flag (later)
 		is_onready = self.expect('@onready')
-		self.annotation()
-		self.variable_declaration()
-		# TODO: handle get set
-	
-	
-	# exports and such : @annotation[(params)]?
-	def annotation(self):
+		
+		# exports and such : @annotation[(params)]?
 		if self.expect('@'):
 			name = self.consume()
 			# NOTE: this should work for most cases
 			params = self.consumeUntil(')', keep_end=False, ignore=['"', "'"]) if self.expect('(') else ''
 			self.out.annotation(name, params)
-	
-	
-	# variable : [var|const] variable_name [: [type]? ]? = expression
-	def variable_declaration(self):
+		
 		# NOTE: constants should only be declared at script/inner class level
+		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
 		constant = self.expect('const') 
 		static = self.expect('static') 
-		
 		if constant or self.expect('var'):
-			name = self.consume()
-			type = self.consume() if self.expect(':') and self.tkn_is_text() else None
-			
-			# convert to the way docs specify an array type
-			if type == 'Array' and self.expect('['):
-				type = self.consume() + '[]'
-				self.expect(']')
-			
-			# parsing
-			assignment = self.assignment()
-			
-			# get type
-			expression_type = next(assignment)
-			type = type or expression_type or 'Variant'
-			self.data.members[name] = type
-			
-			# emit code
-			self.out.declare_variable(type, name, constant, static)
-			next(assignment)
-			self.out.end_statement()
+			self.declare(constant, static)
+		
+		# TODO: handle get set
 	
+	def declare(self, constant = False, static = False):
+		name = self.consume()
+		type = self.consume() if self.expect(':') and self.tkn_is_text() else None
+		
+		# convert to the way docs specify an array type
+		if type == 'Array' and self.expect('['):
+			type = self.consume() + '[]'
+			self.expect(']')
+		
+		# parsing assignment if needed
+		ass_generator = self.assignment()
+		ass_type = next(ass_generator)
+		
+		# get type
+		type = type or ass_type or 'Variant'
+		# TODO: fix(?) -> locals are treated like members
+		self.data.members[name] = type 
+		
+		# emit code
+		self.out.declare_variable(type, name, constant, static)
+		next(ass_generator)
+		self.out.end_statement()
 	
 	# assignment and all expression use generator/passthrough for type inference
 	# the format expected is :
@@ -262,21 +262,19 @@ class Parser:
 	# <emit code>
 	
 	def assignment(self):
-		if self.expect('='):
-			expression = self.expression()
-			yield next(expression)
-			self.out.assignment()
-			yield next(expression)
-		# nothing found, return empties
-		else: yield; yield
+		exp = self.expression() if self.expect('=') else None
+		if exp: yield next(exp); self.out.assignment(); next(exp)
+		else: yield
+		yield
 	
 	## GRAMMAR
 	
-	# Script
-	#  |->Block = [<Statement>|<Member>|<Method>]1+
+	# Script : [<Member>|<Method>]1+
 	
-	# Member -> [@<annotation>[(*<params>)]?]? [const|[static]? var] <name> [:<type>]? [<Assignment>]?
+	# Member -> [@<annotation>[(*<params>)]?]? <variable_declaration>
+	# variable_declaration -> [const|[static]? var] <name> [:<type>]? [<Assignment>]?
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
+	# Block -> <Statement>1+
 	
 	# Statement
 	#  |->NoOperation     -> pass
@@ -285,16 +283,32 @@ class Parser:
 	#  |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
 	#  |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
 	#  |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
-	#  |->Assignment      -> <variable> = <Expression>                                          ----> TODO
 	#  |->ReturnStatement -> return <Expression>                                                ----> TODO
+	#  |->Assignment      -> <variable> = <Expression>                                          ----> TODO
 	#  |->Expression (see after statement implementation)
 	
 	
+	def Block(self):
+		self.level += 1
+		block_lvl = self.level
+		while self.level >= block_lvl:
+			self.statement()
+			self.endline()
+	
 	def statement(self):
-		self.expect('pass')
-		
-		# should be after testing other statements (if expect('if'): ...)
-		exp = self.expression(); next(exp); next(exp);
+		if self.expect('pass'): return
+		elif self.expect('var'): self.declare()
+		elif self.expect('if'): self.ifStmt()
+		elif self.expect('while'): self.whileStmt()
+		elif self.expect('for'): self.forStmt()
+		elif self.expect('match'): self.matchStmt()
+		elif self.expect('return'): self.returnStmt()
+		elif current() in self.data.members and current(2).endswith('='):
+			name = self.consume()
+			self.out.variable(name)
+			ass = self.assigment(); next(ass); next(ass)
+		# NOTE: lone function calls and modification operators (a += b) are handled in expression
+		else: self.expression(); next(exp); next(exp);
 	
 	# Expression	-> ternary
 	# ternary		-> [boolean [if boolean else boolean]* ]

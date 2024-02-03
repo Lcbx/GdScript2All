@@ -23,7 +23,7 @@ public partial class Character : Godot.CharacterBody3D
 	public const Godot.Vector3 YZ = new Vector3(0.0,1.0,1.0);
 	public const Godot.Vector3 XY = new Vector3(1.0,1.0,0.0);
 	
-	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting();
+	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
 	
 	public Godot.Variant coyoteTime = Utils.createTimer(this,0.15);
 	public Godot.Variant jumpCoolDown = Utils.createTimer(this,0.15);

@@ -17,7 +17,7 @@ enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
 var foo
-var i = 0
+static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : string = """
 this is a multiline string
@@ -51,7 +51,6 @@ var k = string_array[0]
 # determine type based on godot doc
 var x = Vector3().x 
 var up = Vector3.UP
-static var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY
 

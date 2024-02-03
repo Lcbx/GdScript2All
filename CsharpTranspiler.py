@@ -95,16 +95,19 @@ class CSharpTranspiler:
 		self += '}'
 	
 	def literal(self, value):
+		# strings
 		if isinstance(value, str):
 			# add quotes / escape the quotes inside if necessary
 			if '\n' in value: value = f'@"{value}"'
 			else:
 				value = value.replace('"', '\\"')
 				value = f'"{value}"'
+		
+		# booleans
 		elif isinstance(value, bool):
-			self += str(value).lower()
-		else:
-			self += str(value)
+			self += str(value).lower(); return
+		
+		self += str(value)
 	
 	def constant(self, name):
 		# Note: in c++ this would be ::<name>

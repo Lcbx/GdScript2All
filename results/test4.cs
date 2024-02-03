@@ -36,15 +36,17 @@ public partial class test4 : Godot.Node
 	enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 	
 	public Godot.Variant foo;
-	public int i = 0;
-	public const string str = ;
-	public string big_str = ;
+	public static int i = 0;
+	public const string str = "the fox said \"get off my lawn\"";
+	public string big_str = @"
+	this is a multiline string
+	";
 	protected bool _protected_bool = true;
 	public Array array = new Array{0,1,2,};
 	
 	[Export]
 	
-	public Array<string> string_array = new Array{,,};
+	public Array<string> string_array = new Array{"0","1",};
 	
 	[Export("param1, param2")]
 	
@@ -71,15 +73,14 @@ public partial class test4 : Godot.Node
 	// determine type based on godot doc
 	public double x = new Vector3().x;
 	public Godot.Vector3 up = Godot.Vector3.UP;
-	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting();
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	
 	// Gdscript special syntax
-	public Godot.Node get_node = get_node();
-	public Godot.Node get_unique_node = get_node();
-	public Godot.Variant preload_resource = preload();
-	public Godot.Variant load_resource = load();
+	public Godot.Node get_node = get_node("node");
+	public Godot.Node get_unique_node = get_node("%unique_node");
+	public Godot.Variant preload_resource = preload("res://path");
+	public Godot.Variant load_resource = load("res://path");
 	
 	public int delayed = 1;
 	// comment
