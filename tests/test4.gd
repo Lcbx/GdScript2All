@@ -50,6 +50,7 @@ var k = string_array[0]
 
 # determine type based on godot doc
 var x = Vector3().x 
+var up = Vector3.UP
 static var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY

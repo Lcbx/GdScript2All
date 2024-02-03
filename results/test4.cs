@@ -70,6 +70,7 @@ public partial class test4 : Godot.Node
 	
 	// determine type based on godot doc
 	public double x = new Vector3().x;
+	public Godot.Vector3 up = Godot.Vector3.UP;
 	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting();
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;

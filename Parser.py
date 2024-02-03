@@ -585,7 +585,7 @@ class Parser:
 		
 		# could be a constant
 		elif type and name in ref.godot_types[type].constants:
-			yield 'int'
+			yield ref.godot_types[type].constants[name]
 			self.out.constant(name)
 		
 		# end leaf

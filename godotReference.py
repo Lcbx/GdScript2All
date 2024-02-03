@@ -58,7 +58,13 @@ else:
 		
 		if 'constants' in klass:
 			for cons in klass.constants.constant:
-				data.constants.append(cons['name'])
+				cons_name = cons['name']
+				cons_val = cons['value']
+				# no type in docs, so best guess
+				# NOTE: currently there are no float or string
+				cons_type = 'int' if cons_val.lstrip('-').isdigit() \
+					else cons_val.split('(')[0]
+				data.constants[cons_name] = cons_type
 		
 		with open(SAVEFILE, 'wb+') as f:
 			save(godot_types, f)
