@@ -92,5 +92,14 @@ public partial class test4 : Godot.Node
 	public bool nested_ternary = ( false ? true : ( true ? 5 > 6 : 7 < 0 ) );
 	
 	// methods
+	//PANIC ! line 62 : <empty(v:float):\n>
+	
+	
+	{
+		//PANIC ! line 63 : <pass\n>
+		
+		
+		
+	}
 	
 }

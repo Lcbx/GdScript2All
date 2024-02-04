@@ -21,7 +21,7 @@ class Parser:
 		self.tokens =  [token for token in self.tokens if token]
 		
 		# size of tokens array
-		self.tokens_end = len(self.tokens)
+		self.tokens_end = len(self.tokens) - 1
 		# char index in original script
 		self.index = 0
 		# indentation level
@@ -45,9 +45,21 @@ class Parser:
 	
 	""" parsing utils """
 	
+	def index_add(self, n = 1):
+		return min(self.index + n, self.tokens_end)
+		
+	def advance(self, n = 1):
+		self.index = self.index_add(n)
+	
+	# avoid infinite loops
+	def doWhile(self, condition, effect):
+		last_index = -1
+		while self.index != last_index and condition():
+			last_index = self.index; effect()
+	
 	def current(self, n = 1):
 		self.skip_whitespace()
-		return ''.join(self.tokens[self.index:self.index+n]) if n>1 else self.tokens[self.index]
+		return ''.join(self.tokens[self.index:self.index_add(n)]) if n>1 else self.tokens[self.index]
 	
 	def tkn_is_text(self):
 		tkn0 = self.current()[0]
@@ -58,20 +70,19 @@ class Parser:
 	
 	def tkn_is_float(self):
 		currrent = self.current()
-		next = self.tokens[self.index+1]
+		next = self.tokens[self.index_add(1)]
 		return (currrent.isdigit() and next == '.') or (next.isdigit() and currrent == '.')
 	
 	def skip(self, tokens):
-		while self.tokens[self.index] in tokens: self.index +=1
+		self.doWhile(lambda : self.tokens[self.index] in tokens, self.advance )
 	
 	def skip_whitespace(self):
 		self.skip(' \r')
 		if self.tokens[self.index] == '\\':
-			self.index +=1
+			self.advance()
 			while self.tokens[self.index] in ' \r\t\n':
 				self.skip(' \r\t\n')
 				self.comments()
-	
 	
 	def expect(self, token, n = 1):
 		
@@ -88,7 +99,7 @@ class Parser:
 			self.line += 1
 			self.line_index = self.index
 		
-		if match: self.index+=n
+		if match: self.advance(n)
 		
 		self.skip_whitespace()
 		
@@ -98,14 +109,14 @@ class Parser:
 		self.skip_whitespace()
 		found = self.current(n)
 		print('+', found)
-		self.index+=n
+		self.advance(n)
 		return found
 	
 	def consumeUntil(self, token, n = 1, keep_end = True, ignore = []):
 		# storing index makes us keep spaces past the 1st token
 		start = self.index
-		while not self.current(n) == token: self.index += 1
-		self.index += n
+		self.doWhile( lambda : self.current(n) != token, self.advance )
+		self.advance(n)
 		range = self.tokens[start:self.index - (0 if keep_end else n)]
 		if ignore: range = [item for item in range if item not in ignore]
 		return ''.join(range)
@@ -115,18 +126,22 @@ class Parser:
 	
 	def comments(self):
 		if self.current() == '#':
-			self.index += 1
+			self.advance()
 			content = self.consumeUntil('\n')
 			self.out.line_comment(content)
 		elif self.current(3) == '"""':
-			self.index += 3
+			self.advance(3)
 			content = self.consumeUntil('"""', 3, keep_end=False)
 			self.out.multiline_comment(content)
 	
 	# ignore 
 	def endline(self):
 		lvl = -1
-		while True:
+		keepLooping = True
+		
+		def implementation():
+			nonlocal lvl
+			nonlocal keepLooping
 			# handle comments
 			self.comments()
 			# setting scope level only when we encounter non-whitespace
@@ -136,6 +151,7 @@ class Parser:
 				if lvl != -1:
 					while lvl > self.level: self.out.UpScope(); self.level +=1
 					while lvl < self.level: self.out.DownScope(); self.level -=1
+				keepLooping = False
 				return
 			
 			# add endline in generated code to match script
@@ -144,6 +160,8 @@ class Parser:
 			# count indentation to determine scope level
 			lvl = 0
 			while self.expect('\t'): lvl +=1
+		
+		self.doWhile(lambda:keepLooping, implementation)
 	
 	
 	def transpile(self):
@@ -160,19 +178,24 @@ class Parser:
 		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
 		
 		# script-level loop
-		last_index = -1
-		while self.index < self.tokens_end and self.index != last_index:
-			last_index = self.index
-			# script/class level statements
-			self.class_body()
+		for i in range(2):
+			self.doWhile(lambda:True, self.class_body)
+			
+			# panic system : drop current line if we can't parse it
+			if self.index == self.tokens_end: break
+			else:
+				msg = f'PANIC ! line {self.line} : <' + self.consumeUntil('\n').replace('\n', '\\n') + '>\n'
+				self.out.line_comment(msg)
+				print('---------', msg)
+				# restore endline to properly go up and down in scope
+				self.advance(-1)
+				self.endline()
+		
 		# end script class
 		self.out.DownScope()
 		
 		# tell the transpiler we're done
 		self.out.end_script()
-		
-		preview = min(self.tokens_end-last_index, 5)
-		print("stopping at", self.line, self.index - self.line_index, f'<{self.current(preview)}>')
 	
 	
 	def class_body(self):
@@ -198,9 +221,8 @@ class Parser:
 		
 		self.level += 1
 		class_lvl = self.level
-		while self.level >= class_lvl:
-			# NOTE: no annotations in inner classes
-			self.class_body()
+		# NOTE: no annotations in inner classes
+		self.doWhile(lambda:self.level >= class_lvl, self.class_body )
 	
 	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
@@ -291,9 +313,7 @@ class Parser:
 	def Block(self):
 		self.level += 1
 		block_lvl = self.level
-		while self.level >= block_lvl:
-			self.statement()
-			self.endline()
+		self.doWhile(lambda : self.level >= block_lvl, lambda : self.statement() and self.endline() )
 	
 	def statement(self):
 		if self.expect('pass'): return
