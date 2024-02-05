@@ -29,15 +29,16 @@ public partial class Character : Godot.CharacterBody3D
 	public Godot.Variant jumpCoolDown = Utils.createTimer(this,0.15);
 	
 	
-	//PANIC ! line 19 : <_process(delta : float):\n>
-	
-	// in air
-	
+	void _process(float delta)
 	{
+		
+		// in air
 		//PANIC ! line 20 : <	if not is_on_floor():\n>
 		
-		
 		{
+			
+			//PANIC ! line 21 : <velocity.y = clampf(velocity.y - gravity * delta, -MAX_Y_SPEED, MAX_Y_SPEED)\n>
+			
 			
 		}
 		

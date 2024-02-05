@@ -13,8 +13,6 @@ class Parser:
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
 		
-		# splitting text into tokens
-		text = text.replace(' ' * 4, '\t') # 4 whitespaces = 1 tab
 		# split into tokens (we consider non-words full tokens)
 		self.tokens = re.split('(\W)', text)
 		# ignore empty strings...
@@ -134,16 +132,22 @@ class Parser:
 			content = self.consumeUntil('"""', 3, keep_end=False)
 			self.out.multiline_comment(content)
 	
-	# ignore 
+	
+	# call when an endline is excpected
 	def endline(self):
 		lvl = -1
 		keepLooping = True
+		jumpedLines = 0
 		
 		def implementation():
 			nonlocal lvl
 			nonlocal keepLooping
+			nonlocal jumpedLines
 			# handle comments
-			self.comments()
+			if self.current() in '#"':
+				self.out += '\n' * jumpedLines
+				jumpedLines = 0
+				self.comments()
 			# setting scope level only when we encounter non-whitespace
 			if not self.expect('\n'):
 				# go up and down in scope
@@ -155,14 +159,23 @@ class Parser:
 				return
 			
 			# add endline in generated code to match script
-			self.out += '\n'
+			jumpedLines += 1
 			
 			# count indentation to determine scope level
 			lvl = 0
 			while self.expect('\t'): lvl +=1
 		
 		self.doWhile(lambda:keepLooping, implementation)
+		self.out += '\n' * jumpedLines
 	
+	
+	# convert to the way docs specify an array type
+	def parseType(self):
+		type = self.consume()
+		if type == 'Array' and self.expect('['):
+			type = self.consume() + '[]'
+			self.expect(']')
+		return type
 	
 	def transpile(self):
 		
@@ -204,7 +217,7 @@ class Parser:
 		# enum definition
 		elif self.expect('enum'): self.enum()
 		# TODO: method
-		elif self.expect('func'): print("TODO: methods")
+		elif self.expect('func'): self.method()
 		# class member definition
 		else: self.member()
 		# end statement
@@ -214,15 +227,15 @@ class Parser:
 	def nested_class(self):
 		class_name = self.consume()
 		base_class = self.consume() if self.expect('extends') else 'Object'
-		# NOTE: can inner classes be tools ?
-		# are they the same as their script class ?
+		# NOTE: can inner classes be tools ? are they the same as their script class ?
 		self.out.define_class(class_name, base_class, False)
 		self.expect(':')
 		
 		self.level += 1
 		class_lvl = self.level
-		# NOTE: no annotations in inner classes
+		# NOTE: technically there would be no annotations in inner classes
 		self.doWhile(lambda:self.level >= class_lvl, self.class_body )
+	
 	
 	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
@@ -232,6 +245,46 @@ class Parser:
 		self.skip_whitespace()
 		definition = self.consumeUntil('}', keep_end=True)
 		self.out.enum(name, definition)
+	
+	
+	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
+	def method(self):
+		name = self.consume()
+		self.expect('(')
+		
+		params = {}
+		params_init = {}
+		
+		# param -> <name> [: [<type>]?]? [= <Expression>]?
+		def parseParam():
+			name = self.consume()
+			type = self.parseType() if self.expect(':') and self.tkn_is_text() else 'Variant'
+			init = self.expression() if self.expect('=') else None
+			if init:
+				initType = next(init)
+				type = type or initType
+				params_init[name] = initType
+			self.expect(',')
+			params[name] = type
+			
+		self.doWhile(lambda: not self.expect(')'), parseParam)
+		
+		returnType = self.parseType() if self.expect('->', 2) else 'void'
+		
+		self.expect(':')
+		
+		# TODO : add an emit func to out
+		self.out += f'{returnType} {name}(' + \
+			','.join([ f'{pType} {pName}' \
+			+ ( f'= {params_init[pName]}' if pName in params_init else '') \
+			for pName, pType in params.items()]) + ')'
+		
+		# TODO: add params to locals
+		# TODO!! find a way to infer method return type BEFORE emitting block code !
+		blockType = self.Block()
+		type = returnType or blockType or 'Variant'
+		self.data.methods[name] = type
+	
 	
 	# class member 
 	def member(self):
@@ -257,12 +310,7 @@ class Parser:
 	
 	def declare(self, constant = False, static = False):
 		name = self.consume()
-		type = self.consume() if self.expect(':') and self.tkn_is_text() else None
-		
-		# convert to the way docs specify an array type
-		if type == 'Array' and self.expect('['):
-			type = self.consume() + '[]'
-			self.expect(']')
+		type = self.parseType() if self.expect(':') and self.tkn_is_text() else None
 		
 		# parsing assignment if needed
 		ass_generator = self.assignment()
@@ -311,24 +359,39 @@ class Parser:
 	
 	
 	def Block(self):
+		self.out.UpScope()
 		self.level += 1
 		block_lvl = self.level
-		self.doWhile(lambda : self.level >= block_lvl, lambda : self.statement() and self.endline() )
+		return_type = None
+		
+		def stmt():
+			nonlocal return_type
+			ret = self.statement()
+			return_type = return_type or ret
+			self.endline()
+		
+		self.doWhile(lambda : self.level >= block_lvl, stmt )
+		
+		return return_type
 	
 	def statement(self):
-		if self.expect('pass'): return
+		if self.expect('pass'):pass
 		elif self.expect('var'): self.declare()
 		elif self.expect('if'): self.ifStmt()
 		elif self.expect('while'): self.whileStmt()
 		elif self.expect('for'): self.forStmt()
 		elif self.expect('match'): self.matchStmt()
-		elif self.expect('return'): self.returnStmt()
-		elif current() in self.data.members and current(2).endswith('='):
+		elif self.expect('return'):pass # return self.returnStmt()
+		
+		# assignment
+		elif self.current() in self.data.members and self.current(2).endswith('='):
 			name = self.consume()
 			self.out.variable(name)
 			ass = self.assigment(); next(ass); next(ass)
+		
 		# NOTE: lone function calls and modification operators (a += b) are handled in expression
-		else: self.expression(); next(exp); next(exp);
+		else: exp = self.expression(); next(exp); next(exp);
+	
 	
 	# Expression	-> ternary
 	# ternary		-> [boolean [if boolean else boolean]* ]
@@ -553,7 +616,7 @@ class Parser:
 		# determine return type
 		constructor = name in ref.godot_types
 		type = name if constructor \
-			else self.methods[name] if name in self.data.methods \
+			else self.data.methods[name] if name in self.data.methods \
 			else ref.godot_types[type].methods[name] if \
 				type in ref.godot_types and name in ref.godot_types[type].methods \
 			else None

@@ -11,7 +11,6 @@ class Nested1 extends test:
 			
 class Nested2:
 	class Nested3:
-	
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
@@ -71,12 +70,14 @@ var ternary = not true if false && true else 5 > 6
 var nested_ternary = true if false else 5 > 6 if true else 7 < 0
 
 # methods
-func empty(v:float):
-	pass
+func empty(): pass
 
-func returning()->float:
-	empty(7.)
+func returning(v:float)->float:
+	empty()
 	return 1.
+
+func init(v:= 1.0)->float:
+	returning(7.)
 
 var getset_var:float : set = _set, get = _get
 

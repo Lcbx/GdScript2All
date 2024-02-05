@@ -17,21 +17,20 @@ public partial class test4 : Godot.Node
 	public partial class Nested1 : test
 	{
 		
-		
-		
 	}
+	
+	
 	public partial class Nested2 : Godot.Object
 	{
 		
 		public partial class Nested3 : Godot.Object
 		{
 			
-			
-			
-			
 		}
 		
 	}
+	
+	
 	enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 	enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 	
@@ -92,14 +91,37 @@ public partial class test4 : Godot.Node
 	public bool nested_ternary = ( false ? true : ( true ? 5 > 6 : 7 < 0 ) );
 	
 	// methods
-	//PANIC ! line 62 : <empty(v:float):\n>
-	
-	
+	void empty()
 	{
-		//PANIC ! line 63 : <pass\n>
-		
-		
 		
 	}
 	
-}
+	
+	float returning(float v)
+	{
+		
+		empty()
+		1.0
+	}
+	
+	
+	float init(Variant v= float)
+	{
+		
+		returning(7.0)
+	}
+	
+	
+	public double getset_var;//PANIC ! line 70 : <: set = _set, get = _get\n>
+	
+	
+	public double DEF =  - 0.1;// Step
+	//PANIC ! line 72 : <	set (value):\n>
+	
+	{
+		
+		{
+			
+			
+		}
+		
