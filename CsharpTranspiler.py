@@ -1,5 +1,5 @@
 from io import StringIO
-import godotReference as ref
+import godot_types as ref
 
 
 

@@ -24,7 +24,7 @@ else:
 	# generate the pickle file
 	from untangle import parse
 	
-	docFolder = 'GodotAPI'
+	docFolder = 'classData'
 	classDocPaths = [
 		os.path.join(root, file)
 		for root, dirs, files in os.walk(docFolder)

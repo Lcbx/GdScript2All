@@ -1,7 +1,6 @@
 import os
 import sys
 
-import godotReference as ref
 import Parser
 import CsharpTranspiler
 

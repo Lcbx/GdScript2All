@@ -1,6 +1,6 @@
 import re
 import os
-import godotReference as ref
+import godot_types as ref
 from libs.sly import Lexer
 
 # recursive descent parser
