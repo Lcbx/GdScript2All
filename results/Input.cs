@@ -33,12 +33,10 @@ public partial class Character : Godot.CharacterBody3D
 	{
 		
 		// in air
-		//PANIC ! line 20 : <	if not is_on_floor():\n>
-		
+		!is_on_floor()//PANIC! <:> unexpected at Token(type=':', value=':', lineno=28, index=671, end=672)
 		{
 			
-			//PANIC ! line 21 : <velocity.y = clampf(velocity.y - gravity * delta, -MAX_Y_SPEED, MAX_Y_SPEED)\n>
-			
+			//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=29, index=675, end=683)
 			
 		}
 		

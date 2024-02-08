@@ -5,6 +5,7 @@ using Array = Godot.Collections.Array;
 
 
 
+
 // line comment
 
 /* multiline
@@ -45,13 +46,13 @@ public partial class test4 : Godot.Node
 	
 	[Export]
 	
-	public Array<string> string_array = new Array{"0","1",};
+	public Array<string> string_array = new Array{"0','1",};
 	
 	[Export("param1,param2")]
 	
 	public Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
 	
-	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
+	[Export(PropertyHint.Flags,"Self:4, Allies:8, Foes:16")]
 	
 	public int parenthesis = (42);
 	
@@ -110,12 +111,12 @@ public partial class test4 : Godot.Node
 	}
 	
 	
-	public double getset_var;//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=80, index=1631, end=1632)
+	public double getset_var;//PANIC! <: set = _set , get = _get> at Token(type=':', value=':', lineno=76, index=1631, end=1632)
 	
 	public double DEF =  - 0.1;// Step
 	{
 		
-		//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=83, index=1680, end=1683)
+		//PANIC! <set ( value ) :> at Token(type='TEXT', value='set', lineno=79, index=1680, end=1683)
 		{
 			
 			

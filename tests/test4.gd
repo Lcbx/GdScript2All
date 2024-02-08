@@ -61,8 +61,6 @@ var load_resource = load("res://path")
 
 var delayed = \
 	1
-var delayed_wComment = \ # comment
-	2
 
 var arithmetic = - j * .5
 var comparison = arithmetic >= .5 and arithmetic == 6.

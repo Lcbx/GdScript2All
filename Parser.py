@@ -1,11 +1,58 @@
 import re
 import os
 import godotReference as ref
-
+from libs.sly import Lexer
 
 # recursive descent parser
 class Parser:
-	
+	class Tokenizer(Lexer):
+		tokens = { COMMENT, LINE_END, TEXT, ARROW, FLOAT, INT, STRING, LONG_STRING, UNARY, COMPARISON, ARITHMETIC }
+		literals = { '.', ':', '(', ')', '[', ']', '{', '}', '@', '$', '%', ',', '\\', '='}
+		
+		# ignore whitespace and carriage returns
+		ignore = ' \r'
+		
+		# Token definitions
+		ARROW = r'->'
+		UNARY = r'(~|!|not){1}'
+		COMPARISON = r'(==|!=|<=|>=|\|\||&&|<|>|and|or){1}'
+		ARITHMETIC = r'(<<|>>|\*\*|\*|\+|-|\/|%|&|\^|\|){1}=?'
+		
+		TEXT = r'[a-zA-Z_][a-zA-Z0-9_]*'
+		FLOAT = r'\d+[.](\d*)?|[.]\d+'
+		INT = r'\d+'
+		
+		# expression broken to the next line
+		@_(r'\\\n\t*')
+		def ignore_line_break(self, t): self.update_lineno(t)
+		
+		
+		# remove '#'
+		@_(r'#.*')
+		def COMMENT(self, t):
+			t.value = t.value[1:]; return t
+		
+		# remove """"""
+		@_(r'"""[\S\s]*?"""')
+		def LONG_STRING(self, t):
+			self.update_lineno(t);
+			t.value = t.value[3:-3]; return t
+		
+		# remove "" and replace \" by "
+		@_(r'"(.|\\")*?"|\'(.|\\\')*?\'')
+		def STRING(self, t):
+			self.update_lineno(t)
+			t.value = t.value[1:-1].replace('\\'+t.value[0], t.value[0])
+			return t
+		
+		# at endlines, count tabs for scope level
+		@_(r'\n\t*')
+		def LINE_END(self, t): self.update_lineno(t); t.value = str(t.value.count('\t')); return t
+		
+		def update_lineno(self, t): self.lineno += t.value.count('\n')
+		def error(self, t):
+			print("Illegal character '%s'" % t.value[0])
+			self.index += 1
 	
 	def __init__(self, filename, text, transpiler):
 		# keep track of the script being transpiled
@@ -13,125 +60,59 @@ class Parser:
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
 		
-		# split into tokens (we consider non-words full tokens)
-		self.tokens = re.split('(\W)', text)
-		# ignore empty strings...
-		self.tokens =  [token for token in self.tokens if token]
+		# split text into tokens
+		self.tokens =  Parser.Tokenizer().tokenize(text)
 		
-		# size of tokens array
-		self.tokens_end = len(self.tokens) - 1
-		# char index in original script
-		self.index = 0
+		# current token
+		self.current = next(self.tokens)
+		self.consumed = None
+		
 		# indentation level
 		self.level = 0
-		# line number in original script (starting at 0)
-		self.line = 0
-		# token index corresponding to line start
-		self.line_index = 0
 		
 		# script class data
 		self.is_tool = None
 		self.base_class = None
 		self.class_name = None
 		self.data = ref.ClassData()
-		
-		# NOTES:
-		# * tokens kept as strings to avoid adding 1k+ code
-		# * it might be more memory-friendly to use re.finditer instead of re.split
-		# 	so we have an iterator and not an array of tokens
 	
 	
 	""" parsing utils """
 	
-	def index_add(self, n = 1):
-		return min(self.index + n, self.tokens_end)
-		
-	def advance(self, n = 1):
-		self.index = self.index_add(n)
+	def advance(self):
+		if self.current != None: self.current = next(self.tokens)
 	
 	# avoid infinite loops
 	def doWhile(self, condition, effect):
-		last_index = -1
-		while self.index != last_index and condition():
-			last_index = self.index; effect()
+		last = -1
+		while self.current != last and condition():
+			last = self.current; effect()
 	
-	def current(self, n = 1):
-		self.skip_whitespace()
-		return ''.join(self.tokens[self.index:self.index_add(n)]) if n>1 else self.tokens[self.index]
+	def match_type(self, *tokens):
+		return any( [token == self.current.type for token in tokens] )
 	
-	def tkn_is_text(self):
-		tkn0 = self.current()[0]
-		return tkn0.isalpha() or tkn0 in '_'
+	def match_value(self, *tokens):
+		return any( [token == self.current.value for token in tokens] )
 	
-	def tkn_is_int(self):
-		return self.current().isdigit() and self.current(2)[-1] != '.'
-	
-	def tkn_is_float(self):
-		currrent = self.current()
-		next = self.tokens[self.index_add(1)]
-		return (currrent.isdigit() and next == '.') or (next.isdigit() and currrent == '.')
-	
-	def skip(self, tokens):
-		self.doWhile(lambda : self.tokens[self.index] in tokens, self.advance )
-	
-	def skip_whitespace(self):
-		self.skip(' \r')
-		if self.tokens[self.index] == '\\':
-			self.advance()
-			while self.tokens[self.index] in ' \r\t\n':
-				self.skip(' \r\t\n')
-				self.comments()
-	
-	def expect(self, token, n = 1):
-		
-		# fast fail : check first char
-		current = self.current()
-		token0 = token[0]
-		current0 = current[0]
-		if current0 != token0 : return False
-		
-		found = self.current(n)
-		match = token == found
-		
-		if match and token == '\n':
-			self.line += 1
-			self.line_index = self.index
-		
-		if match: self.advance(n)
-		
-		self.skip_whitespace()
-		
-		return match
-	
-	def consume(self, n = 1):
-		self.skip_whitespace()
-		found = self.current(n)
-		print('+', found)
-		self.advance(n)
+	def expect(self, token):
+		found = self.match_value(token)
+		if found: self.advance()
 		return found
 	
-	def consumeUntil(self, token, n = 1, keep_end = True, ignore = []):
-		# storing index makes us keep spaces past the 1st token
-		start = self.index
-		self.doWhile( lambda : self.current(n) != token, self.advance )
-		self.advance(n)
-		range = self.tokens[start:self.index - (0 if keep_end else n)]
-		if ignore: range = [item for item in range if item not in ignore]
-		return ''.join(range)
+	def consume(self):
+		found = self.current.value
+		self.advance()
+		print('+', found)
+		return found
+		
+	def consumeUntil(self, token):
+		result = ''
+		def accumulate(): nonlocal result; result += self.consume()
+		self.doWhile(lambda : not self.match_value(token), accumulate)
+		return result
 	
 	
 	""" parsing / transpiling """
-	
-	def comments(self):
-		if self.current() == '#':
-			self.advance()
-			content = self.consumeUntil('\n')
-			self.out.line_comment(content)
-		elif self.current(3) == '"""':
-			self.advance(3)
-			content = self.consumeUntil('"""', 3, keep_end=False)
-			self.out.multiline_comment(content)
-	
 	
 	# call when an endline is excpected
 	def endline(self):
@@ -143,13 +124,24 @@ class Parser:
 			nonlocal lvl
 			nonlocal keepLooping
 			nonlocal jumpedLines
+			
 			# handle comments
-			if self.current() in '#"':
+			if self.match_type('COMMENT', 'LONG_STRING'):
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0
-				self.comments()
+				
+				if self.match_type('COMMENT'):
+					self.out.line_comment(self.consume())
+				elif self.match_type('LONG_STRING'):
+					self.out.multiline_comment(self.consume())
+			
 			# setting scope level only when we encounter non-whitespace
-			if not self.expect('\n'):
+			if self.match_type('LINE_END'):
+				lvl = int(self.consume())
+				# add endline in generated code to match script
+				jumpedLines += 1
+			
+			else:
 				# go up and down in scope
 				# NOTE: we assume scope is managed the same way across languages
 				if lvl != -1:
@@ -157,13 +149,6 @@ class Parser:
 					while lvl < self.level: self.out.DownScope(); self.level -=1
 				keepLooping = False
 				return
-			
-			# add endline in generated code to match script
-			jumpedLines += 1
-			
-			# count indentation to determine scope level
-			lvl = 0
-			while self.expect('\t'): lvl +=1
 		
 		self.doWhile(lambda:keepLooping, implementation)
 		self.out += '\n' * jumpedLines
@@ -183,7 +168,7 @@ class Parser:
 		self.endline()
 		
 		# script start specific statements
-		self.is_tool = self.expect('@tool', 2); self.endline()
+		self.is_tool = self.expect('@') and self.expect('tool'); self.endline()
 		self.base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
 		self.class_name = self.consume() if self.expect('class_name') else self.script_name
 		
@@ -194,14 +179,19 @@ class Parser:
 		for i in range(2):
 			self.doWhile(lambda:True, self.class_body)
 			
+			# end of file
+			if self.current == None: break
+			
 			# panic system : drop current line if we can't parse it
-			if self.index == self.tokens_end: break
 			else:
-				msg = f'PANIC ! line {self.line} : <' + self.consumeUntil('\n').replace('\n', '\\n') + '>\n'
+				token = self.current
+				escaped = []
+				while not self.match_type('LINE_END') and self.current :
+					escaped.append(self.consume())
+				escaped = ' '.join(escaped).replace('\n', '\\n')
+				msg = f'PANIC! <{escaped}> unexpected at {token}'
 				self.out.line_comment(msg)
 				print('---------', msg)
-				# restore endline to properly go up and down in scope
-				self.advance(-1)
 				self.endline()
 		
 		# end script class
@@ -214,11 +204,8 @@ class Parser:
 	def class_body(self):
 		# gdscript 4 accepts nested classes
 		if self.expect('class'): self.nested_class()
-		# enum definition
 		elif self.expect('enum'): self.enum()
-		# TODO: method
 		elif self.expect('func'): self.method()
-		# class member definition
 		else: self.member()
 		# end statement
 		self.endline()
@@ -241,9 +228,9 @@ class Parser:
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
 	def enum(self):
-		name = self.consume() if self.tkn_is_text() else ''
-		self.skip_whitespace()
-		definition = self.consumeUntil('}', keep_end=True)
+		name = self.consume() if self.match_type('TEXT') else ''
+		definition = self.consumeUntil('}')
+		definition += self.consume() # get the remaining '}'
 		self.out.enum(name, definition)
 	
 	
@@ -258,7 +245,7 @@ class Parser:
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
 		def parseParam():
 			name = self.consume()
-			type = self.parseType() if self.expect(':') and self.tkn_is_text() else 'Variant'
+			type = self.parseType() if self.expect(':') and self.match_type('TEXT') else 'Variant'
 			init = self.expression() if self.expect('=') else None
 			if init:
 				initType = next(init)
@@ -269,7 +256,7 @@ class Parser:
 			
 		self.doWhile(lambda: not self.expect(')'), parseParam)
 		
-		returnType = self.parseType() if self.expect('->', 2) else 'void'
+		returnType = self.parseType() if self.expect('->') else 'void'
 		
 		self.expect(':')
 		
@@ -288,15 +275,21 @@ class Parser:
 	
 	# class member 
 	def member(self):
-		# NOTE: special case for onready (needs moving the assignment into ready function)
-		# TODO: call out.assignement with onready flag (later)
-		is_onready = self.expect('@onready')
+		is_onready = False
 		
 		# exports and such : @annotation[(params)]?
-		if self.expect('@'):
+		while self.expect('@'):
+			
+			# NOTE: special case for onready (needs moving the assignment into ready function)
+			# TODO: call out.assignement with onready flag (later)
+			if self.expect('on_ready'): is_onready = True; break
+			
 			name = self.consume()
 			# NOTE: this should work for most cases
-			params = self.consumeUntil(')', keep_end=False, ignore=['"', "'"]) if self.expect('(') else ''
+			params = self.consumeUntil(')') if self.expect('(') else ''
+			if params:
+				self.expect(')')
+				params = params.replace('"', '').replace("'", '')
 			self.out.annotation(name, params)
 		
 		# NOTE: constants should only be declared at script/inner class level
@@ -310,7 +303,7 @@ class Parser:
 	
 	def declare(self, constant = False, static = False):
 		name = self.consume()
-		type = self.parseType() if self.expect(':') and self.tkn_is_text() else None
+		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 		
 		# parsing assignment if needed
 		ass_generator = self.assignment()
@@ -375,16 +368,16 @@ class Parser:
 		return return_type
 	
 	def statement(self):
-		if self.expect('pass'):pass
+		if self.expect('pass'): pass
 		elif self.expect('var'): self.declare()
-		elif self.expect('if'): self.ifStmt()
-		elif self.expect('while'): self.whileStmt()
-		elif self.expect('for'): self.forStmt()
-		elif self.expect('match'): self.matchStmt()
+		elif self.expect('if'): pass #self.ifStmt()
+		elif self.expect('while'): pass #self.whileStmt()
+		elif self.expect('for'): pass #self.forStmt()
+		elif self.expect('match'): pass #self.matchStmt()
 		elif self.expect('return'):pass # return self.returnStmt()
 		
 		# assignment
-		elif self.current() in self.data.members and self.current(2).endswith('='):
+		elif self.current in self.data.members and self.current.endswith('='):
 			name = self.consume()
 			self.out.variable(name)
 			ass = self.assigment(); next(ass); next(ass)
@@ -413,10 +406,10 @@ class Parser:
 	
 	
 	def ternary(self):
-		cmp1 = self.comparison()
+		cmp1 = self.boolean()
 		yield next(cmp1)
 		if self.expect('if'):
-			cmp2 = self.comparison(); next(cmp2)
+			cmp2 = self.boolean(); next(cmp2)
 			self.expect('else')
 			ter2 = self.ternary(); next(ter2)
 			self.out.ternary(cmp2, cmp1, ter2)
@@ -424,17 +417,15 @@ class Parser:
 			next(cmp1)
 		yield
 	
-	
-	def comparison(self):
+	# mixing boolean and comparison for simplicity
+	def boolean(self):
 		ar1 = self.arithmetic()
 		ar_type = next(ar1)
 		
-		op = self.consume(2) if self.current(2) in ('==', '!=', '<=', '>=', '||', '&&') \
-			else self.consume() if self.current() in ('<', '>', 'and', 'or') \
-			else None
+		op = self.consume() if self.match_type('COMPARISON') else None
 		
 		if op:
-			ar2 = self.comparison()
+			ar2 = self.boolean()
 			ar_type = next(ar2)
 			yield 'bool'
 			next(ar1)
@@ -449,7 +440,7 @@ class Parser:
 	def arithmetic(self):
 		
 		# unary operator ex: i = -4
-		pre_op = self.consume() if self.current() in ('~', '+', '-', '!', 'not') else None
+		pre_op = self.consume() if self.match_type('UNARY') else None
 		
 		ar = self._arithmetic()
 		yield next(ar);
@@ -460,16 +451,9 @@ class Parser:
 		value1 = self.value()
 		value_type = next(value1)
 		
-		# check to avoid || and && is ugly
-		# that's what we get for not using a real tokenizer
-		op = self.consume(2) if self.current(2) in ('<<', '>>', '**') \
-			else self.consume() if self.current() in '*+-/%+&^|' \
-			and self.current(2) not in ('||', '&&') \
-			else None
-		
-		# this is not exact, but simpler to do this way
-		# for arithemetic assigment ex: i += 1
-		if op and self.expect('='): op += '='
+		# NOTE: we accept arithmetic reassignment ex: i += 1
+		# which is not exact but simpler to do this way
+		op = self.consume() if self.match_type('ARITHMETIC') else None
 		
 		if op:
 			value2 = self._arithmetic()
@@ -487,36 +471,31 @@ class Parser:
 	def value(self):
 		
 		# int
-		if self.tkn_is_int():
+		if self.match_type('INT'):
 			val = int(self.consume())
 			yield 'int'
 			self.out.literal(val)
 			
 		# float
-		elif self.tkn_is_float():
-			val = float(self.consumeUntil('.') + (self.consume() if self.tkn_is_int() else ''))
+		elif self.match_type('FLOAT'):
+			val = float(self.consume())
 			yield 'float'
 			self.out.literal(val)
 			
 		# bool
-		elif self.current() in ('true', 'false'):
+		elif self.current.value in ('true', 'false'):
 			val = self.consume() == 'true'
 			yield 'bool'
 			self.out.literal(val)
 		
 		# multiline (""") string
-		elif self.expect('"""', 3):
-			val = self.consumeUntil('"""',3, keep_end = False)
+		elif self.match_type('LONG_STRING'):
+			val = self.consume()
 			yield 'string'
 			self.out.literal(val)
-		# "" string
-		elif self.expect('"'):
-			val = self.consumeUntil('"', keep_end = False)
-			yield 'string'
-			self.out.literal(val)
-		# '' string
-		elif self.expect("'"):
-			val = self.consumeUntil("'", keep_end = False)
+		# "" or '' string
+		elif self.match_type('STRING'):
+			val = self.consume()
 			yield 'string'
 			self.out.literal(val)
 			
@@ -565,7 +544,7 @@ class Parser:
 			self.out.call("get_node", (passthrough(self.out.literal, f'%{name}') ,) )
 		
 		# textCode : variable|reference|call
-		elif self.tkn_is_text():
+		elif self.match_type('TEXT'):
 			content = self.textCode()
 			yield next(content)
 			next(content)
@@ -575,10 +554,11 @@ class Parser:
 	# textCode : variable|call|reference
 	def textCode(self):
 		
-		 # ignoring 'self.' for now, it messes with type inference
-		self.expect('self.', 2)
-		
 		name = self.consume()
+		
+		 # ignoring 'self.' for now, it messes with type inference
+		if name == 'self' and self.expect('.'):
+			name = self.consume()
 		
 		# type could be a singleton (ex: RenderingServer) or a call to a static function
 		singleton = name in ref.godot_types

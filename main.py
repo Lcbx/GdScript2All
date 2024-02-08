@@ -11,19 +11,18 @@ output = "results"
 files = []
 
 # Read console arguments
+# TODO: use argparse instead
 if len(sys.argv):
-	i = 0
+	i = 1
 	while i < len(sys.argv):
 		arg = sys.argv[i]
 		if arg == "-f" or arg == "-i":
-			input = sys.argv[i+1]
-			i+=2
+			i+=1; input = sys.argv[i]
 		elif arg == "-o":
-			output = sys.argv[i+1]
-			i+=2
+			i+=1; output = sys.argv[i]
 		else:
 			print(f"Unknown argument : '{sys.argv[i]}'")
-			i+=1
+		i+=1
 
 
 if os.path.isdir(input):
