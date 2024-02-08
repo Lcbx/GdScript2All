@@ -113,8 +113,8 @@ class CSharpTranspiler:
 		# Note: in c++ this would be ::<name>
 		self += '.' + name
 	
-	##def this(self):
-	##	self += 'this.'
+	def this(self):
+		self += 'this.'
 	
 	def variable(self, name):
 		name = 'this' if name == 'self' else name

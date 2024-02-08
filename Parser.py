@@ -556,9 +556,9 @@ class Parser:
 		
 		name = self.consume()
 		
-		 # ignoring 'self.' for now, it messes with type inference
-		if name == 'self' and self.expect('.'):
-			name = self.consume()
+		# self. is essentially just syntactic in most languages
+		this = name == 'self' and self.expect('.')
+		if this: name = self.consume()
 		
 		# type could be a singleton (ex: RenderingServer) or a call to a static function
 		singleton = name in ref.godot_types
@@ -568,12 +568,14 @@ class Parser:
 		if self.expect('('):
 			call = self.call(None, name)
 			yield next(call)
+			if this: self.out.this()
 			next(call)
 		
 		# reference
 		elif self.expect('.'):
 			reference = self.reference(type)
 			yield next(reference)
+			if this: self.out.this()
 			self.out.singleton(name) if singleton else self.out.variable(name)
 			next(reference)
 		
@@ -581,12 +583,14 @@ class Parser:
 		elif self.expect('['):
 			s = self.subscription(type)
 			yield next(s)
+			if this: self.out.this()
 			self.out.variable(name)
 			next(s)
 		
 		# lone variable or global
 		else:
 			yield self.data.members.get(name, None)
+			if this: self.out.this()
 			self.out.variable(name)
 		yield
 	

@@ -63,10 +63,10 @@ public partial class test4 : Godot.Node
 	public Godot.Variant functionMethodParams = foo(a,b).bar(c,d);
 	public Godot.Variant refMethod = foo.bar.baz();
 	public Godot.Variant methodRef = foo.bar().baz;
-	public Godot.Variant subscription = dict[0];
+	public Godot.Variant subscription = this.dict[0];
 	
 	// test type inference on local class members
-	public int j = i;
+	public int j = this.i;
 	public string k = string_array[0];
 	
 	// determine type based on godot doc
