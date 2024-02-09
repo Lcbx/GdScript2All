@@ -1,71 +1,29 @@
 import re
 import os
+from enum import IntFlag as Enum
+from copy import copy
+
 import godot_types as ref
-from libs.sly import Lexer
+from Tokenizer import Tokenizer
+
+# TODO: reorganise methods to follow grammar
 
 # recursive descent parser
 class Parser:
-	class Tokenizer(Lexer):
-		tokens = { COMMENT, LINE_END, TEXT, ARROW, FLOAT, INT, STRING, LONG_STRING, UNARY, COMPARISON, ARITHMETIC }
-		literals = { '.', ':', '(', ')', '[', ']', '{', '}', '@', '$', '%', ',', '\\', '='}
-		
-		# ignore whitespace and carriage returns
-		ignore = ' \r'
-		
-		# Token definitions
-		ARROW = r'->'
-		UNARY = r'(~|!|not){1}'
-		COMPARISON = r'(==|!=|<=|>=|\|\||&&|<|>|and|or){1}'
-		ARITHMETIC = r'(<<|>>|\*\*|\*|\+|-|\/|%|&|\^|\|){1}=?'
-		
-		TEXT = r'[a-zA-Z_][a-zA-Z0-9_]*'
-		FLOAT = r'\d+[.](\d*)?|[.]\d+'
-		INT = r'\d+'
-		
-		# expression broken to the next line
-		@_(r'\\\n\t*')
-		def ignore_line_break(self, t): self.update_lineno(t)
-		
-		
-		# remove '#'
-		@_(r'#.*')
-		def COMMENT(self, t):
-			t.value = t.value[1:]; return t
-		
-		# remove """"""
-		@_(r'"""[\S\s]*?"""')
-		def LONG_STRING(self, t):
-			self.update_lineno(t);
-			t.value = t.value[3:-3]; return t
-		
-		# remove "" and replace \" by "
-		@_(r'"(.|\\")*?"|\'(.|\\\')*?\'')
-		def STRING(self, t):
-			self.update_lineno(t)
-			t.value = t.value[1:-1].replace('\\'+t.value[0], t.value[0])
-			return t
-		
-		# at endlines, count tabs for scope level
-		@_(r'\n\t*')
-		def LINE_END(self, t): self.update_lineno(t); t.value = str(t.value.count('\t')); return t
-		
-		def update_lineno(self, t): self.lineno += t.value.count('\n')
-		def error(self, t):
-			print("Illegal character '%s'" % t.value[0])
-			self.index += 1
 	
 	def __init__(self, filename, text, transpiler):
 		# keep track of the script being transpiled
 		self.script_name = filename
+		
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
 		
-		# split text into tokens
-		self.tokens =  Parser.Tokenizer().tokenize(text)
+		# generator that splits text into tokens
+		# adding an endline last to ensure we get the last token
+		self.tokens = Tokenizer().tokenize(text)# + '\n')
 		
-		# current token
-		self.current = next(self.tokens)
-		self.consumed = None
+		# update current token
+		self.advance()
 		
 		# indentation level
 		self.level = 0
@@ -74,19 +32,25 @@ class Parser:
 		self.is_tool = None
 		self.base_class = None
 		self.class_name = None
-		self.data = ref.ClassData()
-	
+		self.classData = None
 	
 	""" parsing utils """
 	
 	def advance(self):
-		if self.current != None: self.current = next(self.tokens)
+		try:
+			self.current = next(self.tokens)
+		except StopIteration as err:
+			# reached end of file
+			# using a trick to allow parsing to finish properly
+			self.current.type = 'EOF'
+			self.current.value = 'EOF'
 	
-	# avoid infinite loops
-	def doWhile(self, condition, effect):
+	# while implementation that avoids infinite loops
+	def doWhile(self, condition):
 		last = -1
 		while self.current != last and condition():
-			last = self.current; effect()
+			last = self.current;
+			yield
 	
 	def match_type(self, *tokens):
 		return any( [token == self.current.type for token in tokens] )
@@ -102,29 +66,24 @@ class Parser:
 	def consume(self):
 		found = self.current.value
 		self.advance()
-		print('+', found)
+		#print('+', found)
 		return found
 		
-	def consumeUntil(self, token):
-		result = ''
-		def accumulate(): nonlocal result; result += self.consume()
-		self.doWhile(lambda : not self.match_value(token), accumulate)
-		return result
+	def consumeUntil(self, token, separator = ''):
+		result = []
+		for i in self.doWhile(lambda : \
+					not self.match_value(token) \
+				and not self.match_type(token)):
+			result.append(self.consume())
+		return separator.join(result)
 	
 	
-	""" parsing / transpiling """
-	
-	# call when an endline is excpected
+	# called when an endline is excpected
 	def endline(self):
-		lvl = -1
-		keepLooping = True
+		lvl = 999
 		jumpedLines = 0
 		
-		def implementation():
-			nonlocal lvl
-			nonlocal keepLooping
-			nonlocal jumpedLines
-			
+		for i in self.doWhile(lambda:True):
 			# handle comments
 			if self.match_type('COMMENT', 'LONG_STRING'):
 				self.out += '\n' * jumpedLines
@@ -142,28 +101,20 @@ class Parser:
 				jumpedLines += 1
 			
 			else:
-				# go up and down in scope
-				# NOTE: we assume scope is managed the same way across languages
-				if lvl != -1:
-					while lvl > self.level: self.out.UpScope(); self.level +=1
-					while lvl < self.level: self.out.DownScope(); self.level -=1
-				keepLooping = False
-				return
+				# automatically go down in scope if unexpected indentation
+				while lvl < self.level:
+					self.level -=1
+					self.out.DownScope();
+					#print("downscope    ", self.current)
+				break
 		
-		self.doWhile(lambda:keepLooping, implementation)
 		self.out += '\n' * jumpedLines
 	
+	""" parsing / transpiling """
 	
-	# convert to the way docs specify an array type
-	def parseType(self):
-		type = self.consume()
-		if type == 'Array' and self.expect('['):
-			type = self.consume() + '[]'
-			self.expect(']')
-		return type
+	FLAGS = Enum('FLAGS', ('none', 'static', 'constant', 'property')) 
 	
 	def transpile(self):
-		
 		# in case there is a file header / comments at start
 		self.endline()
 		
@@ -172,30 +123,34 @@ class Parser:
 		self.base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
 		self.class_name = self.consume() if self.expect('class_name') else self.script_name
 		
+		# initialize script class data
+		self.classData = copy(ref.godot_types[self.base_class])
+		#print(self.classData.__dict__)
+		
 		# no endline after class name since we declare the class before that
 		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
 		
 		# script-level loop
 		for i in range(2):
-			self.doWhile(lambda:True, self.class_body)
 			
-			# end of file
-			if self.current == None: break
+			for i in self.doWhile(lambda:True):
+				self.class_body()
 			
-			# panic system : drop current line if we can't parse it
-			else:
-				token = self.current
-				escaped = []
-				while not self.match_type('LINE_END') and self.current :
-					escaped.append(self.consume())
-				escaped = ' '.join(escaped).replace('\n', '\\n')
-				msg = f'PANIC! <{escaped}> unexpected at {token}'
-				self.out.line_comment(msg)
-				print('---------', msg)
-				self.endline()
-		
-		# end script class
-		self.out.DownScope()
+			# get out if EOF reached
+			if self.match_type('EOF'):
+				print("reached EOF")
+				break
+			
+			# panic system :
+			# drop current line if we can't parse it
+			
+			token = self.current
+			escaped = self.consumeUntil('LINE_END', separator=' ').replace('\n', '\\n')
+			self.endline()
+			
+			msg = f'PANIC! <{escaped}> unexpected at {token}'
+			self.out.line_comment(msg)
+			print('---------', msg)
 		
 		# tell the transpiler we're done
 		self.out.end_script()
@@ -203,11 +158,11 @@ class Parser:
 	
 	def class_body(self):
 		# gdscript 4 accepts nested classes
+		static = self.expect('static')
 		if self.expect('class'): self.nested_class()
 		elif self.expect('enum'): self.enum()
-		elif self.expect('func'): self.method()
-		else: self.member()
-		# end statement
+		elif self.expect('func'): self.method(static)
+		else: self.member(static)
 		self.endline()
 	
 	
@@ -221,7 +176,9 @@ class Parser:
 		self.level += 1
 		class_lvl = self.level
 		# NOTE: technically there would be no annotations in inner classes
-		self.doWhile(lambda:self.level >= class_lvl, self.class_body )
+		for i in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
+		
+		# TODO : add nested class to godot_types
 	
 	
 	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
@@ -235,7 +192,7 @@ class Parser:
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
-	def method(self):
+	def method(self, static):
 		name = self.consume()
 		self.expect('(')
 		
@@ -243,41 +200,45 @@ class Parser:
 		params_init = {}
 		
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
-		def parseParam():
-			name = self.consume()
-			type = self.parseType() if self.expect(':') and self.match_type('TEXT') else 'Variant'
-			init = self.expression() if self.expect('=') else None
-			if init:
-				initType = next(init)
-				type = type or initType
-				params_init[name] = initType
-			self.expect(',')
-			params[name] = type
+		for i in self.doWhile(lambda: not self.expect(')')):
+			pName = self.consume()
+			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 			
-		self.doWhile(lambda: not self.expect(')'), parseParam)
+			# initial value
+			pInit = self.expression() if self.expect('=') else None
+			if pInit:
+				initType = next(pInit)
+				pType = pType or initType
+				params_init[pName] = pInit
+			
+			pType = pType or 'Variant'
+			self.expect(',')
+			params[pName] = pType
 		
-		returnType = self.parseType() if self.expect('->') else 'void'
+		# TODO: add params to locals
+		
+		returnType = self.parseType() if self.expect('->') else None
 		
 		self.expect(':')
 		
-		# TODO : add an emit func to out
-		self.out += f'{returnType} {name}(' + \
-			','.join([ f'{pType} {pName}' \
-			+ ( f'= {params_init[pName]}' if pName in params_init else '') \
-			for pName, pType in params.items()]) + ')'
+		# make transpiler write to a buffer
+		# so we can parser block code, emit declaration then emit block code
+		self.out.addLayer()
 		
-		# TODO: add params to locals
-		# TODO!! find a way to infer method return type BEFORE emitting block code !
 		blockType = self.Block()
-		type = returnType or blockType or 'Variant'
-		self.data.methods[name] = type
+		
+		returnType = returnType or blockType
+		self.classData.methods[name] = returnType
+		
+		self.out.define_method(name, params, params_init, returnType, static)
 	
 	
 	# class member 
-	def member(self):
-		is_onready = False
+	def member(self, static):
 		
 		# exports and such : @annotation[(params)]?
+		# while is used to get out in case of on_ready
+		is_onready = False
 		while self.expect('@'):
 			
 			# NOTE: special case for onready (needs moving the assignment into ready function)
@@ -294,14 +255,20 @@ class Parser:
 		
 		# NOTE: constants should only be declared at script/inner class level
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
-		constant = self.expect('const') 
-		static = self.expect('static') 
+		constant = self.expect('const')
 		if constant or self.expect('var'):
-			self.declare(constant, static)
+			self.declare( \
+					 self.FLAGS.property \
+				| (  self.FLAGS.constant if constant \
+				else self.FLAGS.static if static \
+				else self.FLAGS.none))
+				# TODO : add 'exported' flag
 		
-		# TODO: handle get set
+			# TODO: handle get set
+			
+			self.out.end_statement()
 	
-	def declare(self, constant = False, static = False):
+	def declare(self, flags):
 		name = self.consume()
 		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 		
@@ -312,12 +279,14 @@ class Parser:
 		# get type
 		type = type or ass_type or 'Variant'
 		# TODO: fix(?) -> locals are treated like members
-		self.data.members[name] = type 
+		self.classData.members[name] = type
 		
 		# emit code
-		self.out.declare_variable(type, name, constant, static)
+		if flags & self.FLAGS.property:
+			self.out.declare_property(type, name, flags & self.FLAGS.constant, flags & self.FLAGS.static)
+		else:
+			self.out.declare_variable(type, name)
 		next(ass_generator)
-		self.out.end_statement()
 	
 	# assignment and all expression use generator/passthrough for type inference
 	# the format expected is :
@@ -326,7 +295,7 @@ class Parser:
 	
 	def assignment(self):
 		exp = self.expression() if self.expect('=') else None
-		if exp: yield next(exp); self.out.assignment(); next(exp)
+		if exp: yield next(exp); self.out.assignment(exp)
 		else: yield
 		yield
 	
@@ -347,43 +316,54 @@ class Parser:
 	#  |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
 	#  |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
 	#  |->ReturnStatement -> return <Expression>                                                ----> TODO
-	#  |->Assignment      -> <variable> = <Expression>                                          ----> TODO
+	#  |->Assignment      -> <Expression> = <Expression>                                        ----> TODO
 	#  |->Expression (see after statement implementation)
 	
 	
 	def Block(self):
-		self.out.UpScope()
+	
 		self.level += 1
 		block_lvl = self.level
+		
+		self.out.UpScope()
+		self.endline()
+		
+		stmts = []
 		return_type = None
 		
-		def stmt():
-			nonlocal return_type
-			ret = self.statement()
-			return_type = return_type or ret
+		for i in self.doWhile(lambda : self.level >= block_lvl):
+			res = self.statement()
+			return_type = return_type or res
 			self.endline()
 		
-		self.doWhile(lambda : self.level >= block_lvl, stmt )
-		
 		return return_type
-	
+
 	def statement(self):
-		if self.expect('pass'): pass
-		elif self.expect('var'): self.declare()
-		elif self.expect('if'): pass #self.ifStmt()
-		elif self.expect('while'): pass #self.whileStmt()
-		elif self.expect('for'): pass #self.forStmt()
-		elif self.expect('match'): pass #self.matchStmt()
-		elif self.expect('return'):pass # return self.returnStmt()
+		if self.expect('pass'): return
+		elif self.expect('var'): return self.declare(self.FLAGS.none)
+		elif self.expect('if'): return #self.ifStmt()
+		elif self.expect('while'): return #self.whileStmt()
+		elif self.expect('for'): return #self.forStmt()
+		elif self.expect('match'): return #self.matchStmt()
+		elif self.expect('return'):return self.returnStmt()
 		
-		# assignment
-		elif self.current in self.data.members and self.current.endswith('='):
-			name = self.consume()
-			self.out.variable(name)
-			ass = self.assigment(); next(ass); next(ass)
-		
-		# NOTE: lone function calls and modification operators (a += b) are handled in expression
-		else: exp = self.expression(); next(exp); next(exp);
+		# NOTE: expression() handles function calls and modification operators (a += b)
+		# even though it is not conceptually correct
+		exp = self.expression(); next(exp)
+		# assignment : <expression> = <expression>
+		if self.match_value('='):
+			ass = self.assignment(); next(ass)
+			next(exp); next(ass)
+		else: next(exp)
+		self.out.end_statement()
+	
+	
+	def returnStmt(self):
+		exp = self.expression()
+		type = next(exp)
+		self.out.returnStmt(exp)
+		self.out.end_statement()
+		return type
 	
 	
 	# Expression	-> ternary
@@ -562,7 +542,7 @@ class Parser:
 		
 		# type could be a singleton (ex: RenderingServer) or a call to a static function
 		singleton = name in ref.godot_types
-		type = self.data.members.get(name, None) or (name if singleton else None)
+		type = self.classData.members.get(name, None) or (name if singleton else None)
 		
 		# call
 		if self.expect('('):
@@ -589,7 +569,7 @@ class Parser:
 		
 		# lone variable or global
 		else:
-			yield self.data.members.get(name, None)
+			yield self.classData.members.get(name, None)
 			if this: self.out.this()
 			self.out.variable(name)
 		yield
@@ -600,7 +580,7 @@ class Parser:
 		# determine return type
 		constructor = name in ref.godot_types
 		type = name if constructor \
-			else self.data.methods[name] if name in self.data.methods \
+			else self.classData.methods[name] if name in self.classData.methods \
 			else ref.godot_types[type].methods[name] if \
 				type in ref.godot_types and name in ref.godot_types[type].methods \
 			else None
@@ -699,6 +679,15 @@ class Parser:
 			yield type
 			self.out.subscription(key)
 		yield
+	
+	
+	# convert to the way docs specify an array type
+	def parseType(self):
+		type = self.consume()
+		if type == 'Array' and self.expect('['):
+			type = self.consume() + '[]'
+			self.expect(']')
+		return type
 
 ## Utils
 

@@ -29,14 +29,10 @@ public partial class Character : Godot.CharacterBody3D
 	public Godot.Variant jumpCoolDown = Utils.createTimer(this,0.15);
 	
 	
-	void _process(float delta)
+	protected void _process(double delta)
 	{
-		
 		// in air
-		!is_on_floor()//PANIC! <:> unexpected at Token(type=':', value=':', lineno=28, index=671, end=672)
-		{
-			
-			//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=29, index=675, end=683)
-			
-		}
-		
+		!is_on_floor();;
+		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=28, index=671, end=672)
+		//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=29, index=675, end=683)
+	}

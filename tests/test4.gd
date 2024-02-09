@@ -70,14 +70,23 @@ var nested_ternary = true if false else 5 > 6 if true else 7 < 0
 # methods
 func empty(): pass
 
-func returning(v:float)->float:
+func returning(v:float):
 	empty()
 	return 1.
-
+	
 func init(v:= 1.0)->float:
 	returning(7.)
 
-var getset_var:float : set = _set, get = _get
+func reassign():
+	reassign += 2
+
+func assign():
+	assign = 2
+
+func declare():
+	var declare = 2
+
+var getset_var : float : set = _set, get = _get
 
 var DEF = -0.1 # Step
 	set (value):

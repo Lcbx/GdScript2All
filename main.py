@@ -53,7 +53,7 @@ def transpile(filename, outname):
 		code = transpiler.get_result()
 		print("")
 		print("****************  generated code  ****************")
-		print(code)
+		print(code.replace('\t', '_ '))
 		print("**************************************************")
 		return code
 	

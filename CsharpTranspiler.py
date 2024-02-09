@@ -1,6 +1,5 @@
-from io import StringIO
+from io import StringIO as stringBuilder
 import godot_types as ref
-
 
 
 class CSharpTranspiler:
@@ -8,35 +7,58 @@ class CSharpTranspiler:
 	def __init__(self):
 		# scope level
 		self.level = 0
-		# stringBuilder
-		self._text = StringIO()
+		
+		# allows to parse code and rearrange it
+		self.layers = [stringBuilder()]
+		
 		# default imports
 		self += ref.header
 		
 		# onready assignments that need to be moved to the ready function
 		self.onready = []
+		
 		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
 	
 	# += operator override to generate code
 	def __iadd__(self, txt):
-		#print(">", txt.replace("\n", "<EOL>"))
 		# automatic indentation
 		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
-		self._text.write(txt)
+		self.write(txt)
+		#print(">", txt.replace("\n", "<EOL>").replace('\t', '  '))
 		return self
 	
+	def write(self, txt):
+		self.layers[-1].write(txt)
+	
 	def get_result(self):
-		return self._text.getvalue()
+		#while len(self.layers) > 1: self += self.popLayer()
+		#while self.level > 0: self.DownScope()
+		return self.layers[0].getvalue()
 	
 	def UpScope(self):
+		#print("UpScope")
 		self += "\n{"
 		self.level += 1
-		self += "\n"
+		#self += "\n"
 	
 	def DownScope(self):
+		#print("DownScope")
 		self.level -= 1
-		self += "\n}\n"
+		self += "\n}"
+	
+	# layers : used for method definition
+	# so we can parse return type then add code
+	
+	def addLayer(self):
+		self.layers.append(stringBuilder())
+		
+	def popLayer(self):
+		# add top scope txt to lower then remove top
+		scope = self.layers[-1].getvalue()
+		self.layers.pop()
+		return scope
+	
 	
 	def line_comment(self, content):
 		self += f"//{content}"
@@ -52,6 +74,7 @@ class CSharpTranspiler:
 		if base_class in ref.godot_types: base_class = f'Godot.{base_class}'
 		self += f'public partial class {name} : {base_class}'
 		self.UpScope()
+		self += '\n'
 	
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
@@ -67,17 +90,20 @@ class CSharpTranspiler:
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
 		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + (params and '(')
-		self += f'[{name}"{params}")]\n' if params else f'[{name}]\n'
+		self += f'[{name}"{params}")]' if params else f'[{name}]'
 	
 	
-	def declare_variable(self, type, name, constant, static):
+	def declare_property(self, type, name, constant, static):
 		type = translate_type(type)
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
 	
-	def assignment(self):
-		self += ' = '
+	def declare_variable(self, type, name):
+		self += f'var {name}'
+	
+	def assignment(self, exp):
+		self += ' = '; get(exp)
 	
 	def subexpression(self, expression):
 		self += '('; get(expression); self += ')'
@@ -153,15 +179,38 @@ class CSharpTranspiler:
 		get(valueIfTrue); self += ' : '
 		get(valueIfFalse); self += ' )'
 	
-	def define_method(self, name, return_type):
+	def define_method(self, name, params, params_init, return_type, static):
+		
 		# TODO: check if called _ready and at script level (self.level==1)
 		# then add onready assignments first and clear onready array
-		pass
+		
+		return_type = translate_type(return_type)
+		
+		blockText = self.popLayer()
+		exposed = 'protected' if name[0] == '_' else 'public'
+		static_str = 'static ' if static else ''
+		self += f'{exposed} {static_str}{return_type} {name}('
+		
+		for i, (pName, pType) in enumerate(params.items()):
+			if i != 0: self += ', '
+			self += f'{translate_type(pType)} {pName}'
+			if pName in params_init:
+				self += ' = '; get(params_init[pName])
+		
+		self += ')'
+		
+		#self.UpScope()
+		self.write(blockText)
+	
+	def returnStmt(self, return_exp):
+		self += 'return '; get(return_exp)
 	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
-		# TODO : in cpp, add member and method bindings
-		pass
+		# TODO: in cpp, add member and method bindings
+		
+		# end script-level class
+		self.DownScope()
 
 ## Utils
 
@@ -173,6 +222,7 @@ def toPascal(text):
 	return val
 
 def translate_type(type):
+	if type == None: return 'void'
 	if type in ['Array', 'Dictionary']: return type
 	if type in ref.godot_types: return f'Godot.{type}'
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'

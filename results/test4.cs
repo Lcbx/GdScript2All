@@ -19,7 +19,6 @@ public partial class test4 : Godot.Node
 		
 	}
 	
-	
 	public partial class Nested2 : Godot.Object
 	{
 		
@@ -27,9 +26,7 @@ public partial class test4 : Godot.Node
 		{
 			
 		}
-		
 	}
-	
 	
 	enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
 	enum Named {THING_1,THING_2,ANOTHER_THING=-1}
@@ -44,15 +41,12 @@ public partial class test4 : Godot.Node
 	public Array array = new Array{0,1,2,};
 	
 	[Export]
-	
 	public Array<string> string_array = new Array{"0","1",};
 	
 	[Export("param1,param2")]
-	
 	public Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
 	
 	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
-	
 	public int parenthesis = (42);
 	
 	public Godot.Variant variable = foo;
@@ -89,35 +83,39 @@ public partial class test4 : Godot.Node
 	public bool nested_ternary = ( false ? true : ( true ? 5 > 6 : 7 < 0 ) );
 	
 	// methods
-	void empty()
+	public void empty()
 	{
-		
 	}
 	
-	
-	float returning(float v)
+	public double returning(double v)
 	{
-		
-		empty()
-		1.0
+		empty();
+		return 1.0;
 	}
 	
-	
-	float init(Variant v= float)
+	public double init(double v = 1.0)
 	{
-		
-		returning(7.0)
+		returning(7.0);
 	}
 	
-	
-	public double getset_var;//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=80, index=1631, end=1632)
-	
-	public double DEF =  - 0.1;// Step
+	public void reassign()
 	{
-		
-		//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=83, index=1680, end=1683)
-		{
-			
-			
-		}
-		
+		reassign += 2;
+	}
+	
+	public void assign()
+	{
+		assign = 2;
+	}
+	
+	public void declare()
+	{
+		var declare = 2
+	}
+	
+	public double getset_var;
+	
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=89, index=1722, end=1723)public double DEF =  - 0.1;// Step
+	
+	//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=92, index=1771, end=1774)
+}
