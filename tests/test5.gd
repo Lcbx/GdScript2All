@@ -8,9 +8,11 @@ func reassign():
 func assign():
 	assign = 2
 
-
-func init(v:= 1.0)->float:
+#test1
+func init(v:= 1.0)->float: #test2
+	#test3
 	returning(7.)
+	#test4
 
 func returning(v:float):
 	empty()
@@ -18,7 +20,3 @@ func returning(v:float):
 
 func declare():
 	var declare = 2
-
-func funcception():
-	func hi():
-		pass

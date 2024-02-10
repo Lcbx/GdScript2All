@@ -20,10 +20,12 @@ public partial class test5 : Godot.Node
 		assign = 2;
 	}
 	
-	
+	//test1
 	public double init(double v = 1.0)
-	{
+	{//test2
+		//test3
 		returning(7.0);
+		//test4
 	}
 	
 	public double returning(double v)
@@ -36,9 +38,4 @@ public partial class test5 : Godot.Node
 	{
 		var declare = 2
 	}
-	
-	public void funcception()
-	{
-		func;hi();;
-		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=23, index=249, end=250)//PANIC! <pass> unexpected at Token(type='EOF', value='EOF', lineno=24, index=253, end=257)
-	}
+}

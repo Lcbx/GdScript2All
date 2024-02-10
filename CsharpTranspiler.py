@@ -187,6 +187,7 @@ class CSharpTranspiler:
 		return_type = translate_type(return_type)
 		
 		blockText = self.popLayer()
+		
 		exposed = 'protected' if name[0] == '_' else 'public'
 		static_str = 'static ' if static else ''
 		self += f'{exposed} {static_str}{return_type} {name}('
@@ -198,8 +199,6 @@ class CSharpTranspiler:
 				self += ' = '; get(params_init[pName])
 		
 		self += ')'
-		
-		#self.UpScope()
 		self.write(blockText)
 	
 	def returnStmt(self, return_exp):

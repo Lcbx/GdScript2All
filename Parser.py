@@ -19,8 +19,8 @@ class Parser:
 		self.out = transpiler
 		
 		# generator that splits text into tokens
-		# adding an endline last to ensure we get the last token
-		self.tokens = Tokenizer().tokenize(text)# + '\n')
+		self.tokenizer = Tokenizer()
+		self.tokens = self.tokenizer.tokenize(text)
 		
 		# update current token
 		self.advance()
@@ -41,7 +41,7 @@ class Parser:
 			self.current = next(self.tokens)
 		except StopIteration as err:
 			# reached end of file
-			# using a trick to allow parsing to finish properly
+			# using a trick to finish parsing
 			self.current.type = 'EOF'
 			self.current.value = 'EOF'
 	
@@ -49,14 +49,13 @@ class Parser:
 	def doWhile(self, condition):
 		last = -1
 		while self.current != last and condition():
-			last = self.current;
-			yield
+			last = self.current; yield
 	
 	def match_type(self, *tokens):
-		return any( [token == self.current.type for token in tokens] )
+		return any( (token == self.current.type for token in tokens) )
 	
 	def match_value(self, *tokens):
-		return any( [token == self.current.value for token in tokens] )
+		return any( (token == self.current.value for token in tokens) )
 	
 	def expect(self, token):
 		found = self.match_value(token)
@@ -71,7 +70,7 @@ class Parser:
 		
 	def consumeUntil(self, token, separator = ''):
 		result = []
-		for i in self.doWhile(lambda : \
+		for _ in self.doWhile(lambda : \
 					not self.match_value(token) \
 				and not self.match_type(token)):
 			result.append(self.consume())
@@ -80,35 +79,43 @@ class Parser:
 	
 	# called when an endline is excpected
 	def endline(self):
-		lvl = 999
+		lvl = 0
 		jumpedLines = 0
 		
-		for i in self.doWhile(lambda:True):
-			# handle comments
-			if self.match_type('COMMENT', 'LONG_STRING'):
-				self.out += '\n' * jumpedLines
-				jumpedLines = 0
-				
-				if self.match_type('COMMENT'):
-					self.out.line_comment(self.consume())
-				elif self.match_type('LONG_STRING'):
-					self.out.multiline_comment(self.consume())
+		for _ in self.doWhile(lambda:True):
+			
+			# stub
+			emitComments = (lambda : None)
 			
 			# setting scope level only when we encounter non-whitespace
 			if self.match_type('LINE_END'):
 				lvl = int(self.consume())
-				# add endline in generated code to match script
 				jumpedLines += 1
 			
-			else:
-				# automatically go down in scope if unexpected indentation
+			# parse comments
+			elif self.match_type('COMMENT', 'LONG_STRING'):
+				emit = self.out.line_comment if self.match_type('COMMENT') else self.out.multiline_comment
+				content = self.consume()
+				# override emitComments stub
+				def emitComments(): emit(content)
+			
+			# found code, indentation now matters
+			if not self.match_type('LINE_END'):
 				while lvl < self.level:
 					self.level -=1
+					# NOTE: for prettier output, we emit downscope directly
 					self.out.DownScope();
 					#print("downscope    ", self.current)
+				
+				emitComments()
+				# get out
 				break
+			
+			# emit comment and continue loop
+			else: emitComments()
 		
 		self.out += '\n' * jumpedLines
+	
 	
 	""" parsing / transpiling """
 	
@@ -133,7 +140,7 @@ class Parser:
 		# script-level loop
 		for i in range(2):
 			
-			for i in self.doWhile(lambda:True):
+			for _ in self.doWhile(lambda:True):
 				self.class_body()
 			
 			# get out if EOF reached
@@ -176,7 +183,7 @@ class Parser:
 		self.level += 1
 		class_lvl = self.level
 		# NOTE: technically there would be no annotations in inner classes
-		for i in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
+		for _ in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
 		
 		# TODO : add nested class to godot_types
 	
@@ -200,7 +207,7 @@ class Parser:
 		params_init = {}
 		
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
-		for i in self.doWhile(lambda: not self.expect(')')):
+		for _ in self.doWhile(lambda: not self.expect(')')):
 			pName = self.consume()
 			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 			
@@ -321,17 +328,13 @@ class Parser:
 	
 	
 	def Block(self):
-	
 		self.level += 1
 		block_lvl = self.level
-		
-		self.out.UpScope()
-		self.endline()
-		
-		stmts = []
 		return_type = None
 		
-		for i in self.doWhile(lambda : self.level >= block_lvl):
+		self.out.UpScope()
+		
+		for _ in self.doWhile(lambda : self.level >= block_lvl):
 			res = self.statement()
 			return_type = return_type or res
 			self.endline()
@@ -346,16 +349,16 @@ class Parser:
 		elif self.expect('for'): return #self.forStmt()
 		elif self.expect('match'): return #self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
-		
-		# NOTE: expression() handles function calls and modification operators (a += b)
-		# even though it is not conceptually correct
-		exp = self.expression(); next(exp)
-		# assignment : <expression> = <expression>
-		if self.match_value('='):
-			ass = self.assignment(); next(ass)
-			next(exp); next(ass)
-		else: next(exp)
-		self.out.end_statement()
+		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
+			# NOTE: expression() handles function calls and modification operators (a += b)
+			# even though it is not conceptually correct
+			exp = self.expression(); next(exp)
+			# assignment : <expression> = <expression>
+			if self.match_value('='):
+				ass = self.assignment(); next(ass)
+				next(exp); next(ass)
+			else: next(exp)
+			self.out.end_statement()
 	
 	
 	def returnStmt(self):
