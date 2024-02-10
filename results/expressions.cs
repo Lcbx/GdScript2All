@@ -23,9 +23,9 @@ public partial class expressions : Godot.Node
 	// multi-part expressions
 	public double arithmetic =  - j * 0.5;
 	public bool comparison = arithmetic >= 0.5 && arithmetic == 6.0;
-	public Godot.Variant ternary = ( true ? cond_true : cond_true );
-	public int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | ternary :  ) );
+	public Godot.Variant ternary = ( true ? cond_true : cond_false );
+	public int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | 4 : cond12_false && 0 ) );
 	
 	
-	//PANIC! <else cond12_false> unexpected at Token(type='TEXT', value='else', lineno=22, index=593, end=597)
+	
 }

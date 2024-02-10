@@ -6,7 +6,24 @@ from copy import copy
 import godot_types as ref
 from Tokenizer import Tokenizer
 
-# TODO: reorganise methods to follow grammar
+
+# TODO: FIX: method return inference not wortking ?
+# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
+
+# TODO: support match statment
+# TODO: support break|continue statments
+# TODO: support 'as' keyword
+# TODO: await => await ToSignal(....)"
+# TODO: support adding user-defined classes to ref.godot_type
+# TODO: Rename {Builtin_Class}.aa_bb_cc to AaBbCc (Eg Engine.is_editor_hint)
+
+# TODO: support special literals like:
+# * floating exponents : 58e-10
+# * base16 int : 0x8E
+# * bineary int : 0b1010
+# * raw strings : r"hello"
+# * string names : &"name"
+# * nodepath : ^"parent/child"
 
 # recursive descent parser
 class Parser:
@@ -34,92 +51,31 @@ class Parser:
 		self.class_name = None
 		self.classData = None
 	
-	""" parsing utils """
 	
-	def advance(self):
-		try:
-			self.current = next(self.tokens)
-		except StopIteration as err:
-			# reached end of file
-			# using a trick to finish parsing
-			self.current.type = 'EOF'
-			self.current.value = 'EOF'
+	""" SCRIPT/STATEMENT GRAMMAR 
 	
-	# while implementation that avoids infinite loops
-	def doWhile(self, condition):
-		last = -1
-		while self.current != last and condition():
-			last = self.current; yield
+	transpile : [<Member>|<Method>]1+
 	
-	def match_type(self, *tokens):
-		return any( (token == self.current.type for token in tokens) )
+	Member -> <annotation>? <property>
+	annotation -> @<name>[(*<params>)]?
+	property -> [const|[static]? var] <name> [:<type>]? [<Assignment>]?
+	Method -> func <name>(*<params>) [-> <type>]? :[Block]
+	Block -> <Statement>1+
 	
-	def match_value(self, *tokens):
-		return any( (token == self.current.value for token in tokens) )
+	Statement
+	 |->NoOperation     -> pass
+	 |->Declaration     -> var <variable> <Assignment>
+	 |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?    ----> TODO
+	 |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
+	 |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
+	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
+	 |->ReturnStatement -> return <Expression>
+	 |->Assignment      -> <Expression> = <Expression>
+	 |->Expression (see after statement implementation)
 	
-	def expect(self, token):
-		found = self.match_value(token)
-		if found: self.advance()
-		return found
+	Expression grammar defined later
 	
-	def consume(self):
-		found = self.current.value
-		self.advance()
-		#print('+', found)
-		return found
-		
-	def consumeUntil(self, token, separator = ''):
-		result = []
-		for _ in self.doWhile(lambda : \
-					not self.match_value(token) \
-				and not self.match_type(token)):
-			result.append(self.consume())
-		return separator.join(result)
-	
-	
-	# called when an endline is excpected
-	def endline(self):
-		lvl = 0
-		jumpedLines = 0
-		
-		for _ in self.doWhile(lambda:True):
-			
-			# stub
-			emitComments = (lambda : None)
-			
-			# setting scope level only when we encounter non-whitespace
-			if self.match_type('LINE_END'):
-				lvl = int(self.consume())
-				jumpedLines += 1
-			
-			# parse comments
-			elif self.match_type('COMMENT', 'LONG_STRING'):
-				emit = self.out.line_comment if self.match_type('COMMENT') else self.out.multiline_comment
-				content = self.consume()
-				# override emitComments stub
-				def emitComments(): emit(content)
-			
-			# found code, indentation now matters
-			if not self.match_type('LINE_END'):
-				while lvl < self.level:
-					self.level -=1
-					# NOTE: for prettier output, we emit downscope directly
-					self.out.DownScope();
-					#print("downscope    ", self.current)
-				
-				emitComments()
-				# get out
-				break
-			
-			# emit comment and continue loop
-			else: emitComments()
-		
-		self.out += '\n' * jumpedLines
-	
-	
-	""" parsing / transpiling """
-	
-	FLAGS = Enum('FLAGS', ('none', 'static', 'constant', 'property')) 
+	"""
 	
 	def transpile(self):
 		# in case there is a file header / comments at start
@@ -188,14 +144,52 @@ class Parser:
 		# TODO : add nested class to godot_types
 	
 	
-	# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
-	# NOTE: enums have similar syntax in gdscript, C# and cpp
-	# lazily passing the enum definition as-is for now
 	def enum(self):
+		# NOTE: enums have similar syntax in gdscript, C# and cpp
+		# lazily passing the enum definition as-is for now
 		name = self.consume() if self.match_type('TEXT') else ''
 		definition = self.consumeUntil('}')
 		definition += self.consume() # get the remaining '}'
 		self.out.enum(name, definition)
+	
+	
+	DECL_FLAGS = Enum('DECL_FLAGS', ('none', 'static', 'constant', 'property', 'onready')) 
+	
+	# class member
+	def member(self, static):
+		
+		onready = False
+		
+		# exports and such : @annotation[(params)]?
+		# while is used to get out in case of on_ready
+		annotation = None
+		params = ''
+		while self.expect('@'):
+			
+			# NOTE: special case for onready (needs moving the assignment into ready function)
+			# TODO: call out.assignement with onready flag (later)
+			if self.expect('on_ready'): onready = True; break
+			
+			annotation = self.consume()
+			# NOTE: this should work for most cases
+			if self.expect('('):
+				params = self.consumeUntil(')').replace('"', '').replace("'", '')
+				self.expect(')')
+			self.endline()
+		
+		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
+		constant = self.expect('const')
+		if constant or self.expect('var'):
+			member = self.consume()
+			if annotation: self.out.annotation(annotation, params, member)
+			self.declare( member, \
+					 self.DECL_FLAGS.property \
+				| (  self.DECL_FLAGS.constant if constant \
+				else self.DECL_FLAGS.static if static \
+				else self.DECL_FLAGS.onready if onready \
+				else self.DECL_FLAGS.none))
+			# TODO: handle get set
+			self.out.end_statement()
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
@@ -240,93 +234,6 @@ class Parser:
 		self.out.define_method(name, params, params_init, returnType, static)
 	
 	
-	# class member 
-	def member(self, static):
-		
-		# exports and such : @annotation[(params)]?
-		# while is used to get out in case of on_ready
-		is_onready = False
-		while self.expect('@'):
-			
-			# NOTE: special case for onready (needs moving the assignment into ready function)
-			# TODO: call out.assignement with onready flag (later)
-			if self.expect('on_ready'): is_onready = True; break
-			
-			name = self.consume()
-			# NOTE: this should work for most cases
-			params = self.consumeUntil(')') if self.expect('(') else ''
-			if params:
-				self.expect(')')
-				params = params.replace('"', '').replace("'", '')
-			self.out.annotation(name, params)
-		
-		# NOTE: constants should only be declared at script/inner class level
-		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
-		constant = self.expect('const')
-		if constant or self.expect('var'):
-			self.declare( \
-					 self.FLAGS.property \
-				| (  self.FLAGS.constant if constant \
-				else self.FLAGS.static if static \
-				else self.FLAGS.none))
-				# TODO : add 'exported' flag
-		
-			# TODO: handle get set
-			
-			self.out.end_statement()
-	
-	def declare(self, flags):
-		name = self.consume()
-		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
-		
-		# parsing assignment if needed
-		ass_generator = self.assignment()
-		ass_type = next(ass_generator)
-		
-		# get type
-		type = type or ass_type or 'Variant'
-		# TODO: fix(?) -> locals are treated like members
-		self.classData.members[name] = type
-		
-		# emit code
-		if flags & self.FLAGS.property:
-			self.out.declare_property(type, name, flags & self.FLAGS.constant, flags & self.FLAGS.static)
-		else:
-			self.out.declare_variable(type, name)
-		next(ass_generator)
-	
-	# assignment and all expression use generator/passthrough for type inference
-	# the format expected is :
-	# yield <type>
-	# <emit code>
-	
-	def assignment(self):
-		exp = self.expression() if self.expect('=') else None
-		if exp: yield next(exp); self.out.assignment(exp)
-		else: yield
-		yield
-	
-	## GRAMMAR
-	
-	# Script : [<Member>|<Method>]1+
-	
-	# Member -> [@<annotation>[(*<params>)]?]? <variable_declaration>
-	# variable_declaration -> [const|[static]? var] <name> [:<type>]? [<Assignment>]?
-	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
-	# Block -> <Statement>1+
-	
-	# Statement
-	#  |->NoOperation     -> pass
-	#  |->Declaration     -> var <variable> <Assignment>										----> TODO
-	#  |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?    ----> TODO
-	#  |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
-	#  |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
-	#  |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
-	#  |->ReturnStatement -> return <Expression>                                                ----> TODO
-	#  |->Assignment      -> <Expression> = <Expression>                                        ----> TODO
-	#  |->Expression (see after statement implementation)
-	
-	
 	def Block(self):
 		self.level += 1
 		block_lvl = self.level
@@ -340,25 +247,45 @@ class Parser:
 			self.endline()
 		
 		return return_type
-
+	
+	
 	def statement(self):
 		if self.expect('pass'): return
-		elif self.expect('var'): return self.declare(self.FLAGS.none)
+		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none)
 		elif self.expect('if'): return #self.ifStmt()
 		elif self.expect('while'): return #self.whileStmt()
 		elif self.expect('for'): return #self.forStmt()
 		elif self.expect('match'): return #self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
 		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
-			# NOTE: expression() handles function calls and modification operators (a += b)
-			# even though it is not conceptually correct
-			exp = self.expression(); next(exp)
-			# assignment : <expression> = <expression>
-			if self.match_value('='):
-				ass = self.assignment(); next(ass)
-				next(exp); next(ass)
-			else: next(exp)
-			self.out.end_statement()
+			return self.reassign()
+	
+	
+	def declare(self, name = None, flags = DECL_FLAGS.none):
+		if not name: name = self.consume()
+		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
+		
+		# parsing assignment if needed
+		ass = self.assignment( \
+				name if flags & self.DECL_FLAGS.onready else None \
+			) if self.expect('=') else None
+		if ass:
+			ass_type = next(ass)
+			type = type or ass_type
+		
+		type = type or 'Variant'
+		
+		# emit code
+		if flags & self.DECL_FLAGS.property:
+			self.classData.members[name] = type
+			self.out.declare_property(type, name, \
+				flags & self.DECL_FLAGS.constant, \
+				flags & self.DECL_FLAGS.static)
+		else:
+			# TODO: keep track of locals
+			self.out.declare_variable(type, name)
+		
+		if ass: next(ass)
 	
 	
 	def returnStmt(self):
@@ -369,36 +296,69 @@ class Parser:
 		return type
 	
 	
-	# Expression	-> ternary
-	# ternary		-> [boolean [if boolean else boolean]* ]
-	# boolean		-> arithmetic [and|or|<|>|==|...  arithmetic]*
-	# arithmetic	-> [+|-|~] value [*|/|+|-|... value]*
-	# value			-> literal|subexpression|textCode
-	# literal		-> int|float|string|array|dict
-	# array			-> \[ [expresssion [, expression]*]? \]	
-	# dict			-> { [expresssion:expression [, expresssion:expression]*]? }
-	# subexpression	-> (expression)
-	# textCode		-> variable|reference|call|subscription
-	# variable		-> <name>
-	# reference		-> textCode.textCode
-	# call			-> textCode([*params]?)
-	# subscription	-> textcode[<index>]
+	# reassign : <expression> = <expression>
+	def reassign(self):
+		# NOTE: expression() handles function calls and modification operators (a += b)
+		# even though it is not conceptually correct
+		exp = self.expression(); next(exp)
+		
+		if self.expect('='):
+			ass = self.assignment()
+			next(ass); next(exp); next(ass)
+		else: next(exp)
+		self.out.end_statement()
+	
+	
+	""" EXPRESSION GRAMMAR
+	
+	all expressions (+ assignment sub-statement) use generators for type inference
+	the format expected is :
+		yield <type>
+		<emit code>
+		yield
+	
+	Expression		-> ternary
+	ternary			-> [boolean [if boolean else boolean]* ]
+	boolean			-> arithmetic [and|or|<|>|==|...  arithmetic]*
+	arithmetic		-> [+|-|~] value [*|/|+|-|... value]*
+	value			-> literal|subexpression|textCode
+	literal			-> int|float|string|array|dict
+	array			-> \[ [expresssion [, expression]*]? \]	
+	dict			-> { [expresssion:expression [, expresssion:expression]*]? }
+	subexpression	-> (expression)
+	textCode		-> variable|reference|call|subscription
+	variable		-> <name>
+	reference		-> textCode.textCode
+	call			-> textCode([*params]?)
+	subscription	-> textcode[<index>]
+	
+	"""
+	
+	def assignment(self, onreadyName = None):
+		exp = self.expression()
+		yield next(exp);
+		self.out.assignment(exp, onreadyName)
+		yield
+	
 	
 	def expression(self):
 		return self.ternary()
 	
-	
 	def ternary(self):
-		cmp1 = self.boolean()
-		yield next(cmp1)
+		valTrue = self.boolean(); yield next(valTrue)
 		if self.expect('if'):
-			cmp2 = self.boolean(); next(cmp2)
-			self.expect('else')
-			ter2 = self.ternary(); next(ter2)
-			self.out.ternary(cmp2, cmp1, ter2)
-		else:
-			next(cmp1)
+			# NOTE: nested ternary bug if passed in another way
+			def impl():
+				cond = self.boolean(); next(cond)
+				yield next(cond)
+				self.expect('else')
+				valFalse = self.ternary(); next(valFalse)
+				yield next(valTrue)
+				yield next(valFalse)
+			self.out.ternary(impl())
+		else: next(valTrue)
 		yield
+	
 	
 	# mixing boolean and comparison for simplicity
 	def boolean(self):
@@ -421,14 +381,15 @@ class Parser:
 	
 	
 	def arithmetic(self):
-		
 		# unary operator ex: i = -4
 		pre_op = self.consume() if self.match_type('UNARY') else None
 		
 		ar = self._arithmetic()
 		yield next(ar);
 		if pre_op: self.out.operator(pre_op)
-		next(ar); yield
+		next(ar)
+		yield
+	
 	
 	def _arithmetic(self):
 		value1 = self.value()
@@ -449,7 +410,7 @@ class Parser:
 			yield value_type
 			next(value1)
 		yield
-		
+	
 	
 	def value(self):
 		
@@ -531,8 +492,9 @@ class Parser:
 			content = self.textCode()
 			yield next(content)
 			next(content)
-		
-		yield; yield
+		else: yield
+		yield
+	
 	
 	# textCode : variable|call|reference
 	def textCode(self):
@@ -684,15 +646,93 @@ class Parser:
 		yield
 	
 	
-	# convert to the way docs specify an array type
+	""" parsing utils """
+	
+	def advance(self):
+		try:
+			self.current = next(self.tokens)
+		except StopIteration as err:
+			# reached end of file
+			# using a trick to finish parsing
+			self.current.type = 'EOF'
+			self.current.value = 'EOF'
+	
+	# while implementation that avoids infinite loops
+	def doWhile(self, condition):
+		last = -1
+		while self.current != last and condition():
+			last = self.current; yield
+	
+	def match_type(self, *tokens):
+		return any( (token == self.current.type for token in tokens) )
+	
+	def match_value(self, *tokens):
+		return any( (token == self.current.value for token in tokens) )
+	
+	def expect(self, token):
+		found = self.match_value(token)
+		if found: self.advance()
+		return found
+	
+	def consume(self):
+		found = self.current.value
+		self.advance()
+		#print('+', found)
+		return found
+	
+	# parse type string and format it the way godot docs do
 	def parseType(self):
 		type = self.consume()
+		# Array[type] => type[]
 		if type == 'Array' and self.expect('['):
 			type = self.consume() + '[]'
 			self.expect(']')
 		return type
-
-## Utils
+		
+	def consumeUntil(self, token, separator = ''):
+		result = []
+		for _ in self.doWhile(lambda : \
+					not self.match_value(token) \
+				and not self.match_type(token)):
+			result.append(self.consume())
+		return separator.join(result)
+	
+	
+	# called when an endline is excpected
+	def endline(self):
+		lvl = 0
+		jumpedLines = 0
+		
+		for _ in self.doWhile(lambda:True):
+			
+			# stub
+			emitComments = (lambda : None)
+			
+			# setting scope level only when we encounter non-whitespace
+			if self.match_type('LINE_END'):
+				lvl = int(self.consume())
+				jumpedLines += 1
+			
+			# parse comments
+			elif self.match_type('COMMENT', 'LONG_STRING'):
+				emit = self.out.line_comment if self.match_type('COMMENT') else self.out.multiline_comment
+				content = self.consume()
+				# override emitComments stub
+				def emitComments(): emit(content)
+			
+			# found code, indentation now matters
+			if not self.match_type('LINE_END'):
+				while lvl < self.level:
+					self.level -=1
+					# NOTE: for prettier output, we emit downscope directly
+					self.out.DownScope();
+					#print("downscope    ", self.current)
+				emitComments(); break
+			
+			# emit comment and continue loop
+			else: emitComments()
+		
+		self.out += '\n' * jumpedLines
 
 def passthrough(closure, *values):
 	closure(*values); yield

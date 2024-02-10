@@ -22,11 +22,14 @@ public partial class test : Godot.Node
 	enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
 	enum Named {THING_1,THING_2,ANOTHER_THING=-1}
 	
+	
 	[Export]
 	public Godot.Variant export;
 	
+	
 	[Export("param1,param2")]
 	public Godot.Variant export_param;
+	
 	
 	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant export_flags;
