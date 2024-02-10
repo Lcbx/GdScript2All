@@ -4,7 +4,7 @@ using Dictionary = Godot.Collections.Dictionary;
 using Array = Godot.Collections.Array;
 
 
-public partial class test5 : Godot.Node
+public partial class methods : Godot.Node
 {
 	public void empty()
 	{
@@ -37,5 +37,11 @@ public partial class test5 : Godot.Node
 	public void declare()
 	{
 		var declare = 2
+	}
+	
+	public void return_inference(double param = 5.0)
+	{
+		var val = 2
+		return val * param;
 	}
 }

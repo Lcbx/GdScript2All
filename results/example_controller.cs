@@ -7,6 +7,12 @@ public partial class Character : Godot.CharacterBody3D
 {
 	
 	
+	/* 3D character controller
+	usable for both players and AI
+	for players, input is handled an overlay script which sets local_dir and view_dir
+	speed and acceleration is based on movementState which is a Ressource (see MovementState.gd)
+	*/
+	
 	// TODO:
 	// * add ways to get over obstacles
 	// * implement fall damage
@@ -34,6 +40,6 @@ public partial class Character : Godot.CharacterBody3D
 		// in air
 		
 	}
-	//PANIC! <not is_on_floor ( ) :> unexpected at Token(type='UNARY', value='not', lineno=28, index=654, end=657)
-	//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=29, index=675, end=683)
+	//PANIC! <not is_on_floor ( ) :> unexpected at Token(type='UNARY', value='not', lineno=34, index=893, end=896)
+	//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=35, index=914, end=922)
 }

@@ -1,6 +1,12 @@
 extends CharacterBody3D
 class_name Character
 
+""" 3D character controller
+usable for both players and AI
+for players, input is handled an overlay script which sets local_dir and view_dir
+speed and acceleration is based on movementState which is a Ressource (see MovementState.gd)
+"""
+
 # TODO:
 # * add ways to get over obstacles
 # * implement fall damage

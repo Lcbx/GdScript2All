@@ -20,3 +20,7 @@ func returning(v:float):
 
 func declare():
 	var declare = 2
+	
+func return_inference(param = 5.):
+	var val = 2
+	return val * param

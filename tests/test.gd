@@ -8,44 +8,43 @@ extends Node
 """
 
 class Nested1 extends test:
-			
-class Nested2:
-	class Nested3:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
+@export
+var export
+
+@export(param1, param2)
+var export_param
+
+@export_flags("Self:4", "Allies:8", "Foes:16")
+var export_flags
+
+# basic property definitions / expressions
 var foo
 static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : string = """
-this is a multiline string
+	this is a multiline string
 """
 var _protected_bool := true
 var array = [0,1,2]
-
-@export
-var string_array : Array[string] = ['0','1']
-
-@export(param1, param2)
 var dict := {0:1, 1:2, 2:3}
-
-@export_flags("Self:4", "Allies:8", "Foes:16")
+var string_array : Array[string] = ['0','1']
 var parenthesis := (42)
+var delayed_expression = \
+	1
 
-var variable = foo
-var reference = foo.bar
-var function = foo()
-var functionParams = foo(a,b)
-var method = foo.bar()
-var functionMethodParams = foo(a,b).bar(c,d)
-var refMethod = foo.bar.baz()
-var methodRef = foo.bar().baz
-var subscription = self.dict[0]
 
-# test type inference on local class members
+# type inference
 var j = self.i
 var k = string_array[0]
+
+# method
+func method(param = 5.):
+	var val = 2
+	return val * param
 
 # determine type based on godot doc
 var x = Vector3().x 
@@ -59,55 +58,26 @@ var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
-var delayed = \
-	1
-
-var arithmetic = - j * .5
-var comparison = arithmetic >= .5 and arithmetic == 6.
-var ternary = not true if false && true else 5 > 6
-var nested_ternary = true if false else 5 > 6 if true else 7 < 0
-
-# methods
-func empty(): pass
-
-func returning(v:float):
-	empty()
-	return 1.
-	
-func init(v:= 1.0)->float:
-	returning(7.)
-
-func reassign():
-	reassign += 2
-
-func assign():
-	assign = 2
-
-func declare():
-	var declare = 2
-
+# get set
 var getset_var : float : set = _set, get = _get
 
-var DEF = -0.1 # Step
+var getset_var2 = -0.1 :
 	set (value):
 		set_sprite_offset(value)
 	get:
 		return sprite_offset
 
-var f = typeof(4+6/12)
-
+# signals
 signal a()
 signal b(a:int,b:Type)
 
-var string_test_1 = 'an "Elephant"'
-var string_test_2 = 'an
- \'Elephantos\''
+# global functions
+var f = typeof(4+6/12)
 
 # "Default" 'Data' (I recommend splitting this kind of stuff into separate json files in c#)
 const _default_data = {
 	"t" : 100,
-	"r
-	afg" : 'asfgh',
+	"rafg" : 'asfgh',
 	"u" : false,# Example Comment
 	"r":["a",{"b":false}],
 	"t":{"e":{"g":1,"f":2},},
@@ -143,6 +113,6 @@ func r(value:T,val=false,s)->bool:
 			for k in value:
 				result[k] = value[k]
 			return result
-			
+
 func default_async_function():
 	yield(self,'a');
