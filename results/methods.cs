@@ -42,6 +42,6 @@ public partial class methods : Godot.Node
 	public void return_inference(double param = 5.0)
 	{
 		var val = 2
-		return val * param;
+		return val * param;;
 	}
 }

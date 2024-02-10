@@ -65,7 +65,7 @@ class Parser:
 	Statement
 	 |->NoOperation     -> pass
 	 |->Declaration     -> var <variable> <Assignment>
-	 |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?    ----> TODO
+	 |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?
 	 |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
 	 |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
 	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
@@ -252,13 +252,35 @@ class Parser:
 	def statement(self):
 		if self.expect('pass'): return
 		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none)
-		elif self.expect('if'): return #self.ifStmt()
+		elif self.expect('if'): return self.ifStmt()
 		elif self.expect('while'): return #self.whileStmt()
 		elif self.expect('for'): return #self.forStmt()
 		elif self.expect('match'): return #self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
 		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
 			return self.reassign()
+	
+	def ifStmt(self):
+		cond = self.boolean(); next(cond)
+		self.out.ifStmt(cond)
+		
+		self.expect(':')
+		type = self.Block()
+		
+		while self.expect('elif'):
+			cond2 = self.boolean(); next(cond2)
+			self.out.elifStmt(cond2)
+			
+			self.expect(':')
+			eliftype = self.Block()
+			type = type or eliftype
+		
+		if self.expect('else') and self.expect(':'):
+			self.out.elseStmt()
+			elsetype = self.Block()
+			type = type or elsetype
+
+		return type
 	
 	
 	def declare(self, name = None, flags = DECL_FLAGS.none):
@@ -700,7 +722,7 @@ class Parser:
 	
 	# called when an endline is excpected
 	def endline(self):
-		lvl = 0
+		lvl = -1
 		jumpedLines = 0
 		
 		for _ in self.doWhile(lambda:True):
@@ -722,11 +744,11 @@ class Parser:
 			
 			# found code, indentation now matters
 			if not self.match_type('LINE_END'):
-				while lvl < self.level:
+				while lvl!=-1 and lvl < self.level:
 					self.level -=1
 					# NOTE: for prettier output, we emit downscope directly
 					self.out.DownScope();
-					#print("downscope    ", self.current)
+					#self.out += f"      <downscope {self.current}>"
 				emitComments(); break
 			
 			# emit comment and continue loop

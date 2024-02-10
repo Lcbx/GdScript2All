@@ -164,6 +164,16 @@ class CSharpTranspiler:
 	def returnStmt(self, return_exp):
 		self += 'return '; get(return_exp)
 	
+	def ifStmt(self, condition):
+		self += 'if('; get(condition); self += ')'
+	
+	def elifStmt(self, condition):
+		self += 'else if('; get(condition); self += ')'
+	
+	def elseStmt(self):
+		self += 'else'
+		
+	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
 		# TODO: in cpp, add member and method bindings

@@ -38,8 +38,59 @@ public partial class Character : Godot.CharacterBody3D
 	protected void _process(double delta)
 	{
 		// in air
+		if(!is_on_floor())
+		{
+			velocity.y = clampf(velocity.y - gravity * delta, - MAX_Y_SPEED,MAX_Y_SPEED);
+			movementState = MovementEnum.fall;
+		}
+		else
+		{
+			// landing
+			if(movementState == MovementEnum.fall)
+			{
+				jumpCoolDown.start();
+				// TODO: apply fall damage + play landing animation
+			}
+			
+			// on ground
+			movementState = wantedMovement;
+			coyoteTime.start();
+		}
 		
+		var ground_speed = calculate_ground_speed()
+		
+		// jump
+		// TODO?: maybe add a special function to jump called on just_pressed
+		if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
+		{
+			velocity.y += maxf(MIN_JUMP_VELOCITY,ground_speed);
+			coyoteTime.stop();
+			jump.emit(ground_speed);
+		}
+		
+		// when running, always go forward 
+		var direction = ( movementState ? global_mov_dir : ! ) = MovementEnum.run;else;basis.z;
+		
+		var top_speed = movements[movementState]
+		var nimbleness = movements[movementState]
+		var acceleration = movements[movementState] + ground_speed * nimbleness
+		
+		var redirect = clampf(1.0 - nimbleness * delta,0.0,1.0)
+		var vel_delta = acceleration * delta
+		
+		velocity.x = move_toward(velocity.x * redirect,direction.x * top_speed,vel_delta);
+		velocity.z = move_toward(velocity.z * redirect,direction.z * top_speed,vel_delta);
+		
+		var new_ground_speed = calculate_ground_speed()
+		
+		movement.emit(local_dir,new_ground_speed);
+		
+		move_and_slide();
+		
+		i;in;range(get_slide_collision_count());;
+		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=77, index=2311, end=2312)
 	}
-	//PANIC! <not is_on_floor ( ) :> unexpected at Token(type='UNARY', value='not', lineno=34, index=893, end=896)
-	//PANIC! <velocity . y = clampf ( velocity . y - gravity * delta , - MAX_Y_SPEED , MAX_Y_SPEED )> unexpected at Token(type='TEXT', value='velocity', lineno=35, index=914, end=922)
+	
+	
+	//PANIC! <collision . emit ( get_slide_collision ( i ) )> unexpected at Token(type='TEXT', value='collision', lineno=78, index=2315, end=2324)
 }

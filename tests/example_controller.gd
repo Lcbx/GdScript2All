@@ -45,7 +45,7 @@ func _process(delta : float):
 		coyoteTime.start()
 	
 	var ground_speed := calculate_ground_speed()
-
+	
 	# jump
 	# TODO?: maybe add a special function to jump called on just_pressed
 	if global_mov_dir.y > 0. \
