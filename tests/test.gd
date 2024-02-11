@@ -45,6 +45,8 @@ var k = string_array[0]
 # method
 func method(param = 5.):
 	var val = 2
+	for k in string_array:
+		print(k)
 	return val * param
 
 # determine type based on godot doc
@@ -52,6 +54,7 @@ var x = Vector3().x
 var up = Vector3.UP
 var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY
+var global_function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node

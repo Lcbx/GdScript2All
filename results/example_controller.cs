@@ -87,7 +87,7 @@ public partial class Character : Godot.CharacterBody3D
 		
 		move_and_slide();
 		
-		foreach(Variant i in range(get_slide_collision_count()))
+		foreach(int i in range(get_slide_collision_count()))
 		{
 			collision.emit(get_slide_collision(i));
 		}

@@ -38,7 +38,7 @@ public partial class statements : Godot.Node
 			continue;
 		}
 		
-		foreach(Variant j in range(i))
+		foreach(int j in range(i))
 		{
 			i += j;
 		}

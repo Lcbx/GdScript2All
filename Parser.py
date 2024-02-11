@@ -560,14 +560,16 @@ class Parser:
 		# a member
 		# a local
 		# a singleton (ex: RenderingServer)
+		# a global constant (ex: KEY_ESCAPE)
 		singleton = name in ref.godot_types
 		type = self.classData.members.get(name, None) \
 			or self.locals.get(name, None) \
+			or ref.godot_types['@GlobalScope'].constants.get(name, None) \
 			or (name if singleton else None)
 		
 		# call
 		if self.expect('('):
-			call = self.call(None, name)
+			call = self.call(name)
 			yield next(call)
 			if this: self.out.this()
 			next(call)
@@ -596,18 +598,19 @@ class Parser:
 		yield
 	
 	
-	def call(self, type, name):
+	def call(self, name, calling_type = None):
 		
 		# could be :
 		# a constructor
-		# a method of the local class
+		# a local method
+		# a global function
 		# another class's method
 		constructor = name in ref.godot_types
-		type = name if constructor \
-			else self.classData.methods[name] if name in self.classData.methods \
-			else ref.godot_types[type].methods[name] if \
-				type in ref.godot_types and name in ref.godot_types[type].methods \
-			else None
+		type = (name if constructor else None ) \
+			or self.classData.methods.get(name, None) \
+			or (ref.godot_types[calling_type].methods.get(name, None) if calling_type in ref.godot_types \
+			else ref.godot_types['@GlobalScope'].methods.get(name, None) if not calling_type \
+			else None)
 		
 		# determine params
 		def iter():
@@ -651,7 +654,7 @@ class Parser:
 		
 		# call
 		if self.expect('('):
-			call = self.call(type, name)
+			call = self.call(name, type)
 			yield next(call)
 			# emit '.' while call() emits <name>(...)
 			self.out.reference('') 
@@ -691,7 +694,7 @@ class Parser:
 		
 		# call
 		if self.expect('('):
-			call = self.call(type, '')
+			call = self.call('', type)
 			yield next(call)
 			next(call)
 		

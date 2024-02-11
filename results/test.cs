@@ -58,6 +58,10 @@ public partial class test : Godot.Node
 	public double method(double param = 5.0)
 	{
 		var val = 2;
+		foreach(string k in string_array)
+		{
+			print(k);
+		}
 		return val * param;
 	}
 	
@@ -66,6 +70,7 @@ public partial class test : Godot.Node
 	public Godot.Vector3 up = Godot.Vector3.UP;
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
+	public double global_function = angle_difference(0.1,0.2);
 	
 	// Gdscript special syntax
 	public Godot.Node get_node = get_node("node");
@@ -76,6 +81,6 @@ public partial class test : Godot.Node
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1196, end=1197)public double getset_var2 =  - 0.1;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1245, end=1246)
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=66, index=1277, end=1278)public double getset_var2 =  - 0.1;
+	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=68, index=1326, end=1327)
 }

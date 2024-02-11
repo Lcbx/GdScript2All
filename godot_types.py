@@ -20,8 +20,8 @@ if __name__ != "__main__":
 	with open(SAVEFILE, 'rb') as f:
 		godot_types = load(f)
 	
+	# otherwise generate the pickle file
 else:
-	# generate the pickle file
 	from untangle import parse
 	
 	docFolder = 'classData'
@@ -33,9 +33,6 @@ else:
 	]
 
 	for path in classDocPaths:
-		
-		# ignore globals for now
-		if '@GlobalScope' in path: continue
 		
 		klass = parse(path).class_
 		klass_name = klass['name']
@@ -49,25 +46,33 @@ else:
 		if 'methods' in klass:
 			for meth in klass.methods.method:
 				meth_name = meth['name']
-				data.methods[meth_name] = meth.return_['type']
+				data.methods[meth_name] = meth.return_['type'] if 'return_' in meth else None
 		
 		if 'members' in klass:
 			for memb in klass.members.member:
 				memb_name = memb['name']
 				data.members[memb_name] = memb['type']
 		
+		# NOTE: some constants are part of an enum
+		# the enum name is then contained in constant.enum property
 		if 'constants' in klass:
 			for cons in klass.constants.constant:
 				cons_name = cons['name']
 				cons_val = cons['value']
 				# no type in docs, so best guess
+				# int : -?\d+
+				# contructor : <type>(params)
 				# NOTE: currently there are no float or string
 				cons_type = 'int' if cons_val.lstrip('-').isdigit() \
 					else cons_val.split('(')[0]
 				data.constants[cons_name] = cons_type
-		
-		with open(SAVEFILE, 'wb+') as f:
-			save(godot_types, f)
+	
+	#adding builtin that aren't in doc
+	godot_types['@GlobalScope'].methods['range'] = 'int[]'
+	
+	
+	with open(SAVEFILE, 'wb+') as f:
+		save(godot_types, f)
 
 	#pprint(godot_types)
 	#pprint(dir(godot_types["RenderingServer"]))
