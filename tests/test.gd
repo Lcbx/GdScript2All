@@ -50,6 +50,7 @@ func method(param = 5.):
 	return val * param
 
 # determine type based on godot doc
+var x = self.get_parent()
 var x = Vector3().x 
 var up = Vector3.UP
 var aClass = ProjectSettings.get_global_class_list()[10]

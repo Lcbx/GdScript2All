@@ -3,17 +3,14 @@ import os
 # small and fast serialization
 from pickle import dump as save, load
 
-# useful to see data structures
-#from pprint import pprint
-
 # see ClassData.py
 from ClassData import ClassData
 
 SAVEFILE = 'godot_types.pickle'
+DOC_FOLDER = 'classData'
 
 # { 'class': ClassData }
 godot_types = {}
-
 
 if __name__ != "__main__":
 	# simply load class datas
@@ -24,10 +21,9 @@ if __name__ != "__main__":
 else:
 	from untangle import parse
 	
-	docFolder = 'classData'
 	classDocPaths = [
 		os.path.join(root, file)
-		for root, dirs, files in os.walk(docFolder)
+		for root, dirs, files in os.walk(DOC_FOLDER)
 		for file in files
 		if os.path.splitext(file)[1] == '.xml'
 	]
@@ -74,12 +70,8 @@ else:
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)
 
-	#pprint(godot_types)
-	#pprint(dir(godot_types["RenderingServer"]))
 
 
-# TODO: support global scope functions
-# TODO: save godot_types as json and load them directly ?
 # TODO: separate godot API reference from C#-specific translation
 
 

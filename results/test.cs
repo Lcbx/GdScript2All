@@ -66,6 +66,7 @@ public partial class test : Godot.Node
 	}
 	
 	// determine type based on godot doc
+	public Godot.Node x = this.get_parent();
 	public double x = new Vector3().x;
 	public Godot.Vector3 up = Godot.Vector3.UP;
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
@@ -81,6 +82,6 @@ public partial class test : Godot.Node
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=66, index=1277, end=1278)public double getset_var2 =  - 0.1;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=68, index=1326, end=1327)
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=67, index=1303, end=1304)public double getset_var2 =  - 0.1;
+	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=69, index=1352, end=1353)
 }

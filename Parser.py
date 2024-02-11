@@ -4,6 +4,7 @@ from enum import IntFlag as Enum
 from copy import copy
 
 import godot_types as ref
+import ClassData
 from Tokenizer import Tokenizer
 
 
@@ -88,7 +89,8 @@ class Parser:
 		self.class_name = self.consume() if self.expect('class_name') else self.script_name
 		
 		# initialize script class data
-		self.classData = copy(ref.godot_types[self.base_class])
+		self.classData = copy(ref.godot_types[self.base_class]) if self.base_class in ref.godot_types \
+			else ClassData.ClassData()
 		#print(self.classData.__dict__)
 		
 		# no endline after class name since we declare the class before that
