@@ -57,7 +57,7 @@ public partial class Character : Godot.CharacterBody3D
 			coyoteTime.start();
 		}
 		
-		var ground_speed = calculate_ground_speed()
+		var ground_speed = calculate_ground_speed();
 		
 		// jump
 		// TODO?: maybe add a special function to jump called on just_pressed
@@ -69,28 +69,34 @@ public partial class Character : Godot.CharacterBody3D
 		}
 		
 		// when running, always go forward 
-		var direction = ( movementState ? global_mov_dir : ! ) = MovementEnum.run;else;basis.z;
+		var direction = ( movementState ? global_mov_dir : ! ); = MovementEnum.run;else;basis.z;
 		
-		var top_speed = movements[movementState]
-		var nimbleness = movements[movementState]
-		var acceleration = movements[movementState] + ground_speed * nimbleness
+		var top_speed = movements[movementState];
+		var nimbleness = movements[movementState];
+		var acceleration = movements[movementState] + ground_speed * nimbleness;
 		
-		var redirect = clampf(1.0 - nimbleness * delta,0.0,1.0)
-		var vel_delta = acceleration * delta
+		var redirect = clampf(1.0 - nimbleness * delta,0.0,1.0);
+		var vel_delta = acceleration * delta;
 		
 		velocity.x = move_toward(velocity.x * redirect,direction.x * top_speed,vel_delta);
 		velocity.z = move_toward(velocity.z * redirect,direction.z * top_speed,vel_delta);
 		
-		var new_ground_speed = calculate_ground_speed()
+		var new_ground_speed = calculate_ground_speed();
 		
 		movement.emit(local_dir,new_ground_speed);
 		
 		move_and_slide();
 		
-		i;in;range(get_slide_collision_count());;
-		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=77, index=2311, end=2312)
+		foreach(Variant i in range(get_slide_collision_count()))
+		{
+			collision.emit(get_slide_collision(i));
+		}
 	}
 	
 	
-	//PANIC! <collision . emit ( get_slide_collision ( i ) )> unexpected at Token(type='TEXT', value='collision', lineno=78, index=2315, end=2324)
+	/* movement state / animations */
+	
+	
+	//PANIC! <signal changedState ( state : MovementEnum )> unexpected at Token(type='TEXT', value='signal', lineno=83, index=2393, end=2399)
+	//PANIC! <signal collision ( collision : KinematicCollision3D )> unexpected at Token(type='TEXT', value='signal', lineno=84, index=2435, end=2441)
 }

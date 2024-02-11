@@ -36,12 +36,12 @@ public partial class methods : Godot.Node
 	
 	public void declare()
 	{
-		var declare = 2
+		var declare = 2;
 	}
 	
-	public void return_inference(double param = 5.0)
+	public double return_inference(double param = 5.0)
 	{
-		var val = 2
+		var val = 2;
 		return val * param;;
 	}
 }

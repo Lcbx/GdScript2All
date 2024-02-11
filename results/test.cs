@@ -54,9 +54,9 @@ public partial class test : Godot.Node
 	public string k = string_array[0];
 	
 	// method
-	public void method(double param = 5.0)
+	public double method(double param = 5.0)
 	{
-		var val = 2
+		var val = 2;
 		return val * param;
 	}
 	

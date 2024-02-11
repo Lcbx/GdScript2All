@@ -7,7 +7,6 @@ import godot_types as ref
 from Tokenizer import Tokenizer
 
 
-# TODO: FIX: method return inference not wortking ?
 # TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 
 # TODO: support match statment
@@ -50,6 +49,9 @@ class Parser:
 		self.base_class = None
 		self.class_name = None
 		self.classData = None
+		
+		# local variable (name:type)
+		self.locals = {}
 	
 	
 	""" SCRIPT/STATEMENT GRAMMAR 
@@ -66,8 +68,8 @@ class Parser:
 	 |->NoOperation     -> pass
 	 |->Declaration     -> var <variable> <Assignment>
 	 |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?
-	 |->WhileStatement  -> while <boolean>: <Block>                                           ----> TODO
-	 |->ForStatement    -> for <variable> in <Expression> | : <Block>                         ----> TODO
+	 |->WhileStatement  -> while <boolean>: <Block>
+	 |->ForStatement    -> for <variable> in <Expression> | : <Block>
 	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
 	 |->ReturnStatement -> return <Expression>
 	 |->Assignment      -> <Expression> = <Expression>
@@ -189,7 +191,6 @@ class Parser:
 				else self.DECL_FLAGS.onready if onready \
 				else self.DECL_FLAGS.none))
 			# TODO: handle get set
-			self.out.end_statement()
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
@@ -205,9 +206,9 @@ class Parser:
 			pName = self.consume()
 			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 			
-			# initial value
-			pInit = self.expression() if self.expect('=') else None
-			if pInit:
+			# initialisation
+			if self.expect('='):
+				pInit = self.expression()
 				initType = next(pInit)
 				pType = pType or initType
 				params_init[pName] = pInit
@@ -216,7 +217,8 @@ class Parser:
 			self.expect(',')
 			params[pName] = pType
 		
-		# TODO: add params to locals
+		# add params to locals
+		for k,v in params.items(): self.locals[k] = v
 		
 		returnType = self.parseType() if self.expect('->') else None
 		
@@ -250,15 +252,15 @@ class Parser:
 	
 	
 	def statement(self):
-		if self.expect('pass'): return
+		if   self.expect('pass'): return
 		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none)
 		elif self.expect('if'): return self.ifStmt()
-		elif self.expect('while'): return #self.whileStmt()
-		elif self.expect('for'): return #self.forStmt()
+		elif self.expect('while'): return self.whileStmt()
+		elif self.expect('for'): return self.forStmt()
 		elif self.expect('match'): return #self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
-		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
-			return self.reassign()
+		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'): return self.reassign()
+		return
 	
 	def ifStmt(self):
 		cond = self.boolean(); next(cond)
@@ -283,6 +285,26 @@ class Parser:
 		return type
 	
 	
+	def whileStmt(self):
+		cond = self.boolean(); next(cond)
+		self.out.whileStmt(cond)
+		self.expect(':')
+		type = self.Block()
+		return type
+	
+	def forStmt(self):
+		name = self.consume()
+		self.expect('in')
+		exp = self.expression()
+		exp_type = next(exp)
+		iterator_type = exp_type.replace('[]', '')
+		self.locals[name] = iterator_type
+		self.out.forStmt(name, iterator_type, exp)
+		self.expect(':')
+		type = self.Block()
+		return type
+	
+	
 	def declare(self, name = None, flags = DECL_FLAGS.none):
 		if not name: name = self.consume()
 		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
@@ -304,10 +326,11 @@ class Parser:
 				flags & self.DECL_FLAGS.constant, \
 				flags & self.DECL_FLAGS.static)
 		else:
-			# TODO: keep track of locals
+			self.locals[name] = type
 			self.out.declare_variable(type, name)
 		
 		if ass: next(ass)
+		self.out.end_statement()
 	
 	
 	def returnStmt(self):
@@ -322,7 +345,8 @@ class Parser:
 	def reassign(self):
 		# NOTE: expression() handles function calls and modification operators (a += b)
 		# even though it is not conceptually correct
-		exp = self.expression(); next(exp)
+		exp = self.expression()
+		exists = next(exp)
 		
 		if self.expect('='):
 			ass = self.assignment()
@@ -364,10 +388,15 @@ class Parser:
 	
 	
 	def expression(self):
-		return self.ternary()
+		exp = self.ternary()
+		yield next(exp) or 'Variant'
+		next(exp)
+		yield
+		
 	
 	def ternary(self):
-		valTrue = self.boolean(); yield next(valTrue)
+		valTrue = self.boolean()
+		yield next(valTrue)
 		if self.expect('if'):
 			# NOTE: nested ternary bug if passed in another way
 			def impl():
@@ -527,9 +556,14 @@ class Parser:
 		this = name == 'self' and self.expect('.')
 		if this: name = self.consume()
 		
-		# type could be a singleton (ex: RenderingServer) or a call to a static function
+		# could be :
+		# a member
+		# a local
+		# a singleton (ex: RenderingServer)
 		singleton = name in ref.godot_types
-		type = self.classData.members.get(name, None) or (name if singleton else None)
+		type = self.classData.members.get(name, None) \
+			or self.locals.get(name, None) \
+			or (name if singleton else None)
 		
 		# call
 		if self.expect('('):
@@ -556,7 +590,7 @@ class Parser:
 		
 		# lone variable or global
 		else:
-			yield self.classData.members.get(name, None)
+			yield type
 			if this: self.out.this()
 			self.out.variable(name)
 		yield
@@ -564,7 +598,10 @@ class Parser:
 	
 	def call(self, type, name):
 		
-		# determine return type
+		# could be :
+		# a constructor
+		# a method of the local class
+		# another class's method
 		constructor = name in ref.godot_types
 		type = name if constructor \
 			else self.classData.methods[name] if name in self.classData.methods \
@@ -605,6 +642,7 @@ class Parser:
 	
 	def reference(self, type):
 		name = self.consume()
+		# TODO: take classes defined locally into account
 		member_type = ref.godot_types[type].members[name] if \
 				type in ref.godot_types and name in ref.godot_types[type].members \
 			else None

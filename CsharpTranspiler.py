@@ -172,7 +172,13 @@ class CSharpTranspiler:
 	
 	def elseStmt(self):
 		self += 'else'
+	
+	def whileStmt(self, condition):
+		self += 'while('; get(condition); self += ')'
 		
+	def forStmt(self, name, type, exp):
+		self += f'foreach({type} {name} in '; get(exp); self += ')'
+	
 	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
