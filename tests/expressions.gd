@@ -14,6 +14,7 @@ var string_array : Array[string] = ['0','1']
 var parenthesis := (42)
 var delayed_expression = \
 	1
+var asKeyword = 3 as float
 
 # multi-part expressions
 var arithmetic = - j * .5

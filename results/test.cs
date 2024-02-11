@@ -47,6 +47,7 @@ public partial class test : Godot.Node
 	public Array<string> string_array = new Array{"0","1",};
 	public int parenthesis = (42);
 	public int delayed_expression = 1;
+	public double asKeyword = 3;
 	
 	
 	// type inference
@@ -75,6 +76,6 @@ public partial class test : Godot.Node
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=62, index=1169, end=1170)public double getset_var2 =  - 0.1;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=64, index=1218, end=1219)
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1196, end=1197)public double getset_var2 =  - 0.1;
+	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1245, end=1246)
 }

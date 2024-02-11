@@ -112,9 +112,9 @@ class CSharpTranspiler:
 	
 	def call(self, name, params):
 		self += name + '('
-		for p in params[:-1]:
-			get(p); self += ','
-		if len(params)>0: get(params[-1])
+		for i, p in enumerate(params):
+			if i>0: self += ','
+			get(p)
 		self += ')'
 	
 	def constructor(self, name, params):
@@ -179,6 +179,9 @@ class CSharpTranspiler:
 	def forStmt(self, name, type, exp):
 		self += f'foreach({type} {name} in '; get(exp); self += ')'
 	
+	def breakStmt(self): self += 'break;'
+	
+	def continueStmt(self): self += 'continue;'
 	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array

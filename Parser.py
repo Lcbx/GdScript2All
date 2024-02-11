@@ -10,7 +10,6 @@ from Tokenizer import Tokenizer
 # TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 
 # TODO: support match statment
-# TODO: support break|continue statments
 # TODO: support 'as' keyword
 # TODO: await => await ToSignal(....)"
 # TODO: support adding user-defined classes to ref.godot_type
@@ -259,6 +258,8 @@ class Parser:
 		elif self.expect('for'): return self.forStmt()
 		elif self.expect('match'): return #self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
+		elif self.expect('break'): return self.out.breakStmt();
+		elif self.expect('continue'): return self.out.continueStmt()
 		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'): return self.reassign()
 		return
 	
@@ -389,7 +390,9 @@ class Parser:
 	
 	def expression(self):
 		exp = self.ternary()
-		yield next(exp) or 'Variant'
+		type = next(exp)
+		if self.expect('as'): type = self.parseType()
+		yield type or 'Variant'
 		next(exp)
 		yield
 		
@@ -499,12 +502,10 @@ class Parser:
 			yield 'Array'
 			def iter():
 				while not self.expect(']'):
-					val = self.expression();
-					next(val) # discarding type
+					val = self.expression(); next(val)
 					self.expect(',')
 					yield val
-			values = [*iter()]
-			self.out.create_array(values)
+			self.out.create_array(iter())
 			
 		# dictionary
 		elif self.expect('{'):
@@ -516,8 +517,7 @@ class Parser:
 					next(key); self.expect(':'); next(val)
 					self.expect(',')
 					yield (key, val)
-			kv = [*iter()]
-			self.out.create_dict(kv)
+			self.out.create_dict(iter())
 			
 		# subexpression : (expression)
 		elif self.expect('('):
@@ -609,15 +609,17 @@ class Parser:
 				type in ref.godot_types and name in ref.godot_types[type].methods \
 			else None
 		
-		# emission of code 
-		emit = lambda : self.out.constructor(name, params) if constructor else self.out.call(name, params)
-		
 		# determine params
 		def iter():
 			while not self.expect(')'):
 				exp = self.expression(); next(exp); yield exp
 				self.expect(',')
 		params = ( *iter() ,)
+		
+		# emission of code 
+		emit = lambda : \
+			self.out.constructor(name, params) if constructor \
+			else self.out.call(name, params)
 		
 		# reference
 		if self.expect('.'):
@@ -743,10 +745,9 @@ class Parser:
 	# parse type string and format it the way godot docs do
 	def parseType(self):
 		type = self.consume()
-		# Array[type] => type[]
+		# Array[<type>] => <type>[]
 		if type == 'Array' and self.expect('['):
-			type = self.consume() + '[]'
-			self.expect(']')
+			type = self.consume() + '[]'; self.expect(']')
 		return type
 		
 	def consumeUntil(self, token, separator = ''):

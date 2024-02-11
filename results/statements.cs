@@ -34,6 +34,8 @@ public partial class statements : Godot.Node
 		while(false)
 		{
 			i += 1;
+			break;
+			continue;
 		}
 		
 		foreach(Variant j in range(i))
@@ -42,7 +44,7 @@ public partial class statements : Godot.Node
 		}
 		
 		i;;
-		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=25, index=272, end=273)
-		//PANIC! <1 :> unexpected at Token(type='STRING', value='1', lineno=26, index=276, end=279)
+		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=27, index=291, end=292)
+		//PANIC! <1 :> unexpected at Token(type='STRING', value='1', lineno=28, index=295, end=298)
 	}
 }

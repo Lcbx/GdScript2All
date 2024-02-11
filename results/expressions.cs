@@ -19,6 +19,7 @@ public partial class expressions : Godot.Node
 	public Array<string> string_array = new Array{"0","1",};
 	public int parenthesis = (42);
 	public int delayed_expression = 1;
+	public double asKeyword = 3;
 	
 	// multi-part expressions
 	public double arithmetic =  - j * 0.5;

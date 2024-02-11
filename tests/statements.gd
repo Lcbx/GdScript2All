@@ -18,6 +18,8 @@ func method():
 	
 	while false:
 		i += 1
+		break
+		continue
 	
 	for j in range(i):
 		i += j
