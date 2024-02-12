@@ -1,8 +1,8 @@
 import os
 import sys
 
-import Parser
-import CsharpTranspiler
+import src.Parser as Parser
+import src.CsharpTranspiler as CsharpTranspiler
 
 # supports both folders and files
 input = "tests"
@@ -10,7 +10,6 @@ output = "results"
 files = []
 
 # Read console arguments
-# TODO: use argparse instead
 if len(sys.argv):
 	i = 1
 	while i < len(sys.argv):

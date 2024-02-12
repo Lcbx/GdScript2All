@@ -3,26 +3,10 @@ import os
 from enum import IntFlag as Enum
 from copy import copy
 
-import godot_types as ref
-import ClassData
+import src.godot_types as ref
+import ClassData as ClassData
 from Tokenizer import Tokenizer
 
-
-# TODO: support enum as variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
-
-# TODO: support match statment
-# TODO: support 'as' keyword
-# TODO: await => await ToSignal(....)"
-# TODO: support adding user-defined classes to ref.godot_type
-# TODO: Rename {Builtin_Class}.aa_bb_cc to AaBbCc (Eg Engine.is_editor_hint)
-
-# TODO: support special literals like:
-# * floating exponents : 58e-10
-# * base16 int : 0x8E
-# * bineary int : 0b1010
-# * raw strings : r"hello"
-# * string names : &"name"
-# * nodepath : ^"parent/child"
 
 # recursive descent parser
 class Parser:

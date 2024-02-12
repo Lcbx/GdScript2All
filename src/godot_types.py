@@ -1,12 +1,17 @@
 import os
+import sys
 
 # small and fast serialization
 from pickle import dump as save, load
 
+# allow using scripts in src folder
+sys.path.insert(0,'src')
+
 # see ClassData.py
 from ClassData import ClassData
 
-SAVEFILE = 'godot_types.pickle'
+
+SAVEFILE = 'src/godot_types.pickle'
 DOC_FOLDER = 'classData'
 
 # { 'class': ClassData }
@@ -27,7 +32,9 @@ else:
 		for file in files
 		if os.path.splitext(file)[1] == '.xml'
 	]
-
+	
+	#print(classDocPaths)
+	
 	for path in classDocPaths:
 		
 		klass = parse(path).class_
@@ -69,10 +76,6 @@ else:
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)
-
-
-
-# TODO: separate godot API reference from C#-specific translation
 
 
 # Default imports and aliases that almost every class needs.

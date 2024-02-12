@@ -1,5 +1,5 @@
 from io import StringIO as stringBuilder
-import godot_types as ref
+import src.godot_types as ref
 
 
 class CSharpTranspiler:
