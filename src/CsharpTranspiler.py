@@ -1,7 +1,6 @@
 from io import StringIO as stringBuilder
 import src.godot_types as ref
 
-
 class CSharpTranspiler:
 	
 	def __init__(self):
@@ -48,7 +47,6 @@ class CSharpTranspiler:
 		# so we can generate bindings in c++
 		if 'export' in name: pass
 	
-	
 	def declare_property(self, type, name, constant, static):
 		type = translate_type(type)
 		const_decl = 'const ' if constant else 'static ' if static else ''
@@ -57,6 +55,33 @@ class CSharpTranspiler:
 	
 	def declare_variable(self, type, name):
 		self += f'var {name}'
+	
+	def define_method(self, name, params, params_init, return_type, static):
+		
+		# TODO: check if called _ready and at script level (self.level==1)
+		# then add onready assignments first and clear onready array
+		
+		return_type = translate_type(return_type)
+		
+		blockText = self.popLayer()
+		
+		exposed = 'protected' if name[0] == '_' else 'public'
+		static_str = 'static ' if static else ''
+		self += f'{exposed} {static_str}{return_type} {name}('
+		
+		for i, (pName, pType) in enumerate(params.items()):
+			if i != 0: self += ', '
+			self += f'{translate_type(pType)} {pName}'
+			if pName in params_init:
+				self += ' = '; get(params_init[pName])
+		
+		self += ')'
+		self.write(blockText)
+	
+	def define_signal(self, name, params):
+		paramStr = ','.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
+		self += '[Signal]\n'
+		self += f'public delegate void {name}Handler({paramStr});'
 	
 	def assignment(self, exp, onreadyName):
 		# TODO : if onreadyName != None,
@@ -138,28 +163,6 @@ class CSharpTranspiler:
 		get(iterator); self += ' ? ';
 		get(iterator); self += ' : '; get(iterator);
 		self += ' )'
-	
-	def define_method(self, name, params, params_init, return_type, static):
-		
-		# TODO: check if called _ready and at script level (self.level==1)
-		# then add onready assignments first and clear onready array
-		
-		return_type = translate_type(return_type)
-		
-		blockText = self.popLayer()
-		
-		exposed = 'protected' if name[0] == '_' else 'public'
-		static_str = 'static ' if static else ''
-		self += f'{exposed} {static_str}{return_type} {name}('
-		
-		for i, (pName, pType) in enumerate(params.items()):
-			if i != 0: self += ', '
-			self += f'{translate_type(pType)} {pName}'
-			if pName in params_init:
-				self += ' = '; get(params_init[pName])
-		
-		self += ')'
-		self.write(blockText)
 	
 	def returnStmt(self, return_exp):
 		self += 'return '; get(return_exp)

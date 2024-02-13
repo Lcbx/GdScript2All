@@ -40,13 +40,15 @@ class Parser:
 	
 	""" SCRIPT/STATEMENT GRAMMAR 
 	
-	transpile : [<Member>|<Method>]1+
+	transpile : [<Member>|<Method>|<Signal>]*
 	
 	Member -> <annotation>? <property>
 	annotation -> @<name>[(*<params>)]?
 	property -> [const|[static]? var] <name> [:<type>]? [<Assignment>]?
 	Method -> func <name>(*<params>) [-> <type>]? :[Block]
+	Signal -> signal name [(*params)]?
 	Block -> <Statement>1+
+	params -> <name> [: <type>]? [, params]*
 	
 	Statement
 	 |->NoOperation     -> pass
@@ -107,11 +109,11 @@ class Parser:
 	
 	
 	def class_body(self):
-		# gdscript 4 accepts nested classes
 		static = self.expect('static')
 		if self.expect('class'): self.nested_class()
 		elif self.expect('enum'): self.enum()
 		elif self.expect('func'): self.method(static)
+		elif self.expect('signal'): self.signal()
 		else: self.member(static)
 		self.endline()
 	
@@ -235,10 +237,26 @@ class Parser:
 		
 		return return_type
 	
+	def signal(self):
+		name = self.consume()
+		params = {}
+		
+		if self.expect('('):
+			# param -> <name> [: [<type>]?]?
+			# TODO: check if signal params can have initializers
+			for _ in self.doWhile(lambda: not self.expect(')')):
+				pName = self.consume()
+				pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else 'Variant'
+				self.expect(',')
+				params[pName] = pType
+		
+		self.out.define_signal(name, params)
+	
 	
 	def statement(self):
 		if   self.expect('pass'): return
 		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none)
+		elif self.expect('const'): return self.declare(flags=self.DECL_FLAGS.constant)
 		elif self.expect('if'): return self.ifStmt()
 		elif self.expect('while'): return self.whileStmt()
 		elif self.expect('for'): return self.forStmt()
@@ -270,7 +288,6 @@ class Parser:
 			type = type or elsetype
 
 		return type
-	
 	
 	def whileStmt(self):
 		cond = self.boolean(); next(cond)
@@ -331,8 +348,6 @@ class Parser:
 		self.out.matchStmt(evaluated(), cases)
 		
 		return return_type
-		
-	
 	
 	def returnStmt(self):
 		exp = self.expression()

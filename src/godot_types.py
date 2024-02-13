@@ -114,12 +114,6 @@ variable_replacements = {
 	"TYPE_VECTOR2":"typeof(Vector2)",
 }
 
-functions_override = [
-	"_ready",
-	"_process",
-	"_physics_process"
-]
-
 function_replacements = {
 	"Color8":"Color.Color8",
 	"type_exists":"GD.TypeExists",

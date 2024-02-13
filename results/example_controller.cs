@@ -96,7 +96,20 @@ public partial class Character : Godot.CharacterBody3D
 	
 	/* movement state / animations */
 	
+	[Signal]
+	public delegate void changedStateHandler(MovementEnum state);
+	[Signal]
+	public delegate void collisionHandler(Godot.KinematicCollision3D collision);
+	[Signal]
+	public delegate void movementHandler(Godot.Vector3 dir,double speed);
+	[Signal]
+	public delegate void jumpHandler(double speed);
 	
-	//PANIC! <signal changedState ( state : MovementEnum )> unexpected at Token(type='TEXT', value='signal', lineno=83, index=2393, end=2399)
-	//PANIC! <signal collision ( collision : KinematicCollision3D )> unexpected at Token(type='TEXT', value='signal', lineno=84, index=2435, end=2441)
+	enum MovementEnum {crouch,walk,run,fall}
+	[Export]
+	public Array<MovementState> movements;
+	
+	public Godot.Variant movementState = MovementEnum.walk;
+	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=91, index=2683, end=2684)
+	//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=92, index=2686, end=2689)
 }

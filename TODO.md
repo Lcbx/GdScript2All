@@ -1,7 +1,9 @@
 ## TODO
 - [x] flesh out README.md
 - [ ] support getset properties
-- [ ] support signals
+- [x] support signals
+- [ ] detect base class method override (_ready, _process, ...)
+- [ ] await <expr> => await ToSignal(<expr>)
 - [ ] use argparse instead of hand-parsing sys.argv
 - [ ] move C# translations out of godot_type.py
 - [ ] add onready assignments to ready method
