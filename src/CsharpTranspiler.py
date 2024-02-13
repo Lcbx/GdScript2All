@@ -183,6 +183,41 @@ class CSharpTranspiler:
 	
 	def continueStmt(self): self += 'continue;'
 	
+	def matchStmt(self, evaluated, cases):
+		
+		type = get(evaluated)
+		
+		if type in ('int', 'string', 'float'):
+			
+			self += 'switch('; get(evaluated); self += ')'
+			self.UpScope()
+			
+			for pattern, when in cases(True):
+				if pattern == 'default':
+					self += 'default:'
+				else:
+					self += 'case '; get(pattern); self += ':'
+					if when: self += ' if('; get(when); self += ')'
+			
+		else:
+			self.addLayer()
+			self += 'if('
+			get(evaluated)
+			self += ' == '
+			
+			comparison = self.popLayer()
+			
+			for pattern, when in cases():
+				if pattern == 'default':
+					self += 'else '
+				else:
+					self.write(comparison)
+					get(pattern)
+					if when: self += ' && '; get(when)
+					self += ')'
+		
+		
+	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
 		# TODO: in cpp, add member and method bindings

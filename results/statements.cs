@@ -4,10 +4,10 @@ using Dictionary = Godot.Collections.Dictionary;
 using Array = Godot.Collections.Array;
 
 
+// method to test statements
 public partial class statements : Godot.Node
 {
-	// method to test statements
-	public void method()
+	public Array method()
 	{
 		
 		
@@ -43,8 +43,38 @@ public partial class statements : Godot.Node
 			i += j;
 		}
 		
-		i;;
-		//PANIC! <:> unexpected at Token(type=':', value=':', lineno=27, index=291, end=292)
-		//PANIC! <1 :> unexpected at Token(type='STRING', value='1', lineno=28, index=295, end=298)
+		switch(i)
+		{
+			case "1":
+			{
+				print(i);
+				break;
+			}
+			case 1:
+			{
+				print(i);
+				break;
+			}
+			case 0: if(true)
+			{
+				print("zero!");
+				break;
+			}
+			//var x when false:
+			//	print("unreachable")
+			//[var x, var y] when true:
+			//	print("array pattern")
+			//{var x : var y} when true:
+			//	print("dictionary pattern")
+			default:
+			{
+				print("unknown");
+				break;
+			}
+		}
+		
+		i += 3 / 3 + 2 * 0.5;
+		
+		return new Array{};;
 	}
 }

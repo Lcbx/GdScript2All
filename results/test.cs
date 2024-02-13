@@ -5,15 +5,15 @@ using Array = Godot.Collections.Array;
 
 
 
+// line comment
+
+/* multiline
+   comment
+*/
+
 [Tool]
 public partial class test : Godot.Node
 {
-	// line comment
-	
-	/* multiline
-	   comment
-	*/
-	
 	public partial class Nested1 : test
 	{
 		

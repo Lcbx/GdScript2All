@@ -4,9 +4,9 @@ using Dictionary = Godot.Collections.Dictionary;
 using Array = Godot.Collections.Array;
 
 
+// basic expressions
 public partial class expressions : Godot.Node
 {
-	// basic expressions
 	public Godot.Variant foo;
 	public static int i = 0;
 	public const string str = "the fox said \"get off my lawn\"";

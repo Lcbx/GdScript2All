@@ -221,7 +221,7 @@ class Parser:
 		self.out.define_method(name, params, params_init, returnType, static)
 	
 	
-	def Block(self):
+	def Block(self, addBreak = False):
 		self.level += 1
 		block_lvl = self.level
 		return_type = None
@@ -231,7 +231,7 @@ class Parser:
 		for _ in self.doWhile(lambda : self.level >= block_lvl):
 			res = self.statement()
 			return_type = return_type or res
-			self.endline()
+			self.endline(addBreak)
 		
 		return return_type
 	
@@ -242,7 +242,7 @@ class Parser:
 		elif self.expect('if'): return self.ifStmt()
 		elif self.expect('while'): return self.whileStmt()
 		elif self.expect('for'): return self.forStmt()
-		elif self.expect('match'): return #self.matchStmt()
+		elif self.expect('match'): return self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
 		elif self.expect('break'): return self.out.breakStmt();
 		elif self.expect('continue'): return self.out.continueStmt()
@@ -275,22 +275,71 @@ class Parser:
 	def whileStmt(self):
 		cond = self.boolean(); next(cond)
 		self.out.whileStmt(cond)
+		
 		self.expect(':')
 		type = self.Block()
+		
 		return type
 	
 	def forStmt(self):
 		name = self.consume()
+		
 		self.expect('in')
+		
 		exp = self.expression()
 		exp_type = next(exp)
 		iterator_type = exp_type.replace('[]', '')
+		
 		self.locals[name] = iterator_type
 		self.out.forStmt(name, iterator_type, exp)
+		
 		self.expect(':')
 		type = self.Block()
+		
 		return type
 	
+	def matchStmt(self):
+		
+		switch_level = None
+		return_type = None
+		
+		def evaluated():
+			nonlocal switch_level
+			expr = self.expression()
+			type = next(expr)
+			yield type
+			next(expr)
+			self.expect(':')
+			self.level += 1
+			switch_level = self.level
+			yield type
+		
+		def cases(addBreak):
+			nonlocal return_type
+			for _ in self.doWhile(lambda:self.level >= switch_level):
+				self.endline()
+				default = self.expect('_')
+				pattern = 'default' if default else self.expression()
+				if not default: next(pattern)
+				whenExpr = self.boolean() if self.expect('when') else None
+				if whenExpr: next(whenExpr)
+				self.expect(':')
+				yield pattern, whenExpr
+				blockType = self.Block(addBreak)
+				return_type = return_type or blockType
+		
+		self.out.matchStmt(evaluated(), cases)
+		
+		return return_type
+		
+	
+	
+	def returnStmt(self):
+		exp = self.expression()
+		type = next(exp)
+		self.out.returnStmt(exp)
+		self.out.end_statement()
+		return type
 	
 	def declare(self, name = None, flags = DECL_FLAGS.none):
 		if not name: name = self.consume()
@@ -318,14 +367,6 @@ class Parser:
 		
 		if ass: next(ass)
 		self.out.end_statement()
-	
-	
-	def returnStmt(self):
-		exp = self.expression()
-		type = next(exp)
-		self.out.returnStmt(exp)
-		self.out.end_statement()
-		return type
 	
 	
 	# reassign : <expression> = <expression>
@@ -749,11 +790,12 @@ class Parser:
 	
 	
 	# called when an endline is excpected
-	def endline(self):
+	# addBreak is for switch statements
+	def endline(self, addBreak = False):
 		lvl = -1
 		jumpedLines = 0
 		
-		for _ in self.doWhile(lambda:True):
+		for _ in self.doWhile(lambda:self.match_type('LINE_END', 'COMMENT', 'LONG_STRING')):
 			
 			# stub
 			emitComments = (lambda : None)
@@ -764,23 +806,27 @@ class Parser:
 				jumpedLines += 1
 			
 			# parse comments
-			elif self.match_type('COMMENT', 'LONG_STRING'):
+			else:
 				emit = self.out.line_comment if self.match_type('COMMENT') else self.out.multiline_comment
 				content = self.consume()
 				# override emitComments stub
 				def emitComments(): emit(content)
 			
-			# found code, indentation now matters
-			if not self.match_type('LINE_END'):
-				while lvl!=-1 and lvl < self.level:
-					self.level -=1
-					# NOTE: for prettier output, we emit downscope directly
-					self.out.DownScope();
-					#self.out += f"      <downscope {self.current}>"
-				emitComments(); break
+			if self.match_type('LINE_END'):
+				emitComments()
 			
-			# emit comment and continue loop
-			else: emitComments()
+			# found code, indentation now matters
+			# NOTE: for prettier output, we emit downscope directly
+			else:
+				if lvl!=-1:
+					for i in range(self.level - lvl):
+						if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
+						self.level -=1
+						self.out.DownScope();
+						#self.out += f"      <downscope {self.current}>"
+				emitComments()
+				self.out += '\n' * jumpedLines
+				jumpedLines = 0
 		
 		self.out += '\n' * jumpedLines
 
