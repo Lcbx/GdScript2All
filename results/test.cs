@@ -81,6 +81,8 @@ public partial class test : Godot.Node
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)public double getset_var2 =  - 0.1;
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)
+	public double getset_var2 =  - 0.1;
 	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1287, end=1288)
+	
 }

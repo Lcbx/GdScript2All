@@ -1,7 +1,7 @@
 from io import StringIO as stringBuilder
 import src.godot_types as ref
 
-class CSharpTranspiler:
+class Transpiler:
 	
 	def __init__(self):
 		# scope level

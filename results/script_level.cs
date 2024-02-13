@@ -37,6 +37,8 @@ public partial class script_level : Godot.Node
 	
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=20, index=322, end=323)public double DEF =  - 0.1;
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=20, index=322, end=323)
+	public double DEF =  - 0.1;
 	//PANIC! <:  Step> unexpected at Token(type=':', value=':', lineno=22, index=362, end=363)
+	
 }

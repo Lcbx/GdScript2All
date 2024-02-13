@@ -1,9 +1,10 @@
 ## GdScript2All
-A python tool for migrating GdScript to C# currently and eventually cpp with features like type inference (see example).
+A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to any languages (C# only currently but eventually c++) with features like type inference.
+It should be fairly easy to add new langugages (see [here](#Adding-new-languages))
 
 ### Usage
 ```bash
-py main.py -i <file_or_folder_path> -o <output_file_or_folder_path>
+py main.py <file_or_folder_path> -o <output_file_or_folder_path>
 ```
 
 ### Example
@@ -214,8 +215,10 @@ public partial class test : Godot.Node
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)public double getset_var2 =  - 0.1;
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)
+	public double getset_var2 =  - 0.1;
 	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1287, end=1288)
+	
 }
 ```
 c++ output (TODO!) :
@@ -226,16 +229,23 @@ __test.hpp__
 __test.cpp__
 ```
 
+### Adding new languages
+If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
+modify it as needed, then to use it you just have to pass its name with the ```-t``` flag:
+```bash
+py main.py -t CustomTranspiler <file_or_folder_path>
+```
+
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
 - type inference does not currently support user-defined classes
 - pattern matching ex:  
-```
+```GDScript
 match [34, 6]:
-  [0, var x]:
-     print(x)
-  [var y, 6] when y > 10 :
+  [0, var y]:
      print(y)
+  [var x, 6] when x > 10 :
+     print(x)
 ```
 will probably not be supported (too complicated to generate an equivalent)
 

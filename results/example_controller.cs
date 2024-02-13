@@ -111,5 +111,7 @@ public partial class Character : Godot.CharacterBody3D
 	
 	public Godot.Variant movementState = MovementEnum.walk;
 	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=91, index=2683, end=2684)
+	
 	//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=92, index=2686, end=2689)
+	
 }

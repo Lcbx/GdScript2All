@@ -4,7 +4,7 @@
 - [x] support signals
 - [ ] detect base class method override (_ready, _process, ...)
 - [ ] await <expr> => await ToSignal(<expr>)
-- [ ] use argparse instead of hand-parsing sys.argv
+- [x] use argparse instead of hand-parsing sys.argv
 - [ ] move C# translations out of godot_type.py
 - [ ] add onready assignments to ready method
 - [ ] add c++ transpiling backend
@@ -16,7 +16,7 @@
 - [ ] support special literals :
   * floating exponents : 58e-10
   * base16 int : 0x8E
-  * bineary int : 0b1010
+  * binary int : 0b1010
   * raw strings : r"hello"
   * string names : &"name"
   * nodepath : ^"parent/child"

@@ -7,16 +7,20 @@ import src.godot_types as ref
 import ClassData as ClassData
 from Tokenizer import Tokenizer
 
+vprint = lambda a,*b:None
 
 # recursive descent parser
 class Parser:
 	
-	def __init__(self, filename, text, transpiler):
+	def __init__(self, filename, text, transpiler, verbose = True):
 		# keep track of the script being transpiled
 		self.script_name = filename
 		
 		# transpiler renamed 'out' for brevity
 		self.out = transpiler
+		
+		# trick for verbosity
+		vprint = print if verbose else lambda a,*b:None
 		
 		# generator that splits text into tokens
 		self.tokenizer = Tokenizer()
@@ -77,7 +81,7 @@ class Parser:
 		# initialize script class data
 		self.classData = copy(ref.godot_types[self.base_class]) if self.base_class in ref.godot_types \
 			else ClassData.ClassData()
-		#print(self.classData.__dict__)
+		#vprint(self.classData.__dict__)
 		
 		# no endline after class name since we declare the class before that
 		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
@@ -90,7 +94,7 @@ class Parser:
 			
 			# get out if EOF reached
 			if self.match_type('EOF'):
-				print("reached EOF")
+				vprint("reached EOF")
 				break
 			
 			# panic system :
@@ -101,8 +105,9 @@ class Parser:
 			self.endline()
 			
 			msg = f'PANIC! <{escaped}> unexpected at {token}'
-			self.out.line_comment(msg)
-			print('---------', msg)
+			self.out.line_comment(f'{msg}\n')
+			# print it red in console output
+			print(f'\033[91m{msg}\033[0m')
 		
 		# tell the transpiler we're done
 		self.out.end_script()
@@ -784,7 +789,7 @@ class Parser:
 	def consume(self):
 		found = self.current.value
 		self.advance()
-		#print('+', found)
+		#vprint('+', found)
 		return found
 	
 	# parse type string and format it the way godot docs do
