@@ -15,3 +15,7 @@ newReadme = template \
 # TODO : add cpp transpilation results
 
 with open('README.md', 'w+') as f: f.write(newReadme)
+
+# add the change to the commit
+import subprocess
+subprocess.run(['git', 'add', 'README.md'])
