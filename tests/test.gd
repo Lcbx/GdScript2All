@@ -28,19 +28,9 @@ const str = 'the fox said "get off my lawn"'
 var big_str : string = """
 	this is a multiline string
 """
-var _protected_bool := true
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
-var parenthesis := (42)
-var delayed_expression = \
-	1
-var asKeyword = 3 as float
-
-
-# type inference
-var j = self.i
-var k = string_array[0]
 
 # method
 func method(param = 5.):
@@ -49,10 +39,13 @@ func method(param = 5.):
 		print(k)
 	return val * param
 
+# type inference on members
+var j = self.i
+var k = string_array[0]
+
 # determine type based on godot doc
 var x = self.get_parent()
-var x = Vector3().x 
-var up = Vector3.UP
+var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY
 var global_function = angle_difference(.1,.2)
@@ -62,6 +55,9 @@ var get_node = $node
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
+
+signal jump
+signal movement(dir:Vector3, speed:float)
 
 # get set
 var getset_var : float : set = _set, get = _get

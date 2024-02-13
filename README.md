@@ -39,19 +39,9 @@ const str = 'the fox said "get off my lawn"'
 var big_str : string = """
 	this is a multiline string
 """
-var _protected_bool := true
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
-var parenthesis := (42)
-var delayed_expression = \
-	1
-var asKeyword = 3 as float
-
-
-# type inference
-var j = self.i
-var k = string_array[0]
 
 # method
 func method(param = 5.):
@@ -60,10 +50,13 @@ func method(param = 5.):
 		print(k)
 	return val * param
 
+# type inference on members
+var j = self.i
+var k = string_array[0]
+
 # determine type based on godot doc
 var x = self.get_parent()
-var x = Vector3().x 
-var up = Vector3.UP
+var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
 const flag = RenderingServer.NO_INDEX_ARRAY
 var global_function = angle_difference(.1,.2)
@@ -73,6 +66,9 @@ var get_node = $node
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
+
+signal jump
+signal movement(dir:Vector3, speed:float)
 
 # get set
 var getset_var : float : set = _set, get = _get
@@ -156,8 +152,8 @@ public partial class test : Godot.Node
 		
 	}
 	
-	enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
-	enum Named {THING_1,THING_2,ANOTHER_THING=-1}
+	public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
+	public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
 	
 	
 	[Export]
@@ -178,18 +174,9 @@ public partial class test : Godot.Node
 	public string big_str = @"
 		this is a multiline string
 	";
-	protected bool _protected_bool = true;
 	public Array array = new Array{0,1,2,};
 	public Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
 	public Array<string> string_array = new Array{"0","1",};
-	public int parenthesis = (42);
-	public int delayed_expression = 1;
-	public double asKeyword = 3;
-	
-	
-	// type inference
-	public int j = this.i;
-	public string k = string_array[0];
 	
 	// method
 	public double method(double param = 5.0)
@@ -202,10 +189,13 @@ public partial class test : Godot.Node
 		return val * param;
 	}
 	
+	// type inference on members
+	public int j = this.i;
+	public string k = string_array[0];
+	
 	// determine type based on godot doc
 	public Godot.Node x = this.get_parent();
 	public double x = new Vector3().x;
-	public Godot.Vector3 up = Godot.Vector3.UP;
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	public double global_function = angle_difference(0.1,0.2);
@@ -216,11 +206,16 @@ public partial class test : Godot.Node
 	public Godot.Variant preload_resource = preload("res://path");
 	public Godot.Variant load_resource = load("res://path");
 	
+	[Signal]
+	public delegate void jumpHandler();
+	[Signal]
+	public delegate void movementHandler(Godot.Vector3 dir,double speed);
+	
 	// get set
 	public double getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=67, index=1303, end=1304)public double getset_var2 =  - 0.1;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=69, index=1352, end=1353)
+	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)public double getset_var2 =  - 0.1;
+	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1287, end=1288)
 }
 ```
 c++ output (TODO!) :

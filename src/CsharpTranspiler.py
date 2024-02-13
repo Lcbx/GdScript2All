@@ -33,7 +33,7 @@ class CSharpTranspiler:
 		if not name:
 			name  = f'Enum{self.unnamed_enums}'
 			self.unnamed_enums += 1
-		self += f'enum {name} {definition}'
+		self += f'public enum {name} {definition}'
 	
 	def annotation(self, name, params, memberName):
 		# TODO: check replacements are exhaustive
