@@ -12,14 +12,17 @@ commandLineArgs = argparse.ArgumentParser(description='GDscript transpiler')
 commandLineArgs.add_argument('input', nargs = '?',  help='path to GDscript code (folder or file)', default = './tests')
 commandLineArgs.add_argument('-o', '--output', nargs = '?', default = './results', help='where to output transpiled code ')
 commandLineArgs.add_argument('-t', '--transpiler', nargs = '?', default = 'CsharpTranspiler', help='which transpiler script to use')
-commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='if set will print additional execution logs' )
+commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='print additional execution logs' )
+commandLineArgs.add_argument('--verboseP', action='store_true', default = False, help='print additional parser execution logs' )
+commandLineArgs.add_argument('--verboseT', action='store_true', default = False, help='print additional transpiler execution logs' )
+commandLineArgs.add_argument('--tokens', action='store_true', default = False, help='if set will print the tokenizer output' )
 args = commandLineArgs.parse_args()
 
 # dynamic import
 Transpiler = __import__(args.transpiler)
 
-# trick for verbosity
-vprint = print if args.verbose else lambda a,*b:None
+# for verbose printing
+def getPrinter(condition): return print if condition else lambda a,*b:None
 
 # files to transpile
 files = []
@@ -43,13 +46,13 @@ def transpile(filename, outname):
 	# script name without extension
 	script_name = os.path.basename(filename).split('.')[0]
 	
-	transpiler = Transpiler.Transpiler()
+	transpiler = Transpiler.Transpiler( getPrinter(args.verbose or args.verboseT) )
 	
-	parser = Parser.Parser(script_name, text, transpiler, args.verbose)
+	parser = Parser.Parser(script_name, text, transpiler, getPrinter(args.verbose or args.verboseP) )
 	
-	if args.verbose:
+	if args.tokens:
 		print(outname)
-		print('\n'.join(map(lambda token: str(token), parser.tokenizer.tokenize(text))))
+		print('\n'.join(map(lambda token: f'line {token.lineno}: {token.type} <{token.value}>', parser.tokenizer.tokenize(text))))
 	
 	printException = lambda : None
 	
@@ -70,17 +73,18 @@ def transpile(filename, outname):
 		
 		printException()
 		
-		with open(outname,'w+') as wf:
-			wf.write(code);
+		transpiler.save_result(outname)
 
 
-vprint("")
-vprint(f"files to process :\n{files}")
+if args.verbose:
+	print("")
+	print(f"files to process :\n{files}")
 
 total = len(files)
 for i, file in enumerate(files):
+	
 	outname = file.replace(args.input, args.output).replace('.gd', '')
-	outname = outname + '.cs' if not outname.endswith('.cs') else outname
+	
 	transpile(file, outname)
 	
 	print(f"Converted {file} to {outname} ({i+1}/{total})")

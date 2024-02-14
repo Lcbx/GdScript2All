@@ -1,9 +1,14 @@
 from io import StringIO as stringBuilder
 import src.godot_types as ref
 
+
 class Transpiler:
 	
-	def __init__(self):
+	def __init__(self, vprint):
+		
+		# verbose printing
+		self.vprint = vprint
+		
 		# scope level
 		self.level = 0
 		
@@ -244,7 +249,7 @@ class Transpiler:
 		# automatic indentation
 		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
 		self.write(txt)
-		#print(">", txt.replace("\n", "<EOL>").replace('\t', '  '))
+		self.vprint(">", txt.replace("\n", "<EOL>").replace('\t', '  '))
 		return self
 	
 	def write(self, txt):
@@ -255,14 +260,19 @@ class Transpiler:
 		while self.level > 0: self.DownScope()
 		return self.layers[0].getvalue()
 	
+	def save_result(self, outname):
+		if not outname.endswith('.cs'): outname += '.cs'
+		with open(outname,'w+') as wf:
+			wf.write(self.get_result())
+	
 	def UpScope(self):
-		#print("UpScope")
+		self.vprint("UpScope")
 		self += "\n{"
 		self.level += 1
 		#self += "\n"
 	
 	def DownScope(self):
-		#print("DownScope")
+		self.vprint("DownScope")
 		self.level -= 1
 		self += "\n}"
 	
