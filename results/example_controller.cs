@@ -69,7 +69,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 		
 		// when running, always go forward 
-		var direction = ( movementState ? global_mov_dir : ! ); = MovementEnum.run;else;basis.z;
+		var direction = ( movementState != MovementEnum.run ? global_mov_dir : basis.z );
 		
 		var top_speed = movements[movementState];
 		var nimbleness = movements[movementState];
@@ -109,9 +109,70 @@ public partial class Character : Godot.CharacterBody3D
 	[Export]
 	public Array<MovementState> movements;
 	
-	public Godot.Variant movementState = MovementEnum.walk;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=91, index=2683, end=2684)
+	public Godot.Variant movementState = MovementEnum.walk
+	{
+		set
+		{
+			if(_movementState != value)
+			{
+				_movementState = value;
+				changedState.emit(_movementState);
+			}
+		}
+	}
+	private Godot.Variant _movementState;
 	
-	//PANIC! <set ( value ) :> unexpected at Token(type='TEXT', value='set', lineno=92, index=2686, end=2689)
+	public Godot.Variant wantedMovement = MovementEnum.walk;
+	
+	
+	/* steering variables */
+	
+	protected Godot.Vector3 _global_mov_dir = new Vector3();
+	public Godot.Vector3 global_mov_dir = new Vector3()
+	{
+		get
+		{return _global_mov_dir;
+		}
+		set
+		{
+			_global_mov_dir = value;
+			// TODO: verify up (y) is not inversed
+			_local_dir =  - value * basis.inverse();
+		}
+	// NOTE: local_dir is normalized on the xz plane by Overlay
+	}
+	protected Godot.Vector3 _local_dir;
+	public Godot.Vector3 local_dir
+	{
+		get
+		{return _local_dir;
+		}
+		set
+		{
+			_local_dir = value;
+			_global_mov_dir =  - value.x * basis.x + value.y * Godot.Vector3.UP + value.z * basis.z;
+		}
+	}
+	public double calculate_ground_speed()
+	{
+		return sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+	}
+	
+	/* view */
+	
+	[Signal]
+	public delegate void viewDirChangedHandler(Godot.Vector3 euler);
+	
+	public Godot.Vector3 view_dir = new Vector3()
+	{
+		set
+		{
+			_view_dir = value;
+			_view_dir.x = clampf(_view_dir.x, - Globals.view_pitch_limit,Globals.view_pitch_limit);
+			viewDirChanged.emit(_view_dir);
+		}
+	}
+	private Godot.Vector3 _view_dir;
+	
 	
 }

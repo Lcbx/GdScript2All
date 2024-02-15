@@ -47,11 +47,12 @@ class Parser:
 	
 	Member -> <annotation>? <property>
 	annotation -> @<name>[(*<params>)]?
-	property -> [const|[static]? var] <name> [:<type>]? [<Assignment>]?
+	property -> [const|[static]? var] <name> [:<type>]? [<Assignment>]? <setget>?
 	Method -> func <name>(*<params>) [-> <type>]? :[Block]
 	Signal -> signal name [(*params)]?
 	Block -> <Statement>1+
 	params -> <name> [: <type>]? [, params]*
+	setget -> : [get [= <method_name>]|[ : Block ]]?, [set [= <method_name>]|[ : Block ]]?
 	
 	Statement
 	 |->NoOperation     -> pass
@@ -59,7 +60,7 @@ class Parser:
 	 |->IfStatement     -> if <boolean>: <Block> [elif <boolean> <Block>]* [else <Block>]?
 	 |->WhileStatement  -> while <boolean>: <Block>
 	 |->ForStatement    -> for <variable> in <Expression> | : <Block>
-	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+                       ----> TODO
+	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+
 	 |->ReturnStatement -> return <Expression>
 	 |->Assignment      -> <Expression> = <Expression>
 	 |->Expression (see after statement implementation)
@@ -73,7 +74,7 @@ class Parser:
 		self.endline()
 		
 		# script start specific statements
-		self.is_tool = self.expect('@') and self.expect('tool'); self.endline()
+		self.is_tool = self.expect('@', 'tool'); self.endline()
 		self.base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
 		self.class_name = self.consume() if self.expect('class_name') else self.script_name
 		
@@ -104,7 +105,7 @@ class Parser:
 			self.endline()
 			
 			msg = f'PANIC! <{escaped}> unexpected at {token}'
-			self.out.line_comment(f'{msg}\n')
+			self.out.comment(f'{msg}\n')
 			# print it red in console output
 			print(f'\033[91m{msg}\033[0m')
 		
@@ -173,15 +174,58 @@ class Parser:
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
 		constant = self.expect('const')
 		if constant or self.expect('var'):
-			member = self.consume()
-			if annotation: self.out.annotation(annotation, params, member)
-			self.declare( member, \
+			memberName = self.consume()
+			if annotation: self.out.annotation(annotation, params, memberName)
+			foundSetGet = self.declare( memberName, \
 					 self.DECL_FLAGS.property \
 				| (  self.DECL_FLAGS.constant if constant \
 				else self.DECL_FLAGS.static if static \
 				else self.DECL_FLAGS.onready if onready \
 				else self.DECL_FLAGS.none))
-			# TODO: handle get set
+			
+			if not (self.expect(':') or foundSetGet):
+				self.out.end_statement()
+				
+			# setget -> : [get [= <method_name>]|[ : Block ]]?, [set [= <method_name>]|[ : Block ]]?
+			else:
+				print("getset", memberName, self.level)
+				# although scope is used in C# to delimit getters and setters,
+				# c++ does not have that notion
+				# so we don't emit UpScope and DownScope here
+				if self.match_type('COMMENT'): self.out +=' '; self.out.comment(self.consume())
+				self.expect_type('LINE_END')
+				oldLevel = self.level
+				self.level += 1
+				self.out.setget_start()
+				
+				# allow defining setter and getter in any order
+				for i in range(2):
+					
+					if self.expect('get'):
+						if self.expect('='):
+							self.out.getter_method(memberName, self.consume())
+						
+						elif self.expect(':'):
+							self.out.addLayer()
+							self.Block()
+							self.out.getter(memberName)
+					
+					elif self.expect('set'):
+						if self.expect('='):
+							self.out.setter_method(memberName, self.consume())
+						
+						elif self.expect('('):
+							valueName = self.consume(); self.expect(')', ':')
+							self.out.addLayer()
+							self.Block()
+							self.out.setter(memberName, valueName)
+					
+					self.expect(',')
+			
+				self.level = oldLevel
+				self.out.setget_end(memberName)
+	
+	
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
@@ -237,7 +281,7 @@ class Parser:
 		for _ in self.doWhile(lambda : self.level >= block_lvl):
 			res = self.statement()
 			return_type = return_type or res
-			self.endline(addBreak)
+			self.endline(addBreak = addBreak)
 		
 		return return_type
 	
@@ -259,8 +303,8 @@ class Parser:
 	
 	def statement(self):
 		if   self.expect('pass'): return
-		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none)
-		elif self.expect('const'): return self.declare(flags=self.DECL_FLAGS.constant)
+		elif self.expect('var'): return self.declare(flags=self.DECL_FLAGS.none) or self.out.end_statement()
+		elif self.expect('const'): return self.declare(flags=self.DECL_FLAGS.constant) or self.out.end_statement()
 		elif self.expect('if'): return self.ifStmt()
 		elif self.expect('while'): return self.whileStmt()
 		elif self.expect('for'): return self.forStmt()
@@ -362,13 +406,16 @@ class Parser:
 	
 	def declare(self, name = None, flags = DECL_FLAGS.none):
 		if not name: name = self.consume()
-		type = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
+		
+		# could be a setget colon
+		foundColon  = self.expect(':')
+		foundSetGet = foundColon and not self.match_type('TEXT', '=')
+		type = self.parseType() if foundColon and self.match_type('TEXT') else None
 		
 		# parsing assignment if needed
-		ass = self.assignment( \
-				name if flags & self.DECL_FLAGS.onready else None \
-			) if self.expect('=') else None
-		if ass:
+		ass = None
+		if self.expect('='):
+			ass = self.assignment( name if flags & self.DECL_FLAGS.onready else None )
 			ass_type = next(ass)
 			type = type or ass_type
 		
@@ -385,7 +432,8 @@ class Parser:
 			self.out.declare_variable(type, name)
 		
 		if ass: next(ass)
-		self.out.end_statement()
+		
+		return foundSetGet
 	
 	
 	# reassign : <expression> = <expression>
@@ -437,6 +485,8 @@ class Parser:
 	def expression(self):
 		exp = self.ternary()
 		type = next(exp)
+		# NOTE: type casting will work in C# with a as keyword, but wont with c++
+		# TBD if we need to do womething here
 		if self.expect('as'): type = self.parseType()
 		yield type or 'Variant'
 		next(exp)
@@ -547,9 +597,10 @@ class Parser:
 		elif self.expect('['):
 			yield 'Array'
 			def iter():
+				self.endline(emitDownScope = False)
 				while not self.expect(']'):
 					val = self.expression(); next(val)
-					self.expect(',')
+					self.expect(','); self.endline(emitDownScope = False)
 					yield val
 			self.out.create_array(iter())
 			
@@ -557,12 +608,13 @@ class Parser:
 		elif self.expect('{'):
 			yield 'Dictionary'
 			def iter():
+				self.endline(emitDownScope = False)
 				while not self.expect('}'):
 					key = self.expression()
 					val = self.expression()
 					next(key); self.expect(':'); next(val)
-					self.expect(',')
 					yield (key, val)
+					self.expect(','); self.endline(emitDownScope = False)
 			self.out.create_dict(iter())
 			
 		# subexpression : (expression)
@@ -780,8 +832,16 @@ class Parser:
 	def match_value(self, *tokens):
 		return any( (token == self.current.value for token in tokens) )
 	
-	def expect(self, token):
-		found = self.match_value(token)
+	def expect(self, *tokens):
+		found = True
+		for token in tokens:
+			found = found and self.match_value(token)
+			if found: self.advance()
+			else: break
+		return found
+	
+	def expect_type(self, token):
+		found = self.match_type(token)
 		if found: self.advance()
 		return found
 	
@@ -807,47 +867,53 @@ class Parser:
 			result.append(self.consume())
 		return separator.join(result)
 	
+	def replaceInBlock(self, what, value):
+		code = self.out.popLayer()
+		self.out.addLayer()
+		self.out.write(code.replace(what, value))
+	
 	
 	# called when an endline is excpected
 	# addBreak is for switch statements
-	def endline(self, addBreak = False):
+	def endline(self, emitDownScope = True, addBreak = False):
 		lvl = -1
 		jumpedLines = 0
 		
-		for _ in self.doWhile(lambda:self.match_type('LINE_END', 'COMMENT', 'LONG_STRING')):
-			
+		def updateScope():
+			if lvl!=-1:
+				for i in range(self.level - lvl):
+					if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
+					self.level -=1
+					if emitDownScope: self.out.DownScope();
+					#self.out += f"      <downscope {self.current}>"
+		
+		while self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
+
 			# stub
 			emitComments = (lambda : None)
-			
+
 			# setting scope level only when we encounter non-whitespace
 			if self.match_type('LINE_END'):
 				lvl = int(self.consume())
 				jumpedLines += 1
-			
+
 			# parse comments
 			else:
-				emit = self.out.line_comment if self.match_type('COMMENT') else self.out.multiline_comment
+				emit = self.out.comment if self.match_type('COMMENT') else self.out.multiline_comment
 				content = self.consume()
 				# override emitComments stub
 				def emitComments(): emit(content)
-			
+
 			if self.match_type('LINE_END'):
 				emitComments()
 			
 			# found code, indentation now matters
 			# NOTE: for prettier output, we emit downscope directly
 			else:
-				if lvl!=-1:
-					for i in range(self.level - lvl):
-						if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
-						self.level -=1
-						self.out.DownScope();
-						#self.out += f"      <downscope {self.current}>"
+				updateScope()
 				emitComments()
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0
-		
-		self.out += '\n' * jumpedLines
 
 def passthrough(closure, *values):
 	closure(*values); yield

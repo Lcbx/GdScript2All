@@ -23,6 +23,9 @@ class Transpiler:
 		
 		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
+		
+		# members names and types
+		self.members = {}
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
@@ -57,6 +60,51 @@ class Transpiler:
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
+		self.members[name] = type
+	
+	def setget_start(self):
+		self.UpScope()
+		self += '\n'
+		
+	def getter(self, member):
+		code = self.popLayer()
+		self += 'get';
+		code = self.cleanGetSetCode(code, member)
+		self.write(code)
+	
+	def getter_method(self, member, getterName):
+		self += f'get => {getterName}();\n'
+	
+	def setter(self, member, valueName):
+		code = self.popLayer()
+		self += 'set';
+		code = self.cleanGetSetCode(code, member)
+		self.write(code.replace(valueName, 'value'))
+	
+	def cleanGetSetCode(self, code, member):
+		# remove extra downscope
+		if code.count('}') > 1:
+			split = code.rsplit('}', 1)
+			code = split[0]
+			# try to keep comments
+			code += split[-1].rsplit('#', 1)[-1]
+			self.level += 1
+		# use private value
+		if not asPrivate(member) in self.members:
+			code = code.replace(member, asPrivate(member))
+		# remove extra empty lines
+		code = code.replace('\t' * (self.level-1) + '\n', '')
+		return code
+
+	def setter_method(self, member, setterName):
+		self += f'set => {setterName}(value);\n'
+		
+	def setget_end(self, member):
+		self.level -= 1; self+= '}'
+		if not asPrivate(member) in self.members:
+			self += f'\nprivate {self.members[member]} {asPrivate(member)};\n'
+		self += '\n'
+	
 	
 	def declare_variable(self, type, name):
 		self += f'var {name}'
@@ -223,8 +271,6 @@ class Transpiler:
 					get(pattern)
 					if when: self += ' && '; get(when)
 					self += ')'
-		
-		
 	
 	def end_script(self):
 		# TODO: add ready function if missing and there are onready assignements in onready array
@@ -233,7 +279,7 @@ class Transpiler:
 		# end script-level class
 		self.DownScope()
 	
-	def line_comment(self, content):
+	def comment(self, content):
 		self += f"//{content}"
 	
 	def multiline_comment(self, content):
@@ -253,12 +299,12 @@ class Transpiler:
 		return self
 	
 	def write(self, txt):
-		self.layers[-1].write(txt)
+		self.getLayer().write(txt)
 	
 	def get_result(self):
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
-		return self.layers[0].getvalue()
+		return self.getLayer().getvalue()
 	
 	def save_result(self, outname):
 		if not outname.endswith('.cs'): outname += '.cs'
@@ -266,18 +312,20 @@ class Transpiler:
 			wf.write(self.get_result())
 	
 	def UpScope(self):
-		self.vprint("UpScope")
-		self += "\n{"
+		self.vprint('UpScope')
+		self += '\n{'
 		self.level += 1
-		#self += "\n"
 	
 	def DownScope(self):
-		self.vprint("DownScope")
+		self.vprint('DownScope')
 		self.level -= 1
-		self += "\n}"
+		self += '\n}'
 	
 	# layers : used for method definition
 	# so we can parse return type then add code
+	
+	def getLayer(self):
+		return self.layers[-1]
 	
 	def addLayer(self):
 		self.layers.append(stringBuilder())
@@ -288,6 +336,8 @@ class Transpiler:
 		self.layers.pop()
 		return scope
 
+def asPrivate(name):
+	return '_' + name
 
 def toPascal(text):
 	text0is_ = text[0] == '_'

@@ -56,26 +56,23 @@ var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
+# signals
 signal jump
 signal movement(dir:Vector3, speed:float)
 
-# get set
+# property getters and setters
 var getset_var : float : set = _set, get = _get
 
 var getset_var2 = -0.1 :
 	set (value):
-		set_sprite_offset(value)
+		getset_var2 = value
 	get:
-		return sprite_offset
+		return getset_var2
 
-# signals
-signal a()
-signal b(a:int,b:Type)
+func async_function():
+	await jump
 
-# global functions
-var f = typeof(4+6/12)
-
-# "Default" 'Data' (I recommend splitting this kind of stuff into separate json files in c#)
+# this becomes rapidly unreadable once translated though
 const _default_data = {
 	"t" : 100,
 	"rafg" : 'asfgh',
@@ -84,36 +81,3 @@ const _default_data = {
 	"t":{"e":{"g":1,"f":2},},
 };
 
-
-func ready():
-	var s = range(abs(-1),randi())
-	
-	ready();
-
-	if ABC:
-		assert(false)
-	elif false:
-		print("Hello"+" "+"World")
-	else:
-		(a+b)()
-	return [
-		[0,e,[0,{}]], # a
-		[1,{},[0,{}]],
-	];
-
-# Do stuff
-func r(value:T,val=false,s)->bool:
-	if value == null : return !true
-
-	var type = typeof(value)
-	match type :
-		TYPE_BOOL,TYPE_INT,TYPE_NIL:
-			return value
-		TYPE_DICTIONARY:
-			var result = {}
-			for k in value:
-				result[k] = value[k]
-			return result
-
-func default_async_function():
-	yield(self,'a');

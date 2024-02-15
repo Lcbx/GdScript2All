@@ -13,9 +13,9 @@ class Tokenizer(Lexer):
 	
 	# Token definitions
 	ARROW = r'->'
-	UNARY = r'(~|!|not){1}'
 	COMPARISON = r'(==|!=|<=|>=|\|\||&&|<|>|and|or){1}' # == != <= >= || && < > and or
 	ARITHMETIC = r'(<<|>>|\*\*|\*|\+|-|\/|%|&|\^|\|){1}=?' # << >> ** + - / 5 & ^ | (optionally = at the end)
+	UNARY = r'(~|!|not){1}'
 	
 	TEXT = r'[a-zA-Z_][a-zA-Z0-9_]*'
 	FLOAT = r'\d+[.](\d*)?|[.]\d+' # accept 1. or 1.5 or .5

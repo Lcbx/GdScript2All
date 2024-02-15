@@ -35,10 +35,31 @@ public partial class script_level : Godot.Node
 	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant export_flags;
 	
-	public double getset_var;
+	public double getset_var
+	{
+		set => _set(value);
+		get => _get();
+		}
+	private double _getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=20, index=322, end=323)
-	public double DEF =  - 0.1;
-	//PANIC! <:  Step> unexpected at Token(type=':', value=':', lineno=22, index=362, end=363)
+	
+	
+	public double DEF =  - 0.1 // Step
+	{
+		set
+		{
+			set_sprite_offset(value);
+		}
+		get
+		{
+			return sprite_offset;
+		}
+	}
+	private double _DEF;
+	
+	[Signal]
+	public delegate void aHandler();
+	[Signal]
+	public delegate void bHandler(int a,Type b);
 	
 }

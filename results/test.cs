@@ -73,16 +73,48 @@ public partial class test : Godot.Node
 	public Godot.Variant preload_resource = preload("res://path");
 	public Godot.Variant load_resource = load("res://path");
 	
+	// signals
 	[Signal]
 	public delegate void jumpHandler();
 	[Signal]
 	public delegate void movementHandler(Godot.Vector3 dir,double speed);
 	
-	// get set
-	public double getset_var;
+	// property getters and setters
+	public double getset_var
+	{
+		set => _set(value);
+		get => _get();
+		}
+	private double _getset_var;
 	
-	//PANIC! <: set = _set , get = _get> unexpected at Token(type=':', value=':', lineno=63, index=1238, end=1239)
-	public double getset_var2 =  - 0.1;
-	//PANIC! <:> unexpected at Token(type=':', value=':', lineno=65, index=1287, end=1288)
+	
+	
+	public double getset_var2 =  - 0.1
+	{
+		set
+		{
+			_getset_var2 = value;
+		}
+		get
+		{
+			return _getset_var2;
+		}
+	}
+	private double _getset_var2;
+	
+	public void async_function()
+	{
+		await;jump;
+	}
+	
+	// this becomes rapidly unreadable once translated though
+	protected const Dictionary _default_data = new Dictionary{
+	{"t",100},
+	{"rafg","asfgh"},
+	{"u",false},// Example Comment
+	{"r",new Array{"a",new Dictionary{{"b",false},},}},
+	{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
+	};
+	
 	
 }

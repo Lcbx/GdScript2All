@@ -1,6 +1,6 @@
 ## TODO
 - [x] flesh out README.md
-- [ ] support getset properties
+- [x] support getset properties
 - [x] support signals
 - [ ] detect base class method override (_ready, _process, ...)
 - [ ] await <expr> => await ToSignal(<expr>)
