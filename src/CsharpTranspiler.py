@@ -68,11 +68,12 @@ class Transpiler:
 		self += '\n'
 		last_accessor = None
 		
-		# call the appropriate Transpiler method
+		# call the appropriate Transpiler method (defined afterward)
 		for accessor in accessors:
 			last_accessor = accessor
 			params = accessor.split('/')
-			getattr(self,params[0])(member, *params[1:])
+			method = getattr(self,params[0])
+			method(member, *params[1:])
 		
 		# add mssing bracket when using a method as last accesor
 		if 'method' in last_accessor:
