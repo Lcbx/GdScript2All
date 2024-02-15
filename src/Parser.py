@@ -188,42 +188,43 @@ class Parser:
 				
 			# setget -> : [get [= <method_name>]|[ : Block ]]?, [set [= <method_name>]|[ : Block ]]?
 			else:
-				print("getset", memberName, self.level)
 				# although scope is used in C# to delimit getters and setters,
 				# c++ does not have that notion
 				# so we don't emit UpScope and DownScope here
-				if self.match_type('COMMENT'): self.out +=' '; self.out.comment(self.consume())
+				if self.match_type('COMMENT'):
+					self.out +=' '; self.out.comment(self.consume())
 				self.expect_type('LINE_END')
+				
 				oldLevel = self.level
 				self.level += 1
-				self.out.setget_start()
 				
-				# allow defining setter and getter in any order
-				for i in range(2):
-					
-					if self.expect('get'):
-						if self.expect('='):
-							self.out.getter_method(memberName, self.consume())
+				def impl():
+					# allow defining setter and getter in any order
+					for i in range(2):
 						
-						elif self.expect(':'):
-							self.out.addLayer()
-							self.Block()
-							self.out.getter(memberName)
-					
-					elif self.expect('set'):
-						if self.expect('='):
-							self.out.setter_method(memberName, self.consume())
+						if self.expect('get'):
+							if self.expect('='):
+								yield f'getter_method/{self.consume()}'
+							
+							elif self.expect(':'):
+								self.out.addLayer()
+								self.Block()
+								yield 'getter'
 						
-						elif self.expect('('):
-							valueName = self.consume(); self.expect(')', ':')
-							self.out.addLayer()
-							self.Block()
-							self.out.setter(memberName, valueName)
-					
-					self.expect(',')
-			
+						elif self.expect('set'):
+							if self.expect('='):
+								yield f'setter_method/{self.consume()}'
+							
+							elif self.expect('('):
+								valueName = self.consume(); self.expect(')', ':')
+								self.out.addLayer()
+								self.Block()
+								yield f'setter/{valueName}'
+						
+						self.expect(',')
+				
+				self.out.setget(memberName, impl())
 				self.level = oldLevel
-				self.out.setget_end(memberName)
 	
 	
 	

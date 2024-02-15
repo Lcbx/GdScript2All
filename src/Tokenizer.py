@@ -52,5 +52,5 @@ class Tokenizer(Lexer):
 	def update_lineno(self, t): self.lineno += t.value.count('\n')
 	
 	def error(self, t): # report unknown char and continue
-		print("Illegal character '%s'" % t.value[0])
+		print("Ignoring character '%s'" % t.value[0])
 		self.index += 1

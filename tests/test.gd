@@ -79,5 +79,5 @@ const _default_data = {
 	"u" : false,# Example Comment
 	"r":["a",{"b":false}],
 	"t":{"e":{"g":1,"f":2},},
-};
+}
 

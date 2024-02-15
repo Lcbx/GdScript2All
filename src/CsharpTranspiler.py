@@ -62,18 +62,48 @@ class Transpiler:
 		self += f'{exposed} {const_decl}{type} {name}'
 		self.members[name] = type
 	
-	def setget_start(self):
+	def setget(self, member, accessors):
+		self.addLayer()
 		self.UpScope()
 		self += '\n'
+		last_accessor = None
 		
+		# call the appropriate Transpiler method
+		for accessor in accessors:
+			last_accessor = accessor
+			params = accessor.split('/')
+			getattr(self,params[0])(member, *params[1:])
+		
+		# add mssing bracket when using a method as last accesor
+		if 'method' in last_accessor:
+			self.level -= 1;
+			self += '\n}'
+		# otherwise an extra downscope was done already
+		
+		code = self.popLayer()
+		
+		# add private property if missing
+		if not asPrivate(member) in self.members:
+			privateMember = '}\n' + '\t' * self.level + \
+				f'private {self.members[member]} {asPrivate(member)};\n'
+			code = privateMember.join(code.rsplit('}', 1))
+		
+		# this is for prettiness
+		code = code.replace('\t' * (self.level+1) + '\n', '')
+		self.write(code)
+		
+		
+	def getter_method(self, member, getterName):
+		self += f'get => {getterName}();\n'
+	
+	def setter_method(self, member, setterName):
+		self += f'set => {setterName}(value);\n'
+	
 	def getter(self, member):
 		code = self.popLayer()
 		self += 'get';
 		code = self.cleanGetSetCode(code, member)
 		self.write(code)
-	
-	def getter_method(self, member, getterName):
-		self += f'get => {getterName}();\n'
 	
 	def setter(self, member, valueName):
 		code = self.popLayer()
@@ -82,29 +112,11 @@ class Transpiler:
 		self.write(code.replace(valueName, 'value'))
 	
 	def cleanGetSetCode(self, code, member):
-		# remove extra downscope
-		if code.count('}') > 1:
-			split = code.rsplit('}', 1)
-			code = split[0]
-			# try to keep comments
-			code += split[-1].rsplit('#', 1)[-1]
-			self.level += 1
 		# use private value
 		if not asPrivate(member) in self.members:
 			code = code.replace(member, asPrivate(member))
-		# remove extra empty lines
-		code = code.replace('\t' * (self.level-1) + '\n', '')
 		return code
 
-	def setter_method(self, member, setterName):
-		self += f'set => {setterName}(value);\n'
-		
-	def setget_end(self, member):
-		self.level -= 1; self+= '}'
-		if not asPrivate(member) in self.members:
-			self += f'\nprivate {self.members[member]} {asPrivate(member)};\n'
-		self += '\n'
-	
 	
 	def declare_variable(self, type, name):
 		self += f'var {name}'

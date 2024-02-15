@@ -121,6 +121,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 	}
 	private Godot.Variant _movementState;
+
 	
 	public Godot.Variant wantedMovement = MovementEnum.walk;
 	
@@ -139,8 +140,9 @@ public partial class Character : Godot.CharacterBody3D
 			// TODO: verify up (y) is not inversed
 			_local_dir =  - value * basis.inverse();
 		}
-	// NOTE: local_dir is normalized on the xz plane by Overlay
 	}
+	
+	// NOTE: local_dir is normalized on the xz plane by Overlay
 	protected Godot.Vector3 _local_dir;
 	public Godot.Vector3 local_dir
 	{
@@ -153,6 +155,7 @@ public partial class Character : Godot.CharacterBody3D
 			_global_mov_dir =  - value.x * basis.x + value.y * Godot.Vector3.UP + value.z * basis.z;
 		}
 	}
+	
 	public double calculate_ground_speed()
 	{
 		return sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
@@ -173,6 +176,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 	}
 	private Godot.Vector3 _view_dir;
+
 	
 	
 }

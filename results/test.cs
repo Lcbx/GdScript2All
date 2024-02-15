@@ -84,10 +84,9 @@ public partial class test : Godot.Node
 	{
 		set => _set(value);
 		get => _get();
-		}
+	}
 	private double _getset_var;
-	
-	
+
 	
 	public double getset_var2 =  - 0.1
 	{
@@ -101,6 +100,7 @@ public partial class test : Godot.Node
 		}
 	}
 	private double _getset_var2;
+
 	
 	public void async_function()
 	{

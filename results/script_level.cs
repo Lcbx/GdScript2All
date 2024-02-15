@@ -39,10 +39,9 @@ public partial class script_level : Godot.Node
 	{
 		set => _set(value);
 		get => _get();
-		}
+	}
 	private double _getset_var;
-	
-	
+
 	
 	public double DEF =  - 0.1 // Step
 	{
@@ -56,6 +55,7 @@ public partial class script_level : Godot.Node
 		}
 	}
 	private double _DEF;
+
 	
 	[Signal]
 	public delegate void aHandler();
