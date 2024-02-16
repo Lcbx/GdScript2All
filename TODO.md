@@ -3,15 +3,15 @@
 - [x] support getset properties
 - [x] support signals
 - [ ] detect base class method override (_ready, _process, ...)
-- [ ] await <expr> => await ToSignal(<expr>)
+- [ ] support await ex: "await" => "await ToSignal(....)
 - [x] use argparse instead of hand-parsing sys.argv
 - [ ] move C# translations out of godot_type.py
-- [ ] add onready assignments to ready method
+- [x] add onready assignments to ready method
+- [ ] make transpiler add ';' ? (instead of calling end_statement() in Parser)
 - [ ] add c++ transpiling backend
 - [ ] c++ : generate bindings for methods and exported properties
 - [ ] support enum as a variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
-- [ ] support using user-defined classes in other user scripts
-- [ ] support await ex: "await" => "await ToSignal(....)
+- [ ] support user-defined classes in type inference
 - [ ] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] support special literals :
   * floating exponents : 58e-10

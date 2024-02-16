@@ -116,5 +116,11 @@ public partial class test : Godot.Node
 	{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
 	};
 	
+	// automatic _ready generation
+	/* @onready */ public int k;
 	
+	protected void _ready()
+	{
+		k = 42;
+	}
 }

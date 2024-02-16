@@ -93,6 +93,9 @@ const _default_data = {
 	"t":{"e":{"g":1,"f":2},},
 }
 
+# automatic _ready generation
+@onready var k = 42
+
 
 ```
 C# output :
@@ -215,7 +218,13 @@ public partial class test : Godot.Node
 	{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
 	};
 	
+	// automatic _ready generation
+	/* @onready */ public int k;
 	
+	protected void _ready()
+	{
+		k = 42;
+	}
 }
 ```
 c++ output (TODO!) :

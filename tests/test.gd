@@ -81,3 +81,6 @@ const _default_data = {
 	"t":{"e":{"g":1,"f":2},},
 }
 
+# automatic _ready generation
+@onready var k = 42
+

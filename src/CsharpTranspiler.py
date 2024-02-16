@@ -19,13 +19,14 @@ class Transpiler:
 		self += ref.header
 		
 		# onready assignments that need to be moved to the ready function
-		self.onready = []
+		self.onready_assigns = []
 		
 		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
 		
 		# members names and types
 		self.members = {}
+		self.methods = {}
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
@@ -39,8 +40,7 @@ class Transpiler:
 	def enum(self, name, definition):
 		# unnamed enums not supported in C#
 		if not name:
-			name  = f'Enum{self.unnamed_enums}'
-			self.unnamed_enums += 1
+			name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
 		self += f'public enum {name} {definition}'
 	
 	def annotation(self, name, params, memberName):
@@ -87,7 +87,7 @@ class Transpiler:
 		if not asPrivate(member) in self.members:
 			privateMember = '}\n' + '\t' * self.level + \
 				f'private {self.members[member]} {asPrivate(member)};\n'
-			code = privateMember.join(code.rsplit('}', 1))
+			code = rReplace(code, '}', privateMember)
 		
 		# this is for prettiness
 		code = code.replace('\t' * (self.level+1) + '\n', '')
@@ -122,12 +122,11 @@ class Transpiler:
 	def declare_variable(self, type, name):
 		self += f'var {name}'
 	
-	def define_method(self, name, params, params_init, return_type, static):
-		
-		# TODO: check if called _ready and at script level (self.level==1)
-		# then add onready assignments first and clear onready array
+	def define_method(self, name, params = {}, params_init = {}, return_type = None, static = False):
 		
 		return_type = translate_type(return_type)
+		
+		self.methods[name] = return_type
 		
 		blockText = self.popLayer()
 		
@@ -142,6 +141,13 @@ class Transpiler:
 				self += ' = '; get(params_init[pName])
 		
 		self += ')'
+		
+		# add onready assignments if method is script-level _ready
+		if name == '_ready' and self.level == 1:
+			onreadies = '{' + ''.join(map(lambda stmt: f'\n\t\t{stmt};', self.onready_assigns))
+			blockText = blockText.replace('{', onreadies, 1)
+			self.onready_assigns.clear()
+		
 		self.write(blockText)
 	
 	def define_signal(self, name, params):
@@ -150,8 +156,11 @@ class Transpiler:
 		self += f'public delegate void {name}Handler({paramStr});'
 	
 	def assignment(self, exp, onreadyName):
-		# TODO : if onreadyName != None,
-		# put the assignement code aside so we can call it in ready
+		if onreadyName:
+			self.addLayer()
+			self.write(f'{onreadyName} = '); get(exp)
+			self.onready_assigns.append(self.popLayer())
+			return
 		self += ' = '; get(exp)
 	
 	def subexpression(self, expression):
@@ -209,8 +218,7 @@ class Transpiler:
 		self += ')'
 	
 	def constructor(self, name, params):
-		self += 'new '
-		self.call(name, params)
+		self += 'new '; self.call(name, params)
 	
 	def subscription(self, key):
 		self+= '['; get(key); self += ']'
@@ -256,6 +264,7 @@ class Transpiler:
 		
 		type = get(evaluated)
 		
+		# use switch on literals
 		if type in ('int', 'string', 'float'):
 			
 			self += 'switch('; get(evaluated); self += ')'
@@ -267,7 +276,8 @@ class Transpiler:
 				else:
 					self += 'case '; get(pattern); self += ':'
 					if when: self += ' if('; get(when); self += ')'
-			
+		
+		 # default to if else chains for objects
 		else:
 			self.addLayer()
 			self += 'if('
@@ -286,11 +296,19 @@ class Transpiler:
 					self += ')'
 	
 	def end_script(self):
-		# TODO: add ready function if missing and there are onready assignements in onready array
+		# add ready function if there are onready_assigns remaining
+		if self.onready_assigns:
+			# NOTE : if there are onready properties before and after a user-defined _ready method
+			# this will result in 2 _ready functions in generated code
+			self.addLayer()
+			self += '\n{\n}'
+			self.define_method('_ready')
+		
 		# TODO: in cpp, add member and method bindings
 		
-		# end script-level class
-		self.DownScope()
+		# close remaining scopes (notably script-level class)
+		while len(self.layers) > 1: self.write(self.popLayer())
+		while self.level > 0: self.DownScope()
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -315,8 +333,6 @@ class Transpiler:
 		self.getLayer().write(txt)
 	
 	def get_result(self):
-		while len(self.layers) > 1: self.write(self.popLayer())
-		while self.level > 0: self.DownScope()
 		return self.getLayer().getvalue()
 	
 	def save_result(self, outname):
@@ -348,6 +364,9 @@ class Transpiler:
 		scope = self.layers[-1].getvalue()
 		self.layers.pop()
 		return scope
+
+def rReplace(string, toReplace, newValue, n = 1):
+	return newValue.join(string.rsplit(toReplace,n))
 
 def asPrivate(name):
 	return '_' + name

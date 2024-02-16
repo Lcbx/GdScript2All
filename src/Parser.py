@@ -162,7 +162,10 @@ class Parser:
 			
 			# NOTE: special case for onready (needs moving the assignment into ready function)
 			# TODO: call out.assignement with onready flag (later)
-			if self.expect('on_ready'): onready = True; break
+			if self.expect('onready'):
+				onready = True;
+				self.out.multiline_comment(' @onready '); self.out+= ' '
+				break
 			
 			annotation = self.consume()
 			# NOTE: this should work for most cases
@@ -489,7 +492,7 @@ class Parser:
 		# NOTE: type casting will work in C# with a as keyword, but wont with c++
 		# TBD if we need to do womething here
 		if self.expect('as'): type = self.parseType()
-		yield type or 'Variant'
+		yield type
 		next(exp)
 		yield
 		

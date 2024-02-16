@@ -21,4 +21,4 @@ newReadme = template \
 with open('README.md', 'w+') as f: f.write(newReadme)
 
 # add the change to the commit
-subprocess.run(['git', 'add', 'README.md'])
+subprocess.run(['git', 'add', '*.md'])

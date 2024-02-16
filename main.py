@@ -19,7 +19,7 @@ commandLineArgs.add_argument('--tokens', action='store_true', default = False, h
 args = commandLineArgs.parse_args()
 
 # dynamic import
-Transpiler = __import__(args.transpiler)
+Transpiler = __import__(args.transpiler.replace('.py', ''))
 
 # for verbose printing
 def getPrinter(condition): return print if condition else lambda a,*b:None
