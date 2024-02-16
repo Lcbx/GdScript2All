@@ -71,6 +71,13 @@ var getset_var2 = -0.1 :
 
 func async_function():
 	await jump
+	await get_tree().process_frame
+	
+	get_tree().process_frame.emit(.7)
+	
+	jump.connect(async_function)
+	
+	movement.emit(Vector3.UP, .1)
 
 # this becomes rapidly unreadable once translated though
 const _default_data = {

@@ -116,7 +116,7 @@ public partial class Character : Godot.CharacterBody3D
 			if(_movementState != value)
 			{
 				_movementState = value;
-				changedState.emit(_movementState);
+				EmitSignal("changedState", _movementState);
 			}
 		}
 	}
@@ -172,7 +172,7 @@ public partial class Character : Godot.CharacterBody3D
 		{
 			_view_dir = value;
 			_view_dir.x = clampf(_view_dir.x, - Globals.view_pitch_limit,Globals.view_pitch_limit);
-			viewDirChanged.emit(_view_dir);
+			EmitSignal("viewDirChanged", _view_dir);
 		}
 	}
 	private Godot.Vector3 _view_dir;

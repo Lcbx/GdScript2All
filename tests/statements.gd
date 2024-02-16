@@ -42,4 +42,10 @@ func method():
 	
 	i += 3/3 + 2*.5
 	
+	await jump
+	await get_tree().process_frame
+	
+	get_tree().process_frame.emit(.7)
+	get_tree().process_frame.connect(something)
+	
 	return []

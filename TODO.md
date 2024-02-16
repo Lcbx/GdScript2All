@@ -3,7 +3,7 @@
 - [x] support getset properties
 - [x] support signals
 - [ ] detect base class method override (_ready, _process, ...)
-- [ ] support await ex: "await" => "await ToSignal(....)
+- [x] support await ex: "await" => "await ToSignal(....)
 - [x] use argparse instead of hand-parsing sys.argv
 - [ ] move C# translations out of godot_type.py
 - [x] add onready assignments to ready method

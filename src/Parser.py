@@ -291,6 +291,7 @@ class Parser:
 	
 	def signal(self):
 		name = self.consume()
+		self.classData.members[name] = f'signal/{name}'
 		params = {}
 		
 		if self.expect('('):
@@ -314,6 +315,7 @@ class Parser:
 		elif self.expect('for'): return self.forStmt()
 		elif self.expect('match'): return self.matchStmt()
 		elif self.expect('return'):return self.returnStmt()
+		elif self.expect('await'): return self.awaitStmt()
 		elif self.expect('break'): return self.out.breakStmt();
 		elif self.expect('continue'): return self.out.continueStmt()
 		elif not self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'): return self.reassign()
@@ -408,6 +410,17 @@ class Parser:
 		self.out.end_statement()
 		return type
 	
+	def awaitStmt(self):
+		# NOTE: not that portable
+		# but c++ has no equivalent anyway afaik
+		self.out.addLayer()
+		exp = self.expression(); next(exp); next(exp)
+		splitExpr = self.out.popLayer().rsplit('.', 1)
+		object = splitExpr[0] if len(splitExpr) > 1 else 'self'
+		signalName = splitExpr[-1]
+		self.out.awaitStmt(object, signalName)
+		
+	
 	def declare(self, name = None, flags = DECL_FLAGS.none):
 		if not name: name = self.consume()
 		
@@ -490,7 +503,7 @@ class Parser:
 		exp = self.ternary()
 		type = next(exp)
 		# NOTE: type casting will work in C# with a as keyword, but wont with c++
-		# TBD if we need to do womething here
+		# TBD if we need to do something here
 		if self.expect('as'): type = self.parseType()
 		yield type
 		next(exp)
@@ -659,7 +672,7 @@ class Parser:
 		if this: name = self.consume()
 		
 		# could be :
-		# a member
+		# a member (including signals)
 		# a local
 		# a singleton (ex: RenderingServer)
 		# a global constant (ex: KEY_ESCAPE)
@@ -668,6 +681,7 @@ class Parser:
 			or self.locals.get(name, None) \
 			or ref.godot_types['@GlobalScope'].constants.get(name, None) \
 			or (name if singleton else None)
+		signal = type and type.startswith('signal')
 		
 		# call
 		if self.expect('('):
@@ -681,7 +695,8 @@ class Parser:
 			reference = self.reference(type)
 			yield next(reference)
 			if this: self.out.this()
-			self.out.singleton(name) if singleton else self.out.variable(name)
+			if not signal:
+				self.out.singleton(name) if singleton else self.out.variable(name)
 			next(reference)
 		
 		# subscription
@@ -714,12 +729,7 @@ class Parser:
 			else ref.godot_types['@GlobalScope'].methods.get(name, None) if not calling_type \
 			else None)
 		
-		# determine params
-		def iter():
-			while not self.expect(')'):
-				exp = self.expression(); next(exp); yield exp
-				self.expect(',')
-		params = ( *iter() ,)
+		params = ( *self.parseCallParams() ,)
 		
 		# emission of code 
 		emit = lambda : \
@@ -753,20 +763,36 @@ class Parser:
 		member_type = ref.godot_types[type].members[name] if \
 				type in ref.godot_types and name in ref.godot_types[type].members \
 			else None
+		signal = member_type and member_type.startswith('signal')
+		
+		# signal emission/ connection
+		if type and type.startswith('signal'):
+			signal_name = type.split('/')[-1]
+			# determine params (same as call)
+			self.expect('('); params = ( *self.parseCallParams() ,)
+			yield None
+			if name == 'emit':
+				self.out.emitSignal(signal_name, params)
+			elif name == 'connect':
+				self.out.connectSignal(signal_name, params)
 		
 		# call
-		if self.expect('('):
+		elif self.expect('('):
 			call = self.call(name, type)
 			yield next(call)
 			# emit '.' while call() emits <name>(...)
-			self.out.reference('') 
+			self.out.reference('')
 			next(call)
 		
 		# other reference
 		elif self.expect('.'):
 			r = self.reference(member_type)
 			yield next(r)
-			self.out.reference(name)
+			if not signal:
+				self.out.reference(name)
+			else:
+				# emit '.', next reference will be connect or emit
+				self.out.reference('')
 			next(r)
 		
 		# subscription
@@ -811,6 +837,13 @@ class Parser:
 			yield type
 			self.out.subscription(key)
 		yield
+	
+	
+	# parse call params
+	def parseCallParams(self):
+		while not self.expect(')'):
+			exp = self.expression(); next(exp); yield exp
+			self.expect(',')
 	
 	
 	""" parsing utils """

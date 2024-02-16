@@ -69,6 +69,11 @@ else:
 				cons_type = 'int' if cons_val.lstrip('-').isdigit() \
 					else cons_val.split('(')[0]
 				data.constants[cons_name] = cons_type
+		
+		if 'signals' in klass:
+			for signal in klass.signals.signal:
+				signalName = signal['name']
+				data.members[signalName] = f'signal/{signalName}'
 	
 	#adding builtin that aren't in doc
 	godot_types['@GlobalScope'].methods['range'] = 'int[]'

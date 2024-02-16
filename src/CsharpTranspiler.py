@@ -260,6 +260,20 @@ class Transpiler:
 	
 	def continueStmt(self): self += 'continue;'
 	
+	def awaitStmt(self, object, signalName):
+		object = 'this' if object == 'self' else object
+		self += f'await ToSignal({object}, "{signalName}");'
+	
+	def emitSignal(self, name, params):
+		self += f'EmitSignal("{name}"'
+		for i, p in enumerate(params):
+			self += ', '
+			get(p)
+		self += ')'
+	
+	def connectSignal(self, name, params):
+		self += f'{name} += '; get(params[0])
+	
 	def matchStmt(self, evaluated, cases):
 		
 		type = get(evaluated)

@@ -104,7 +104,14 @@ public partial class test : Godot.Node
 	
 	public void async_function()
 	{
-		await;jump;
+		await ToSignal(this, "jump");
+		await ToSignal(get_tree(), "process_frame");
+		
+		get_tree().EmitSignal("process_frame", 0.7);
+		
+		jump += async_function;
+		
+		EmitSignal("movement", Godot.Vector3.UP, 0.1);
 	}
 	
 	// this becomes rapidly unreadable once translated though

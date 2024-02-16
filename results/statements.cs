@@ -75,6 +75,12 @@ public partial class statements : Godot.Node
 		
 		i += 3 / 3 + 2 * 0.5;
 		
+		await ToSignal(this, "jump");
+		await ToSignal(get_tree(), "process_frame");
+		
+		get_tree().EmitSignal("process_frame", 0.7);
+		get_tree().process_frame += something;
+		
 		return new Array{};;
 	}
 }
