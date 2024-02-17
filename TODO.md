@@ -7,7 +7,6 @@
 - [x] use argparse instead of hand-parsing sys.argv
 - [ ] move C# translations out of godot_type.py
 - [x] add onready assignments to ready method
-- [ ] make transpiler add ';' ? (instead of calling end_statement() in Parser)
 - [ ] add c++ transpiling backend
 - [ ] c++ : generate bindings for methods and exported properties
 - [ ] support enum as a variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"

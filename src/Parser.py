@@ -97,16 +97,12 @@ class Parser:
 				self.vprint("reached EOF")
 				break
 			
-			# panic system :
-			# drop current line if we can't parse it
-			
+			# panic system : drop current line if we can't parse it
 			token = self.current
-			escaped = self.consumeUntil('LINE_END', separator=' ').replace('\n', '\\n')
-			self.endline()
-			
+			escaped = self.consumeUntil('LINE_END', separator=' '); self.endline()
+			# add comment to output + print red warning in console output
 			msg = f'PANIC! <{escaped}> unexpected at {token}'
 			self.out.comment(f'{msg}\n')
-			# print it red in console output
 			print(f'\033[91m{msg}\033[0m')
 		
 		# tell the transpiler we're done
@@ -615,7 +611,7 @@ class Parser:
 			yield 'Array'
 			def iter():
 				self.endline(emitDownScope = False)
-				while not self.expect(']'):
+				for _ in self.doWhile(lambda: not self.expect(']')):
 					val = self.expression(); next(val)
 					self.expect(','); self.endline(emitDownScope = False)
 					yield val
@@ -626,9 +622,8 @@ class Parser:
 			yield 'Dictionary'
 			def iter():
 				self.endline(emitDownScope = False)
-				while not self.expect('}'):
-					key = self.expression()
-					val = self.expression()
+				for _ in self.doWhile(lambda: not self.expect('}')):
+					key = self.expression(); val = self.expression()
 					next(key); self.expect(':'); next(val)
 					yield (key, val)
 					self.expect(','); self.endline(emitDownScope = False)
@@ -917,12 +912,11 @@ class Parser:
 		jumpedLines = 0
 		
 		def updateScope():
-			if lvl!=-1:
-				for i in range(self.level - lvl):
-					if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
-					self.level -=1
-					if emitDownScope: self.out.DownScope();
-					#self.out += f"      <downscope {self.current}>"
+			for i in range(self.level - lvl):
+				if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
+				self.level -=1
+				if emitDownScope: self.out.DownScope();
+				#self.out += f"      <downscope {self.current}>"
 		
 		while self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
 
@@ -947,7 +941,7 @@ class Parser:
 			# found code, indentation now matters
 			# NOTE: for prettier output, we emit downscope directly
 			else:
-				updateScope()
+				if lvl != -1: updateScope()
 				emitComments()
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0

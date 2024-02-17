@@ -225,12 +225,12 @@ public partial class test : Godot.Node
 	
 	// this becomes rapidly unreadable once translated though
 	protected const Dictionary _default_data = new Dictionary{
-	{"t",100},
-	{"rafg","asfgh"},
-	{"u",false},// Example Comment
-	{"r",new Array{"a",new Dictionary{{"b",false},},}},
-	{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
-	};
+		{"t",100},
+		{"rafg","asfgh"},
+		{"u",false},// Example Comment
+		{"r",new Array{"a",new Dictionary{{"b",false},},}},
+		{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
+		};
 	
 	// automatic _ready generation
 	/* @onready */ public int k;

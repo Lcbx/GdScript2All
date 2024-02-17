@@ -167,16 +167,16 @@ class Transpiler:
 		self += '('; get(expression); self += ')'
 	
 	def create_array(self, values):
-		self += 'new Array{'
+		self += 'new Array{'; self.level += 1
 		for value in values:
 			get(value); self += ','
-		self += '}'
+		self += '}'; self.level -= 1
 		
 	def create_dict(self, kv):
-		self += 'new Dictionary{'
+		self += 'new Dictionary{'; self.level += 1
 		for key, value in kv:
 			self += '{'; get(key); self += ','; get(value); self+= '},'
-		self += '}'
+		self += '}'; self.level -= 1
 	
 	def literal(self, value):
 		# strings
