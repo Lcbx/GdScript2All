@@ -18,11 +18,53 @@ DOC_FOLDER = 'classData'
 godot_types = {}
 
 if __name__ != "__main__":
-	# simply load class datas
+	# load class datas
 	with open(SAVEFILE, 'rb') as f:
 		godot_types = load(f)
 	
-	# otherwise generate the pickle file
+	##################
+	# decompression/flattening :
+	# add base class members to child class
+	
+	# create a sort key : parents at the top, children afterward
+	type_items = list(godot_types.items())
+	sortKey = {}
+	for i in range(10):
+		for name, data in type_items:
+			#print(name, data.base)
+			if not name in sortKey: sortKey[name] = 0
+			if data.base:
+				points = sortKey[name] + 1
+				sortKey[data.base] = sortKey.get(data.base, 0) + points
+	
+	type_items.sort(key=lambda kv: sortKey[kv[0]])
+	type_items.reverse()
+	
+	#print(sortKey)
+	#print( *(f'{k} {v.base} {sortKey[k]}\n' for k,v in type_items ) )
+	
+	# assert parents are really before their children
+	for childIndex, (type, data) in enumerate(type_items):
+		if data.base and data.base in godot_types:
+			parentIndex = next( j for j, kv in enumerate(type_items) if kv[0] == data.base )
+			#print(data.base, parentIndex, childIndex, type)
+			assert parentIndex < childIndex , 'parent after the child while processing type infos'
+	
+	# add the data from parent to child
+	from copy import copy
+	for type, data in type_items:
+		if data.base:
+			#print(type, data.base)
+			parent = godot_types[data.base]
+			for method in parent.methods: data.methods[method] = parent.methods[method]
+			for member in parent.members: data.members[member] = parent.members[member]
+			for const in parent.constants: data.constants[const] = parent.constants[const]
+	
+	#print(godot_types['RefCounted'].members)
+	#print(godot_types['Node3D'].members)
+	#print(godot_types['CharacterBody3D'].members)
+	
+# otherwise generate the pickle file
 else:
 	from untangle import parse
 	
@@ -45,6 +87,8 @@ else:
 		
 		data = ClassData()
 		godot_types[klass_name] = data
+		
+		data.base = klass['inherits']
 		
 		if 'methods' in klass:
 			for meth in klass.methods.method:
@@ -75,9 +119,8 @@ else:
 				signalName = signal['name']
 				data.members[signalName] = f'signal/{signalName}'
 	
-	#adding builtin that aren't in doc
+	# adding builtin that aren't in doc
 	godot_types['@GlobalScope'].methods['range'] = 'int[]'
-	
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)

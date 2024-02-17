@@ -33,7 +33,6 @@ class Parser:
 		
 		# script class data
 		self.is_tool = None
-		self.base_class = None
 		self.class_name = None
 		self.classData = None
 		
@@ -75,16 +74,17 @@ class Parser:
 		
 		# script start specific statements
 		self.is_tool = self.expect('@', 'tool'); self.endline()
-		self.base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
+		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
 		self.class_name = self.consume() if self.expect('class_name') else self.script_name
 		
 		# initialize script class data
-		self.classData = copy(ref.godot_types[self.base_class]) if self.base_class in ref.godot_types \
-			else ClassData.ClassData()
+		self.classData = copy(ref.godot_types.get(base_class, None) or ref.godot_types.get('Object', None))
+		self.classData.base = base_class
+		
 		self.vprint(self.classData.__dict__)
 		
 		# no endline after class name since we declare the class before that
-		self.out.define_class(self.class_name, self.base_class, self.is_tool); self.endline()
+		self.out.define_class(self.class_name, base_class, self.is_tool); self.endline()
 		
 		# script-level loop
 		for i in range(2):
