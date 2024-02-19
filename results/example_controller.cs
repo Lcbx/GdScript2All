@@ -40,7 +40,7 @@ public partial class Character : Godot.CharacterBody3D
 		// in air
 		if(!is_on_floor())
 		{
-			velocity.y = clampf(velocity.y - gravity * delta, - MAX_Y_SPEED,MAX_Y_SPEED);
+			velocity.y = Mathf.Clamp(velocity.y - gravity * delta, - MAX_Y_SPEED,MAX_Y_SPEED);
 			movementState = MovementEnum.fall;
 		}
 		else
@@ -63,7 +63,7 @@ public partial class Character : Godot.CharacterBody3D
 		// TODO?: maybe add a special function to jump called on just_pressed
 		if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
 		{
-			velocity.y += maxf(MIN_JUMP_VELOCITY,ground_speed);
+			velocity.y += Mathf.Max(MIN_JUMP_VELOCITY,ground_speed);
 			coyoteTime.stop();
 			jump.emit(ground_speed);
 		}
@@ -75,11 +75,11 @@ public partial class Character : Godot.CharacterBody3D
 		var nimbleness = movements[movementState];
 		var acceleration = movements[movementState] + ground_speed * nimbleness;
 		
-		var redirect = clampf(1.0 - nimbleness * delta,0.0,1.0);
+		var redirect = Mathf.Clamp(1.0 - nimbleness * delta,0.0,1.0);
 		var vel_delta = acceleration * delta;
 		
-		velocity.x = move_toward(velocity.x * redirect,direction.x * top_speed,vel_delta);
-		velocity.z = move_toward(velocity.z * redirect,direction.z * top_speed,vel_delta);
+		velocity.x = Mathf.MoveToward(velocity.x * redirect,direction.x * top_speed,vel_delta);
+		velocity.z = Mathf.MoveToward(velocity.z * redirect,direction.z * top_speed,vel_delta);
 		
 		var new_ground_speed = calculate_ground_speed();
 		
@@ -158,7 +158,7 @@ public partial class Character : Godot.CharacterBody3D
 	
 	public double calculate_ground_speed()
 	{
-		return sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+		return Mathf.Sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
 	}
 	
 	/* view */
@@ -171,7 +171,7 @@ public partial class Character : Godot.CharacterBody3D
 		set
 		{
 			_view_dir = value;
-			_view_dir.x = clampf(_view_dir.x, - Globals.view_pitch_limit,Globals.view_pitch_limit);
+			_view_dir.x = Mathf.Clamp(_view_dir.x, - Globals.view_pitch_limit,Globals.view_pitch_limit);
 			EmitSignal("viewDirChanged", _view_dir);
 		}
 	}

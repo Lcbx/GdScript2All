@@ -51,7 +51,7 @@ public partial class test : Godot.Node
 		var val = 2;
 		foreach(string k in string_array)
 		{
-			print(k);
+			GD.Print(k);
 		}
 		return val * param;
 	}
@@ -65,7 +65,7 @@ public partial class test : Godot.Node
 	public double x = new Vector3().x;
 	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
-	public double global_function = angle_difference(0.1,0.2);
+	public double global_function = Mathf.AngleDifference(0.1,0.2);
 	
 	// Gdscript special syntax
 	public Godot.Node get_node = get_node("node");
@@ -109,7 +109,11 @@ public partial class test : Godot.Node
 		
 		get_tree().EmitSignal("process_frame", 0.7);
 		
-		jump += async_function;
+		var myLambda = () =>
+		{	GD.Print("look ma i'm jumping");
+		};
+		
+		;jump += myLambda;
 		
 		EmitSignal("movement", Godot.Vector3.UP, 0.1);
 	}

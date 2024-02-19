@@ -75,7 +75,9 @@ func async_function():
 	
 	get_tree().process_frame.emit(.7)
 	
-	jump.connect(async_function)
+	var myLambda = func(): print("look ma i'm jumping")
+	
+	jump.connect( myLambda )
 	
 	movement.emit(Vector3.UP, .1)
 

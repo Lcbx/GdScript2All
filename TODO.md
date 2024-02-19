@@ -2,14 +2,16 @@
 - [x] flesh out README.md
 - [x] support getset properties
 - [x] support signals
+- [x] support lambda functions
+- [ ] support lambda return type inference
+- [ ] support enum as a type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 - [ ] detect base class method override (_ready, _process, ...)
 - [x] support await ex: "await" => "await ToSignal(....)
 - [x] use argparse instead of hand-parsing sys.argv
-- [ ] move C# translations out of godot_type.py
+- [x] move C# translations out of godot_type.py
 - [x] add onready assignments to ready method
 - [ ] add c++ transpiling backend
 - [ ] c++ : generate bindings for methods and exported properties
-- [ ] support enum as a variable type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 - [ ] support user-defined classes in type inference
 - [ ] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] support special literals :

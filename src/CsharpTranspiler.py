@@ -16,7 +16,7 @@ class Transpiler:
 		self.layers = [stringBuilder()]
 		
 		# default imports
-		self += ref.header
+		self += header
 		
 		# onready assignments that need to be moved to the ready function
 		self.onready_assigns = []
@@ -47,7 +47,7 @@ class Transpiler:
 		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = ref.export_replacements[name] if name in ref.export_replacements else toPascal(name) + (params and '(')
+		name = export_replacements[name] if name in export_replacements else toPascal(name) + (params and '(')
 		self += f'[{name}"{params}")]' if params else f'[{name}]'
 		self += '\n'
 		
@@ -178,6 +178,24 @@ class Transpiler:
 			self += '{'; get(key); self += ','; get(value); self+= '},'
 		self += '}'; self.level -= 1
 	
+	def create_dict(self, kv):
+		self += 'new Dictionary{'; self.level += 1
+		for key, value in kv:
+			self += '{'; get(key); self += ','; get(value); self+= '},'
+		self += '}'; self.level -= 1
+	
+	def create_lambda(self, params, code):
+		self += '('
+		for i, (pName, pType) in enumerate(params.items()):
+			if i != 0: self += ', '
+			self += f'{translate_type(pType)} {pName}'
+		self += ') =>'
+		# cleanup
+		code = code.replace('{', '{\t', 1)
+		code = code.replace(';;', ';')
+		code = rReplace(code, '}', '};')
+		self.write(code)
+	
 	def literal(self, value):
 		# strings
 		if isinstance(value, str):
@@ -201,8 +219,7 @@ class Transpiler:
 		self += 'this.'
 	
 	def variable(self, name):
-		name = 'this' if name == 'self' else name
-		self += name
+		self += variable_replacements.get(name, None) or name # TODO: ToPascal(name)
 	
 	def singleton(self, name):
 		self += translate_type(name)
@@ -210,7 +227,8 @@ class Transpiler:
 	def reference(self, name):
 		self += '.' + name
 	
-	def call(self, name, params):
+	def call(self, name, params, global_function = False):
+		if global_function: name = function_replacements.get(name, name) # TODO: ToPascal(name)
 		self += name + '('
 		for i, p in enumerate(params):
 			if i>0: self += ','
@@ -402,3 +420,157 @@ def translate_type(type):
 
 # trick for generator values
 get = next
+
+# Default imports and aliases that almost every class needs.
+header = """using System;
+using Godot;
+using Dictionary = Godot.Collections.Dictionary;
+using Array = Godot.Collections.Array;
+""";
+
+export_replacements = {
+	"export_range":"Export(PropertyHint.Range,",
+	"export_exp_easing ": "Export(PropertyHint.ExpEasing)",
+	"export_color_no_alpha":"Export(PropertyHint.ColorNoAlpha)",
+	"export_flags":"Export(PropertyHint.Flags,",
+	"export_enum":"Export(PropertyHint.Enum,",
+	# TODO: fill more if needed /possible
+}
+
+variable_replacements = {
+	"self":"this",
+	"PI":"Mathf.Pi",
+	"TAU":"Mathf.Tau",
+	"INF":"Mathf.Inf",
+	"NAN":"Mathf.NaN",
+	"TYPE_ARRAY":"typeof(Array)",
+	"TYPE_BOOL":"typeof(bool)",
+	"TYPE_COLOR":"typeof(Color)",
+	"TYPE_DICTIONARY":"typeof(Dictionary)",
+	"TYPE_INT":"typeof(int)",
+	"TYPE_NIL":"null",
+	"TYPE_OBJECT":"typeof(Godot.Object)",
+	"TYPE_REAL":"typeof(double)",
+	"TYPE_RECT2":"typeof(Rect2)",
+	"TYPE_RID":"typeof(RID)",
+	"TYPE_STRING":"typeof(string)",
+	"TYPE_VECTOR2":"typeof(Vector2)",
+}
+
+function_replacements = {
+	'preload': "/* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */",
+	'weakref': 'GodotObject.WeakRef(obj)',
+	'instance_from_id' : 'GodotObject.InstanceFromId',
+	'is_instance_id_valid' : 'GodotObject.IsInstanceIdValid',
+	'is_instance_valid' : 'GodotObject.IsInstanceValid',
+	'abs' : 'Mathf.Abs',
+	'absf' : 'Mathf.Abs',
+	'absi' : 'Mathf.Abs',
+	'acos' : 'Mathf.Acos',
+	'acosh' : 'Mathf.Acosh',
+	'angle_difference' : 'Mathf.AngleDifference',
+	'asin' : 'Mathf.Asin',
+	'asinh' : 'Mathf.Asinh',
+	'atan' : 'Mathf.Atan',
+	'atan2' : 'Mathf.Atan2',
+	'atanh' : 'Mathf.Atanh',
+	'bezier_derivative' : 'Mathf.BezierDerivative',
+	'bezier_interpolate' : 'Mathf.BezierInterpolate',
+	'bytes_to_var' : 'GD.BytesToVar',
+	'bytes_to_var_with_objects' : 'GD.BytesToVarWithObjects',
+	'ceil' : 'Mathf.Ceil',
+	'ceilf' : 'Mathf.Ceil',
+	'ceili' : 'Mathf.CeilToInt',
+	'clamp' : 'Mathf.Clamp',
+	'clampf' : 'Mathf.Clamp',
+	'clampi' : 'Mathf.Clamp',
+	'cos' : 'Mathf.Cos',
+	'cosh' : 'Mathf.Cosh',
+	'cubic_interpolate' : 'Mathf.CubicInterpolate',
+	'cubic_interpolate_angle' : 'Mathf.CubicInterpolateAngle',
+	'cubic_interpolate_angle_in_time' : 'Mathf.CubicInterpolateInTime',
+	'cubic_interpolate_in_time' : 'Mathf.CubicInterpolateAngleInTime',
+	'db_to_linear' : 'Mathf.DbToLinear',
+	'deg_to_rad' : 'Mathf.DegToRad',
+	'ease' : 'Mathf.Ease',
+	'error_string' : 'Error.ToString',
+	'exp' : 'Mathf.Exp',
+	'floor' : 'Mathf.Floor',
+	'floorf' : 'Mathf.Floor',
+	'floori' : 'Mathf.FloorToInt',
+	'fmod' : '/* no equivalent function, use operator % */',
+	'fposmod' : 'Mathf.PosMod',
+	'hash' : 'GD.Hash',
+	'instance_from_id' : 'GodotObject.InstanceFromId',
+	'inverse_lerp' : 'Mathf.InverseLerp',
+	'is_equal_approx' : 'Mathf.IsEqualApprox',
+	'is_finite' : 'Mathf.IsFinite',
+	'is_inf' : 'Mathf.IsInf',
+	'is_instance_id_valid' : 'GodotObject.IsInstanceIdValid',
+	'is_instance_valid' : 'GodotObject.IsInstanceValid',
+	'is_nan' : 'double.IsNaN',
+	'is_same' : 'ReferenceEquals',
+	'is_zero_approx' : 'Mathf.IsZeroApprox',
+	'lerp' : 'Mathf.Lerp',
+	'lerp_angle' : 'Mathf.LerpAngle',
+	'lerpf' : 'Mathf.Lerp',
+	'linear_to_db' : 'Mathf.LinearToDb',
+	'log' : 'Mathf.Log',
+	'max' : 'Mathf.Max',
+	'maxf' : 'Mathf.Max',
+	'maxi' : 'Mathf.Max',
+	'min' : 'Mathf.Min',
+	'minf' : 'Mathf.Min',
+	'mini' : 'Mathf.Min',
+	'move_toward' : 'Mathf.MoveToward',
+	'nearest_po2' : 'Mathf.NearestPo2',
+	'pingpong' : 'Mathf.PingPong',
+	'posmod' : 'Mathf.PosMod',
+	'pow' : 'Mathf.Pow',
+	'print' : 'GD.Print',
+	'print_rich' : 'GD.PrintRich',
+	'printerr' : 'GD.PrintErr',
+	'printraw' : 'GD.PrintRaw',
+	'prints' : 'GD.PrintS',
+	'printt' : 'GD.PrintT',
+	'push_error' : 'GD.PushError',
+	'push_warning' : 'GD.PushWarning',
+	'rad_to_deg' : 'Mathf.RadToDeg',
+	'rand_from_seed' : 'GD.RandFromSeed',
+	'randf' : 'GD.Randf',
+	'randf_range' : 'GD.RandRange',
+	'randfn' : 'GD.Randfn',
+	'randi' : 'GD.Randi',
+	'randi_range' : 'GD.RandRange',
+	'randomize' : 'GD.Randomize',
+	'remap' : 'Mathf.Remap',
+	'rotate_toward' : 'Mathf.RotateToward',
+	'round' : 'Mathf.Round',
+	'roundf' : 'Mathf.Round',
+	'roundi' : 'Mathf.RoundToInt',
+	'seed' : 'GD.Seed',
+	'sign' : 'Mathf.Sign',
+	'signf' : 'Mathf.Sign',
+	'signi' : 'Mathf.Sign',
+	'sin' : 'Mathf.Sin',
+	'sinh' : 'Mathf.Sinh',
+	'smoothstep' : 'Mathf.SmoothStep',
+	'snapped' : 'Mathf.Snapped',
+	'snappedf' : 'Mathf.Snapped',
+	'snappedi' : 'Mathf.Snapped',
+	'sqrt' : 'Mathf.Sqrt',
+	'step_decimals' : 'Mathf.StepDecimals',
+	'str_to_var' : 'GD.StrToVar',
+	'tan' : 'Mathf.Tan',
+	'tanh' : 'Mathf.Tanh',
+	'type_convert' : 'GD.Convert',
+	'type_string' : 'Variant.Type.ToString',
+	'typeof' : 'Variant.VariantType',
+	'var_to_bytes' : 'GD.VarToBytes',
+	'var_to_bytes_with_objects' : 'GD.VarToBytesWithObjects',
+	'var_to_str' : 'GD.VarToStr',
+	'weakref' : 'GodotObject.WeakRef',
+	'wrap' : 'Mathf.Wrap',
+	'wrapf' : 'Mathf.Wrap',
+	'wrapi' : 'Mathf.Wrap'
+}

@@ -20,15 +20,15 @@ public partial class statements : Godot.Node
 		}
 		else if(false)
 		{
-			print("Hello" + " " + "World");
+			GD.Print("Hello" + " " + "World");
 		}
 		else if(true)
 		{
-			print("Goodbye ","World");
+			GD.Print("Goodbye ","World");
 		}
 		else
 		{
-			print(i);
+			GD.Print(i);
 		}
 		
 		while(false)
@@ -47,17 +47,17 @@ public partial class statements : Godot.Node
 		{
 			case "1":
 			{
-				print(i);
+				GD.Print(i);
 				break;
 			}
 			case 1:
 			{
-				print(i);
+				GD.Print(i);
 				break;
 			}
 			case 0: if(true)
 			{
-				print("zero!");
+				GD.Print("zero!");
 				break;
 			}
 			//var x when false:
@@ -68,7 +68,7 @@ public partial class statements : Godot.Node
 			//	print("dictionary pattern")
 			default:
 			{
-				print("unknown");
+				GD.Print("unknown");
 				break;
 			}
 		}

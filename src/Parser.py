@@ -233,24 +233,7 @@ class Parser:
 		name = self.consume()
 		self.expect('(')
 		
-		params = {}
-		params_init = {}
-		
-		# param -> <name> [: [<type>]?]? [= <Expression>]?
-		for _ in self.doWhile(lambda: not self.expect(')')):
-			pName = self.consume()
-			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
-			
-			# initialisation
-			if self.expect('='):
-				pInit = self.expression()
-				initType = next(pInit)
-				pType = pType or initType
-				params_init[pName] = pInit
-			
-			pType = pType or 'Variant'
-			self.expect(',')
-			params[pName] = pType
+		params, params_init = self.parseParamDefinition()
 		
 		# add params to locals
 		for k,v in params.items(): self.locals[k] = v
@@ -290,14 +273,9 @@ class Parser:
 		self.classData.members[name] = f'signal/{name}'
 		params = {}
 		
+		# TODO: check if signal params can have initializers
 		if self.expect('('):
-			# param -> <name> [: [<type>]?]?
-			# TODO: check if signal params can have initializers
-			for _ in self.doWhile(lambda: not self.expect(')')):
-				pName = self.consume()
-				pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else 'Variant'
-				self.expect(',')
-				params[pName] = pType
+			params, _ = self.parseParamDefinition()
 		
 		self.out.define_signal(name, params)
 	
@@ -648,6 +626,21 @@ class Parser:
 			yield 'Node'
 			self.out.call("get_node", (passthrough(self.out.literal, f'%{name}') ,) )
 		
+		# lambda: func <name>?(params): <Block>
+		elif self.expect('func'):
+			name = self.consume() if self.match_type('TEXT') else None
+			self.expect('(')
+			params, _ = self.parseParamDefinition()
+			self.expect(':')
+			self.expect_type('LINE_END')
+			self.out.addLayer()
+			_ret_type_ = self.Block()
+			code = self.out.popLayer()
+			# NOTE: we could use block's type inference
+			# but then we'd need special code for when lambda is called
+			yield 'Callable'
+			self.out.create_lambda(params, code)
+		
 		# textCode : variable|reference|call
 		elif self.match_type('TEXT'):
 			content = self.textCode()
@@ -718,10 +711,12 @@ class Parser:
 		# a global function
 		# another class's method
 		constructor = name in ref.godot_types
+		godot_method = calling_type and calling_type in ref.godot_types
+		global_function = not calling_type and name in ref.godot_types['@GlobalScope'].methods
 		type = (name if constructor else None ) \
 			or self.classData.methods.get(name, None) \
-			or (ref.godot_types[calling_type].methods.get(name, None) if calling_type in ref.godot_types \
-			else ref.godot_types['@GlobalScope'].methods.get(name, None) if not calling_type \
+			or (ref.godot_types[calling_type].methods.get(name, None) if godot_method \
+			else ref.godot_types['@GlobalScope'].methods.get(name, None) if global_function \
 			else None)
 		
 		params = ( *self.parseCallParams() ,)
@@ -729,7 +724,7 @@ class Parser:
 		# emission of code 
 		emit = lambda : \
 			self.out.constructor(name, params) if constructor \
-			else self.out.call(name, params)
+			else self.out.call(name, params, global_function)
 		
 		# reference
 		if self.expect('.'):
@@ -840,6 +835,31 @@ class Parser:
 			exp = self.expression(); next(exp); yield exp
 			self.expect(',')
 	
+	# parse params definition (call, signal, lambda)
+	def parseParamDefinition(self):
+		
+		params = {}
+		params_init = {}
+		
+		# param -> <name> [: [<type>]?]? [= <Expression>]?
+		for _ in self.doWhile(lambda: not self.expect(')')):
+			pName = self.consume()
+			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
+			
+			# initialisation
+			if self.expect('='):
+				pInit = self.expression()
+				initType = next(pInit)
+				pType = pType or initType
+				params_init[pName] = pInit
+			
+			pType = pType or 'Variant'
+			self.expect(',')
+			params[pName] = pType
+		
+		# NOTE: params_init only used in method definition
+		return params, params_init
+	
 	
 	""" parsing utils """
 	
@@ -849,6 +869,7 @@ class Parser:
 		except StopIteration as err:
 			# reached end of file
 			# using a trick to finish parsing
+			self.current = copy(self.current)
 			self.current.type = 'EOF'
 			self.current.value = 'EOF'
 	
@@ -899,24 +920,12 @@ class Parser:
 			result.append(self.consume())
 		return separator.join(result)
 	
-	def replaceInBlock(self, what, value):
-		code = self.out.popLayer()
-		self.out.addLayer()
-		self.out.write(code.replace(what, value))
-	
 	
 	# called when an endline is excpected
 	# addBreak is for switch statements
 	def endline(self, emitDownScope = True, addBreak = False):
-		lvl = -1
 		jumpedLines = 0
-		
-		def updateScope():
-			for i in range(self.level - lvl):
-				if addBreak and i == 0: self.out += '\n'; self.out.breakStmt()
-				self.level -=1
-				if emitDownScope: self.out.DownScope();
-				#self.out += f"      <downscope {self.current}>"
+		lastendline = None
 		
 		while self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
 
@@ -925,7 +934,8 @@ class Parser:
 
 			# setting scope level only when we encounter non-whitespace
 			if self.match_type('LINE_END'):
-				lvl = int(self.consume())
+				lastendline = self.current
+				self.advance()
 				jumpedLines += 1
 
 			# parse comments
@@ -941,7 +951,13 @@ class Parser:
 			# found code, indentation now matters
 			# NOTE: for prettier output, we emit downscope directly
 			else:
-				if lvl != -1: updateScope()
+				if lastendline:
+					lvl = int(lastendline.value)
+					while lvl < self.level:
+						if addBreak: self.out += '\n'; self.out.breakStmt(); addBreak =  False
+						self.level -=1
+						if emitDownScope: self.out.DownScope();
+						#self.out += f"      <downscope {self.current}>"
 				emitComments()
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0
