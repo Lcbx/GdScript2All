@@ -64,6 +64,7 @@ var global_function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
+var get_node2 = $"../node"
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
@@ -180,9 +181,10 @@ public partial class test : Godot.Node
 	
 	// Gdscript special syntax
 	public Godot.Node get_node = get_node("node");
+	public Godot.Node get_node2 = get_node("../node");
 	public Godot.Node get_unique_node = get_node("%unique_node");
-	public Godot.Variant preload_resource = preload("res://path");
-	public Godot.Variant load_resource = load("res://path");
+	public Godot.Resource preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
+	public Godot.Resource load_resource = load("res://path");
 	
 	// signals
 	[Signal]

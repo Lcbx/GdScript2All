@@ -121,6 +121,8 @@ else:
 	
 	# adding builtin that aren't in doc
 	godot_types['@GlobalScope'].methods['range'] = 'int[]'
+	godot_types['@GlobalScope'].methods['load'] = 'Resource'
+	godot_types['@GlobalScope'].methods['preload'] = 'Resource'
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)

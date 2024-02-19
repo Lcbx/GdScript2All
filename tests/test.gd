@@ -52,6 +52,7 @@ var global_function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
+var get_node2 = $"../node"
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
