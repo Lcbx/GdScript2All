@@ -5,13 +5,12 @@ import sys
 sys.path.insert(0,'src')
 
 import Parser as Parser
-import CsharpTranspiler as CsharpTranspiler
 
 import argparse
 commandLineArgs = argparse.ArgumentParser(description='GDscript transpiler')
 commandLineArgs.add_argument('input', nargs = '?',  help='path to GDscript code (folder or file)', default = './tests')
 commandLineArgs.add_argument('-o', '--output', nargs = '?', default = './results', help='where to output transpiled code ')
-commandLineArgs.add_argument('-t', '--transpiler', nargs = '?', default = 'CsharpTranspiler', help='which transpiler script to use')
+commandLineArgs.add_argument('-t', '--transpiler', nargs = '?', default = 'CSharp', help='which transpiler script to use')
 commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='print additional execution logs' )
 commandLineArgs.add_argument('--verboseP', action='store_true', default = False, help='print additional parser execution logs' )
 commandLineArgs.add_argument('--verboseT', action='store_true', default = False, help='print additional transpiler execution logs' )

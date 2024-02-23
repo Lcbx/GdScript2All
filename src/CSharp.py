@@ -1,5 +1,5 @@
-from io import StringIO as stringBuilder
-import src.godot_types as ref
+from StringBuilder import StringBuilder
+import godot_types as ref
 
 
 class Transpiler:
@@ -13,7 +13,7 @@ class Transpiler:
 		self.level = 0
 		
 		# allows to parse code and rearrange it
-		self.layers = [stringBuilder()]
+		self.layers = [StringBuilder()]
 		
 		# default imports
 		self += header
@@ -385,7 +385,7 @@ class Transpiler:
 		return self.layers[-1]
 	
 	def addLayer(self):
-		self.layers.append(stringBuilder())
+		self.layers.append(StringBuilder())
 		
 	def popLayer(self):
 		# add top scope txt to lower then remove top
