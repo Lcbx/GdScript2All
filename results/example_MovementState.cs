@@ -11,12 +11,12 @@ public partial class MovementState : Godot.Resource
 	
 	//# acceleration apllied towward chosen direction
 	[Export]
-	public double acceleration;
+	public double Acceleration;
 	//# redirects a % current velocity toward chosen direction
 	[Export]
-	public double nimbleness;
+	public double Nimbleness;
 	//# maximum achievable velocity 
 	[Export]
-	public double top_speed;
+	public double TopSpeed;
 	
 }

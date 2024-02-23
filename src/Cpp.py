@@ -44,7 +44,7 @@ class Transpiler:
 		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = export_replacements[name] if name in export_replacements else toPascal(name) + (params and '(')
+		name = export_replacements[name] if name in export_replacements else name + (params and '(')
 		self += f'[{name}"{params}")]' if params else f'[{name}]'
 		self += '\n'
 		
@@ -410,13 +410,6 @@ def rReplace(string, toReplace, newValue, n = 1):
 
 def asPrivate(name):
 	return '_' + name
-
-def toPascal(text):
-	text0is_ = text[0] == '_'
-	if text0is_: text[0] = '*' # trick to preserve first underscore
-	val = text.replace("_", " ").title().replace(" ", "")
-	if text0is_: val[0] = '_'
-	return val
 
 def translate_type(type):
 	if type == None: return 'void'

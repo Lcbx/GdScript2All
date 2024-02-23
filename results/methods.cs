@@ -6,40 +6,40 @@ using Array = Godot.Collections.Array;
 
 public partial class methods : Godot.Node
 {
-	public void empty()
+	public void Empty()
 	{
 	}
 	
-	public void reassign()
+	public void Reassign()
 	{
 		reassign += 2;
 	}
 	
-	public void assign()
+	public void Assign()
 	{
 		assign = 2;
 	}
 	
 	//test1
-	public double init(double v = 1.0)
+	public double Init(double v = 1.0)
 	{//test2
 		//test3
-		returning(7.0);
+		Returning(7.0);
 		//test4
 	}
 	
-	public double returning(double v)
+	public double Returning(double v)
 	{
-		empty();
+		Empty();
 		return 1.0;
 	}
 	
-	public void declare()
+	public void Declare()
 	{
 		var declare = 2;
 	}
 	
-	public double return_inference(double param = 5.0)
+	public double ReturnInference(double param = 5.0)
 	{
 		var val = 2;
 		return val * param;;

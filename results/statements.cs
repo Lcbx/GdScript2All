@@ -7,7 +7,7 @@ using Array = Godot.Collections.Array;
 // method to test statements
 public partial class statements : Godot.Node
 {
-	public Array method()
+	public Array Method()
 	{
 		
 		
@@ -16,7 +16,7 @@ public partial class statements : Godot.Node
 		
 		if(ABC)
 		{
-			assert(false);
+			Assert(false);
 		}
 		else if(false)
 		{
@@ -24,35 +24,35 @@ public partial class statements : Godot.Node
 		}
 		else if(true)
 		{
-			GD.Print("Goodbye ","World");
+			GD.Print("Goodbye ", "World");
 		}
 		else
 		{
-			GD.Print(i);
+			GD.Print(I);
 		}
 		
 		while(false)
 		{
-			i += 1;
+			I += 1;
 			break;
 			continue;
 		}
 		
-		foreach(int j in range(i))
+		foreach(int j in Range(I))
 		{
-			i += j;
+			I += j;
 		}
 		
-		switch(i)
+		switch(I)
 		{
 			case "1":
 			{
-				GD.Print(i);
+				GD.Print(I);
 				break;
 			}
 			case 1:
 			{
-				GD.Print(i);
+				GD.Print(I);
 				break;
 			}
 			case 0: if(true)
@@ -73,13 +73,13 @@ public partial class statements : Godot.Node
 			}
 		}
 		
-		i += 3 / 3 + 2 * 0.5;
+		I += 3 / 3 + 2 * 0.5;
 		
 		await ToSignal(this, "jump");
-		await ToSignal(get_tree(), "process_frame");
+		await ToSignal(GetTree(), "ProcessFrame");
 		
-		get_tree().EmitSignal("process_frame", 0.7);
-		get_tree().process_frame += something;
+		GetTree().EmitSignal("process_frame", 0.7);
+		GetTree().process_frame += something;
 		
 		return new Array{};;
 	}

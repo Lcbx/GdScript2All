@@ -25,29 +25,29 @@ public partial class script_level : Godot.Node
 	
 	
 	[Export]
-	public Godot.Variant export;
+	public Godot.Variant Export;
 	
 	
 	[Export("param1,param2")]
-	public Godot.Variant export_param;
+	public Godot.Variant ExportParam;
 	
 	
 	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
-	public Godot.Variant export_flags;
+	public Godot.Variant ExportFlags;
 	
-	public double getset_var
+	public double GetsetVar
 	{
-		set => _set(value);
-		get => _get();
+		set => _Set(value);
+		get => _Get();
 	}
-	private double _getset_var;
+	private double _GetsetVar;
 
 	
 	public double DEF =  - 0.1 // Step
 	{
 		set
 		{
-			set_sprite_offset(value);
+			SetSpriteOffset(value);
 		}
 		get
 		{
@@ -58,8 +58,8 @@ public partial class script_level : Godot.Node
 
 	
 	[Signal]
-	public delegate void aHandler();
+	public delegate void AHandler();
 	[Signal]
-	public delegate void bHandler(int a,Type b);
+	public delegate void BHandler(int a,Type b);
 	
 }

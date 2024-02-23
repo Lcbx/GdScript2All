@@ -25,71 +25,71 @@ public partial class Character : Godot.CharacterBody3D
 	public const double MIN_JUMP_VELOCITY = 3.5;
 	public const double MAX_Y_SPEED = 10.0;
 	
-	public const Godot.Vector3 XZ = new Vector3(1.0,0.0,1.0);
-	public const Godot.Vector3 YZ = new Vector3(0.0,1.0,1.0);
-	public const Godot.Vector3 XY = new Vector3(1.0,1.0,0.0);
+	public const Godot.Vector3 XZ = new Vector3(1.0, 0.0, 1.0);
+	public const Godot.Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
+	public const Godot.Vector3 XY = new Vector3(1.0, 1.0, 0.0);
 	
-	public static Godot.Variant gravity = Godot.ProjectSettings.get_setting("physics/3d/default_gravity");
+	public static Godot.Variant Gravity = Godot.ProjectSettings.GetSetting("physics/3d/default_gravity");
 	
-	public Godot.Variant coyoteTime = Utils.createTimer(this,0.15);
-	public Godot.Variant jumpCoolDown = Utils.createTimer(this,0.15);
+	public Godot.Variant CoyoteTime = Utils.CreateTimer(this, 0.15);
+	public Godot.Variant JumpCoolDown = Utils.CreateTimer(this, 0.15);
 	
 	
-	protected void _process(double delta)
+	protected void _Process(double delta)
 	{
 		// in air
-		if(!is_on_floor())
+		if(!IsOnFloor())
 		{
-			velocity.y = Mathf.Clamp(velocity.y - gravity * delta, - MAX_Y_SPEED,MAX_Y_SPEED);
-			movementState = MovementEnum.fall;
+			Velocity.Y = Mathf.Clamp(Velocity.Y - Gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
+			movementState = MovementEnum.Fall;
 		}
 		else
 		{
 			// landing
-			if(movementState == MovementEnum.fall)
+			if(movementState == MovementEnum.Fall)
 			{
-				jumpCoolDown.start();
+				JumpCoolDown.Start();
 				// TODO: apply fall damage + play landing animation
 			}
 			
 			// on ground
 			movementState = wantedMovement;
-			coyoteTime.start();
+			CoyoteTime.Start();
 		}
 		
-		var ground_speed = calculate_ground_speed();
+		var ground_speed = CalculateGroundSpeed();
 		
 		// jump
 		// TODO?: maybe add a special function to jump called on just_pressed
-		if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
+		if(global_mov_dir.Y > 0.0 && !CoyoteTime.IsStopped() && JumpCoolDown.IsStopped())
 		{
-			velocity.y += Mathf.Max(MIN_JUMP_VELOCITY,ground_speed);
-			coyoteTime.stop();
-			jump.emit(ground_speed);
+			Velocity.Y += Mathf.Max(MIN_JUMP_VELOCITY, ground_speed);
+			CoyoteTime.Stop();
+			jump.Emit(ground_speed);
 		}
 		
 		// when running, always go forward 
-		var direction = ( movementState != MovementEnum.run ? global_mov_dir : basis.z );
+		var direction = ( movementState != MovementEnum.Run ? global_mov_dir : Basis.Z );
 		
 		var top_speed = movements[movementState];
 		var nimbleness = movements[movementState];
 		var acceleration = movements[movementState] + ground_speed * nimbleness;
 		
-		var redirect = Mathf.Clamp(1.0 - nimbleness * delta,0.0,1.0);
+		var redirect = Mathf.Clamp(1.0 - nimbleness * delta, 0.0, 1.0);
 		var vel_delta = acceleration * delta;
 		
-		velocity.x = Mathf.MoveToward(velocity.x * redirect,direction.x * top_speed,vel_delta);
-		velocity.z = Mathf.MoveToward(velocity.z * redirect,direction.z * top_speed,vel_delta);
+		Velocity.X = Mathf.MoveToward(Velocity.X * redirect, direction.X * top_speed, vel_delta);
+		Velocity.Z = Mathf.MoveToward(Velocity.Z * redirect, direction.Z * top_speed, vel_delta);
 		
-		var new_ground_speed = calculate_ground_speed();
+		var new_ground_speed = CalculateGroundSpeed();
 		
-		movement.emit(local_dir,new_ground_speed);
+		movement.Emit(local_dir, new_ground_speed);
 		
-		move_and_slide();
+		MoveAndSlide();
 		
-		foreach(int i in range(get_slide_collision_count()))
+		foreach(int i in Range(GetSlideCollisionCount()))
 		{
-			collision.emit(get_slide_collision(i));
+			collision.Emit(GetSlideCollision(i));
 		}
 	}
 	
@@ -97,85 +97,85 @@ public partial class Character : Godot.CharacterBody3D
 	/* movement state / animations */
 	
 	[Signal]
-	public delegate void changedStateHandler(MovementEnum state);
+	public delegate void ChangedStateHandler(MovementEnum state);
 	[Signal]
-	public delegate void collisionHandler(Godot.KinematicCollision3D collision);
+	public delegate void CollisionHandler(Godot.KinematicCollision3D collision);
 	[Signal]
-	public delegate void movementHandler(Godot.Vector3 dir,double speed);
+	public delegate void MovementHandler(Godot.Vector3 dir,double speed);
 	[Signal]
-	public delegate void jumpHandler(double speed);
+	public delegate void JumpHandler(double speed);
 	
 	public enum MovementEnum {crouch,walk,run,fall}
 	[Export]
-	public Array<MovementState> movements;
+	public Array<MovementState> Movements;
 	
-	public Godot.Variant movementState = MovementEnum.walk
+	public Godot.Variant MovementState = MovementEnum.Walk
 	{
 		set
 		{
-			if(_movementState != value)
+			if(_MovementState != value)
 			{
-				_movementState = value;
-				EmitSignal("changedState", _movementState);
+				_MovementState = value;
+				EmitSignal("changedState", _MovementState);
 			}
 		}
 	}
-	private Godot.Variant _movementState;
+	private Godot.Variant _MovementState;
 
 	
-	public Godot.Variant wantedMovement = MovementEnum.walk;
+	public Godot.Variant WantedMovement = MovementEnum.Walk;
 	
 	
 	/* steering variables */
 	
-	protected Godot.Vector3 _global_mov_dir = new Vector3();
-	public Godot.Vector3 global_mov_dir = new Vector3()
+	protected Godot.Vector3 _GlobalMovDir = new Vector3();
+	public Godot.Vector3 GlobalMovDir = new Vector3()
 	{
 		get
-		{return _global_mov_dir;
+		{return _GlobalMovDir;
 		}
 		set
 		{
-			_global_mov_dir = value;
+			_GlobalMovDir = value;
 			// TODO: verify up (y) is not inversed
-			_local_dir =  - value * basis.inverse();
+			_local_dir =  - value * Basis.Inverse();
 		}
 	}
 	
 	// NOTE: local_dir is normalized on the xz plane by Overlay
-	protected Godot.Vector3 _local_dir;
-	public Godot.Vector3 local_dir
+	protected Godot.Vector3 _LocalDir;
+	public Godot.Vector3 LocalDir
 	{
 		get
-		{return _local_dir;
+		{return _LocalDir;
 		}
 		set
 		{
-			_local_dir = value;
-			_global_mov_dir =  - value.x * basis.x + value.y * Godot.Vector3.UP + value.z * basis.z;
+			_LocalDir = value;
+			_GlobalMovDir =  - value.X * Basis.X + value.Y * Godot.Vector3.UP + value.Z * Basis.Z;
 		}
 	}
 	
-	public double calculate_ground_speed()
+	public double CalculateGroundSpeed()
 	{
-		return Mathf.Sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+		return Mathf.Sqrt(Velocity.X * Velocity.X + Velocity.Z * Velocity.Z);
 	}
 	
 	/* view */
 	
 	[Signal]
-	public delegate void viewDirChangedHandler(Godot.Vector3 euler);
+	public delegate void ViewDirChangedHandler(Godot.Vector3 euler);
 	
-	public Godot.Vector3 view_dir = new Vector3()
+	public Godot.Vector3 ViewDir = new Vector3()
 	{
 		set
 		{
-			_view_dir = value;
-			_view_dir.x = Mathf.Clamp(_view_dir.x, - Globals.view_pitch_limit,Globals.view_pitch_limit);
-			EmitSignal("viewDirChanged", _view_dir);
+			_ViewDir = value;
+			_ViewDir.X = Mathf.Clamp(_ViewDir.X,  - Globals.ViewPitchLimit, Globals.ViewPitchLimit);
+			EmitSignal("viewDirChanged", _ViewDir);
 		}
 	}
-	private Godot.Vector3 _view_dir;
+	private Godot.Vector3 _ViewDir;
 
 	
 	

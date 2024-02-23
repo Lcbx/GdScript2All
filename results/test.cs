@@ -24,32 +24,32 @@ public partial class test : Godot.Node
 	
 	
 	[Export]
-	public Godot.Variant export;
+	public Godot.Variant Export;
 	
 	
 	[Export("param1,param2")]
-	public Godot.Variant export_param;
+	public Godot.Variant ExportParam;
 	
 	
 	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
-	public Godot.Variant export_flags;
+	public Godot.Variant ExportFlags;
 	
 	// basic property definitions / expressions
-	public Godot.Variant foo;
-	public static int i = 0;
-	public const string str = "the fox said \"get off my lawn\"";
-	public string big_str = @"
+	public Godot.Variant Foo;
+	public static int I = 0;
+	public const string STR = "the fox said \"get off my lawn\"";
+	public string BigStr = @"
 		this is a multiline string
 	";
-	public Array array = new Array{0,1,2,};
-	public Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
-	public Array<string> string_array = new Array{"0","1",};
+	public Array Array = new Array{0,1,2,};
+	public Dictionary Dict = new Dictionary{{0,1},{1,2},{2,3},};
+	public Array<string> StringArray = new Array{"0","1",};
 	
 	// method
-	public double method(double param = 5.0)
+	public double Method(double param = 5.0)
 	{
 		var val = 2;
-		foreach(string k in string_array)
+		foreach(string k in StringArray)
 		{
 			GD.Print(k);
 		}
@@ -57,58 +57,58 @@ public partial class test : Godot.Node
 	}
 	
 	// type inference on members
-	public int j = this.i;
-	public string k = string_array[0];
+	public int J = this.I;
+	public string K = StringArray[0];
 	
 	// determine type based on godot doc
-	public Godot.Node x = this.get_parent();
-	public double x = new Vector3().x;
-	public Dictionary aClass = Godot.ProjectSettings.get_global_class_list()[10];
-	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
-	public double global_function = Mathf.AngleDifference(0.1,0.2);
+	public Godot.Node X = this.GetParent();
+	public double X = new Vector3().X;
+	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
+	public const int FLAG = Godot.RenderingServer.NO_INDEX_ARRAY;
+	public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 	
 	// Gdscript special syntax
-	public Godot.Node get_node = get_node("node");
-	public Godot.Node get_node2 = get_node("../node");
-	public Godot.Node get_unique_node = get_node("%unique_node");
-	public Godot.Resource preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
-	public Godot.Resource load_resource = load("res://path");
+	public Godot.Node GetNode = GetNode("node");
+	public Godot.Node GetNode2 = GetNode("../node");
+	public Godot.Node GetUniqueNode = GetNode("%unique_node");
+	public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
+	public Godot.Resource LoadResource = Load("res://path");
 	
 	// signals
 	[Signal]
-	public delegate void jumpHandler();
+	public delegate void JumpHandler();
 	[Signal]
-	public delegate void movementHandler(Godot.Vector3 dir,double speed);
+	public delegate void MovementHandler(Godot.Vector3 dir,double speed);
 	
 	// property getters and setters
-	public double getset_var
+	public double GetsetVar
 	{
-		set => _set(value);
-		get => _get();
+		set => _Set(value);
+		get => _Get();
 	}
-	private double _getset_var;
+	private double _GetsetVar;
 
 	
-	public double getset_var2 =  - 0.1
+	public double GetsetVar2 =  - 0.1
 	{
 		set
 		{
-			_getset_var2 = value;
+			_GetsetVar2 = value;
 		}
 		get
 		{
-			return _getset_var2;
+			return _GetsetVar2;
 		}
 	}
-	private double _getset_var2;
+	private double _GetsetVar2;
 
 	
-	public void async_function()
+	public void AsyncFunction()
 	{
-		await ToSignal(this, "jump");
-		await ToSignal(get_tree(), "process_frame");
+		await ToSignal(this, "Jump");
+		await ToSignal(GetTree(), "ProcessFrame");
 		
-		get_tree().EmitSignal("process_frame", 0.7);
+		GetTree().EmitSignal("process_frame", 0.7);
 		
 		var myLambda = () =>
 		{	GD.Print("look ma i'm jumping");
@@ -120,7 +120,7 @@ public partial class test : Godot.Node
 	}
 	
 	// this becomes rapidly unreadable once translated though
-	protected const Dictionary _default_data = new Dictionary{
+	protected const Dictionary _DEFAULT_DATA = new Dictionary{
 		{"t",100},
 		{"rafg","asfgh"},
 		{"u",false},// Example Comment
@@ -129,10 +129,9 @@ public partial class test : Godot.Node
 		};
 	
 	// automatic _ready generation
-	/* @onready */ public int k;
+	/* @onready */ public int K;
 	
-	protected void _ready()
+	protected void _Ready()
 	{
-		k = 42;
 	}
 }

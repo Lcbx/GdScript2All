@@ -667,11 +667,16 @@ class Parser:
 		# a singleton (ex: RenderingServer)
 		# a global constant (ex: KEY_ESCAPE)
 		singleton = name in ref.godot_types
+		property = name in self.classData.members
 		type = self.classData.members.get(name, None) \
 			or self.locals.get(name, None) \
 			or ref.godot_types['@GlobalScope'].constants.get(name, None) \
 			or (name if singleton else None)
 		signal = type and type.startswith('signal')
+		
+		emit = self.out.singleton if singleton \
+			else self.out.property if property \
+			else self.out.variable
 		
 		# call
 		if self.expect('('):
@@ -685,8 +690,7 @@ class Parser:
 			reference = self.reference(type)
 			yield next(reference)
 			if this: self.out.this()
-			if not signal:
-				self.out.singleton(name) if singleton else self.out.variable(name)
+			if not signal: emit(name)
 			next(reference)
 		
 		# subscription
@@ -694,14 +698,14 @@ class Parser:
 			s = self.subscription(type)
 			yield next(s)
 			if this: self.out.this()
-			self.out.variable(name)
+			emit(name)
 			next(s)
 		
 		# lone variable or global
 		else:
 			yield type
 			if this: self.out.this()
-			self.out.variable(name)
+			emit(name)
 		yield
 	
 	

@@ -57,12 +57,16 @@ class Transpiler:
 	
 	def declare_property(self, type, name, constant, static):
 		type = translate_type(type)
+		name = name.upper() if constant else toPascal(name)
+		
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
 		self.members[name] = type
 	
 	def setget(self, member, accessors):
+		member = toPascal(member)
+		
 		self.addLayer()
 		self.UpScope()
 		self += '\n'
@@ -85,9 +89,9 @@ class Transpiler:
 		code = self.popLayer()
 		
 		# add private property if missing
-		if not asPrivate(member) in self.members:
+		if not toPrivate(member) in self.members:
 			privateMember = '}\n' + '\t' * self.level + \
-				f'private {self.members[member]} {asPrivate(member)};\n'
+				f'private {self.members[member]} {toPrivate(member)};\n'
 			code = rReplace(code, '}', privateMember)
 		
 		# this is for prettiness
@@ -96,9 +100,11 @@ class Transpiler:
 		
 		
 	def getter_method(self, member, getterName):
+		getterName = toPascal(getterName)
 		self += f'get => {getterName}();\n'
 	
 	def setter_method(self, member, setterName):
+		setterName = toPascal(setterName)
 		self += f'set => {setterName}(value);\n'
 	
 	def getter(self, member, code):
@@ -113,17 +119,16 @@ class Transpiler:
 	
 	def cleanGetSetCode(self, code, member):
 		# use private value
-		if not asPrivate(member) in self.members:
-			code = code.replace(member, asPrivate(member))
+		if not toPrivate(member) in self.members:
+			code = code.replace(member, toPrivate(member))
 		return code
-
 	
 	def declare_variable(self, type, name):
 		self += f'var {name}'
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
-		
 		return_type = translate_type(return_type)
+		name = toPascal(name)
 		
 		self.methods[name] = return_type
 		
@@ -151,6 +156,7 @@ class Transpiler:
 		self.write(code)
 	
 	def define_signal(self, name, params):
+		name = toPascal(name)
 		paramStr = ','.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
 		self += '[Signal]\n'
 		self += f'public delegate void {name}Handler({paramStr});'
@@ -218,20 +224,23 @@ class Transpiler:
 	def this(self):
 		self += 'this.'
 	
+	def property(self, name):
+		self += toPascal(name)
+	
 	def variable(self, name):
-		self += variable_replacements.get(name, None) or name # TODO: ToPascal(name)
+		self += variable_replacements.get(name, name)
 	
 	def singleton(self, name):
 		self += translate_type(name)
 	
 	def reference(self, name):
-		self += '.' + name
+		self += '.' + toPascal(name)
 	
 	def call(self, name, params, global_function = False):
-		if global_function: name = function_replacements.get(name, name) # TODO: ToPascal(name)
-		self += name + '('
+		if global_function: name = function_replacements.get(name, name)
+		self += toPascal(name) + '('
 		for i, p in enumerate(params):
-			if i>0: self += ','
+			if i>0: self += ', '
 			get(p)
 		self += ')'
 	
@@ -396,15 +405,20 @@ class Transpiler:
 def rReplace(string, toReplace, newValue, n = 1):
 	return newValue.join(string.rsplit(toReplace,n))
 
-def asPrivate(name):
+def toPrivate(name):
 	return '_' + name
 
 def toPascal(text):
-	text0is_ = text[0] == '_'
-	if text0is_: text[0] = '*' # trick to preserve first underscore
-	val = text.replace("_", " ").title().replace(" ", "")
-	if text0is_: val[0] = '_'
-	return val
+	split_ = text.split('_')
+	
+	# for legible contants
+	if all(map(lambda s: s.isupper(), split_)): return text
+	
+	# keep start underscores _
+	nStart_ = next( (i for i, c in enumerate(text) if c != '_'), 0)
+	
+	capitalize = lambda s: s[0].upper() + s[1:] if s else s
+	return  '_' * nStart_ + ''.join( map(capitalize, split_ ) )
 
 def translate_type(type):
 	if type == None: return 'void'

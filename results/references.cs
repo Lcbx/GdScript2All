@@ -6,13 +6,13 @@ using Array = Godot.Collections.Array;
 
 public partial class references : Godot.Node
 {
-	public Godot.Variant variable = foo;
-	public Godot.Variant reference = foo.bar;
-	public Godot.Variant function = foo();
-	public Godot.Variant functionParams = foo(a,b);
-	public Godot.Variant method = foo.bar();
-	public Godot.Variant functionMethodParams = foo(a,b).bar(c,d);
-	public Godot.Variant refMethod = foo.bar.baz();
-	public Godot.Variant methodRef = foo.bar().baz;
-	public Godot.Variant subscription = this.dict[0];
+	public Godot.Variant Variable = Foo;
+	public Godot.Variant Reference = Foo.Bar;
+	public Godot.Variant Function = Foo();
+	public Godot.Variant FunctionParams = Foo(a, b);
+	public Godot.Variant Method = Foo.Bar();
+	public Godot.Variant FunctionMethodParams = Foo(a, b).Bar(c, d);
+	public Godot.Variant RefMethod = Foo.Bar.Baz();
+	public Godot.Variant MethodRef = Foo.Bar().Baz;
+	public Godot.Variant Subscription = this.Dict[0];
 }
