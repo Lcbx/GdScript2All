@@ -70,10 +70,11 @@ class Transpiler:
 		
 		# call the appropriate Transpiler method (defined afterward)
 		for accessor in accessors:
-			last_accessor = accessor
-			params = accessor.split('/')
-			method = getattr(self,params[0])
-			method(member, *params[1:])
+			method_name = accessor[0]
+			method = getattr(self,method_name)
+			params = accessor[1:]
+			method(member, *params)
+			last_accessor = method_name
 		
 		# add mssing bracket when using a method as last accesor
 		if 'method' in last_accessor:
@@ -100,14 +101,12 @@ class Transpiler:
 	def setter_method(self, member, setterName):
 		self += f'set => {setterName}(value);\n'
 	
-	def getter(self, member):
-		code = self.popLayer()
+	def getter(self, member, code):
 		self += 'get';
 		code = self.cleanGetSetCode(code, member)
 		self.write(code)
 	
-	def setter(self, member, valueName):
-		code = self.popLayer()
+	def setter(self, member, valueName, code):
 		self += 'set';
 		code = self.cleanGetSetCode(code, member)
 		self.write(code.replace(valueName, 'value'))
@@ -122,13 +121,14 @@ class Transpiler:
 	def declare_variable(self, type, name):
 		self += f'var {name}'
 	
-	def define_method(self, name, params = {}, params_init = {}, return_type = None, static = False):
+	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
 		
 		return_type = translate_type(return_type)
 		
 		self.methods[name] = return_type
 		
-		blockText = self.popLayer()
+		if not code:
+			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
 		
 		exposed = 'protected' if name[0] == '_' else 'public'
 		static_str = 'static ' if static else ''
@@ -145,10 +145,10 @@ class Transpiler:
 		# add onready assignments if method is script-level _ready
 		if name == '_ready' and self.level == 1:
 			onreadies = '{' + ''.join(map(lambda stmt: f'\n\t\t{stmt};', self.onready_assigns))
-			blockText = blockText.replace('{', onreadies, 1)
+			code = code.replace('{', onreadies, 1)
 			self.onready_assigns.clear()
 		
-		self.write(blockText)
+		self.write(code)
 	
 	def define_signal(self, name, params):
 		paramStr = ','.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
@@ -315,7 +315,6 @@ class Transpiler:
 			self += 'if('
 			get(evaluated)
 			self += ' == '
-			
 			comparison = self.popLayer()
 			
 			for pattern, when in cases():
@@ -329,12 +328,9 @@ class Transpiler:
 	
 	def end_script(self):
 		# add ready function if there are onready_assigns remaining
-		if self.onready_assigns:
-			# NOTE : if there are onready properties before and after a user-defined _ready method
-			# this will result in 2 _ready functions in generated code
-			self.addLayer()
-			self += '\n{\n}'
-			self.define_method('_ready')
+		# NOTE : if there are onready properties before and after a user-defined _ready method
+		# this will result in 2 _ready functions in generated code
+		if self.onready_assigns: self.define_method('_ready')
 		
 		# TODO: in cpp, add member and method bindings
 		

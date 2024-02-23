@@ -203,29 +203,29 @@ class Parser:
 						
 						if self.expect('get'):
 							if self.expect('='):
-								yield f'getter_method/{self.consume()}'
+								yield 'getter_method', self.consume()
 							
 							elif self.expect(':'):
 								self.out.addLayer()
 								self.Block()
-								yield 'getter'
+								code = self.out.popLayer()
+								yield 'getter', code
 						
 						elif self.expect('set'):
 							if self.expect('='):
-								yield f'setter_method/{self.consume()}'
+								yield 'setter_method', self.consume()
 							
 							elif self.expect('('):
 								valueName = self.consume(); self.expect(')', ':')
 								self.out.addLayer()
 								self.Block()
-								yield f'setter/{valueName}'
+								code = self.out.popLayer()
+								yield 'setter', valueName, code
 						
 						self.expect(',')
 				
 				self.out.setget(memberName, impl())
 				self.level = oldLevel
-	
-	
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
@@ -248,10 +248,12 @@ class Parser:
 		
 		blockType = self.Block()
 		
+		code = self.out.popLayer()
+		
 		returnType = returnType or blockType
 		self.classData.methods[name] = returnType
 		
-		self.out.define_method(name, params, params_init, returnType, static)
+		self.out.define_method(name, params, params_init, returnType, code, static)
 	
 	
 	def Block(self, addBreak = False):
