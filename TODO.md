@@ -10,10 +10,10 @@
 - [x] use argparse instead of hand-parsing sys.argv
 - [x] move C# translations out of godot_type.py
 - [x] add onready assignments to ready method
-- [ ] add c++ transpiling backend
+- [x] add c++ transpiling backend
 - [ ] c++ : generate bindings for methods and exported properties
 - [ ] support user-defined classes in type inference
-- [ ] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
+- [x] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] support special literals :
   * floating exponents : 58e-10
   * base16 int : 0x8E

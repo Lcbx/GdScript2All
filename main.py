@@ -1,7 +1,9 @@
+#!python
+
 import os
 import sys
 
-# allow using scripts in src folder
+# call src folder scripts as if they were in the local dir
 sys.path.insert(0,'src')
 
 import Parser as Parser
