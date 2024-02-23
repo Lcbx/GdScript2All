@@ -245,6 +245,7 @@ public partial class test : Godot.Node
 	
 	protected void _Ready()
 	{
+		K = 42;
 	}
 }
 ```

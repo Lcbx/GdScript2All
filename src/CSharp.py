@@ -148,7 +148,7 @@ class Transpiler:
 		self += ')'
 		
 		# add onready assignments if method is script-level _ready
-		if name == '_ready' and self.level == 1:
+		if name == toPascal('_ready') and self.level == 1:
 			onreadies = '{' + ''.join(map(lambda stmt: f'\n\t\t{stmt};', self.onready_assigns))
 			code = code.replace('{', onreadies, 1)
 			self.onready_assigns.clear()
@@ -164,7 +164,7 @@ class Transpiler:
 	def assignment(self, exp, onreadyName):
 		if onreadyName:
 			self.addLayer()
-			self.write(f'{onreadyName} = '); get(exp)
+			self.write(f'{toPascal(onreadyName)} = '); get(exp)
 			self.onready_assigns.append(self.popLayer())
 			return
 		self += ' = '; get(exp)
