@@ -1,10 +1,9 @@
 import re
 import os
-from enum import IntFlag as Enum
 from copy import copy
+from enum import IntFlag as Flags
 
-import src.godot_types as ref
-import ClassData as ClassData
+from godot_types import godot_types
 from Tokenizer import Tokenizer
 
 
@@ -34,11 +33,14 @@ class Parser:
 		# script class data
 		self.is_tool = None
 		self.class_name = None
-		self.classData = None
 		
-		# local variable (name:type)
+		# class names in order of definition in file
+		self.classes = []
+		# local class definitions (class_name:classData)
+		self.definitions = {}
+		
+		# local variables (name:type)
 		self.locals = {}
-	
 	
 	""" SCRIPT/STATEMENT GRAMMAR 
 	
@@ -69,22 +71,20 @@ class Parser:
 	"""
 	
 	def transpile(self):
+	
 		# in case there is a file header / comments at start
 		self.endline()
 		
 		# script start specific statements
 		self.is_tool = self.expect('@', 'tool'); self.endline()
 		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
-		self.class_name = self.consume() if self.expect('class_name') else self.script_name
+		class_name = self.consume() if self.expect('class_name') else self.script_name
 		
 		# initialize script class data
-		self.classData = copy(ref.godot_types.get(base_class, None) or ref.godot_types.get('Object', None))
-		self.classData.base = base_class
-		
-		self.vprint(self.classData.__dict__)
+		self.add_class(class_name, base_class)
 		
 		# no endline after class name since we declare the class before that
-		self.out.define_class(self.class_name, base_class, self.is_tool); self.endline()
+		self.out.define_class(class_name, base_class, self.is_tool); self.endline()
 		
 		# script-level loop
 		for i in range(2):
@@ -131,7 +131,7 @@ class Parser:
 		# NOTE: technically there would be no annotations in inner classes
 		for _ in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
 		
-		# TODO : add nested class to godot_types
+		self.end_class()
 	
 	
 	def enum(self):
@@ -143,7 +143,7 @@ class Parser:
 		self.out.enum(name, definition)
 	
 	
-	DECL_FLAGS = Enum('DECL_FLAGS', ('none', 'static', 'constant', 'property', 'onready')) 
+	DECL_FLAGS = Flags('DECL_FLAGS', ('none', 'static', 'constant', 'property', 'onready')) 
 	
 	# class member
 	def member(self, static):
@@ -251,7 +251,7 @@ class Parser:
 		code = self.out.popLayer()
 		
 		returnType = returnType or blockType
-		self.classData.methods[name] = returnType
+		self.getClass().methods[name] = returnType
 		
 		self.out.define_method(name, params, params_init, returnType, code, static)
 	
@@ -272,7 +272,7 @@ class Parser:
 	
 	def signal(self):
 		name = self.consume()
-		self.classData.members[name] = f'signal/{name}'
+		self.getClass().members[name] = f'signal/{name}'
 		params = {}
 		
 		# TODO: check if signal params can have initializers
@@ -416,7 +416,7 @@ class Parser:
 		
 		# emit code
 		if flags & self.DECL_FLAGS.property:
-			self.classData.members[name] = type
+			self.getClass().members[name] = type
 			self.out.declare_property(type, name, \
 				flags & self.DECL_FLAGS.constant, \
 				flags & self.DECL_FLAGS.static)
@@ -666,11 +666,11 @@ class Parser:
 		# a local
 		# a singleton (ex: RenderingServer)
 		# a global constant (ex: KEY_ESCAPE)
-		singleton = name in ref.godot_types
-		property = name in self.classData.members
-		type = self.classData.members.get(name, None) \
+		singleton = name in godot_types
+		property = name in self.getClass().members
+		type = self.getClass().members.get(name, None) \
 			or self.locals.get(name, None) \
-			or ref.godot_types['@GlobalScope'].constants.get(name, None) \
+			or godot_types['@GlobalScope'].constants.get(name, None) \
 			or (name if singleton else None)
 		signal = type and type.startswith('signal')
 		
@@ -716,13 +716,13 @@ class Parser:
 		# a local method
 		# a global function
 		# another class's method
-		constructor = name in ref.godot_types
-		godot_method = calling_type and calling_type in ref.godot_types
-		global_function = not calling_type and name in ref.godot_types['@GlobalScope'].methods
+		constructor = name in godot_types
+		godot_method = calling_type and calling_type in godot_types
+		global_function = not calling_type and name in godot_types['@GlobalScope'].methods
 		type = (name if constructor else None ) \
-			or self.classData.methods.get(name, None) \
-			or (ref.godot_types[calling_type].methods.get(name, None) if godot_method \
-			else ref.godot_types['@GlobalScope'].methods.get(name, None) if global_function \
+			or self.getClass().methods.get(name, None) \
+			or (godot_types[calling_type].methods.get(name, None) if godot_method \
+			else godot_types['@GlobalScope'].methods.get(name, None) if global_function \
 			else None)
 		
 		params = ( *self.parseCallParams() ,)
@@ -756,8 +756,8 @@ class Parser:
 	def reference(self, type):
 		name = self.consume()
 		# TODO: take classes defined locally into account
-		member_type = ref.godot_types[type].members[name] if \
-				type in ref.godot_types and name in ref.godot_types[type].members \
+		member_type = godot_types[type].members[name] if \
+				type in godot_types and name in godot_types[type].members \
 			else None
 		signal = member_type and member_type.startswith('signal')
 		
@@ -799,8 +799,8 @@ class Parser:
 			next(s)
 		
 		# could be a constant
-		elif type and name in ref.godot_types[type].constants:
-			yield ref.godot_types[type].constants[name]
+		elif type and name in godot_types[type].constants:
+			yield godot_types[type].constants[name]
 			self.out.constant(name)
 		
 		# end leaf
@@ -835,39 +835,31 @@ class Parser:
 		yield
 	
 	
+	""" utils """
+	
+	# using a stack to keep track of class being defined
+	def add_class(self, name, base_class):
+		self.classes.append(name)
+		classData = copy(godot_types.get(base_class, None) or godot_types.get('Object', None))
+		classData.base = base_class
+		self.definitions[name] = classData
+		self.out.current_class(name, classData)
+	
+	def end_class(self):
+		if len(self.classes) > 1: self.classes.pop()
+		self.out.current_class(self.classes[-1], self.getClass())
+	
+	def getClass(self):
+		return self.definitions[self.classes[-1]]
+	
 	# parse call params
 	def parseCallParams(self):
 		while not self.expect(')'):
 			exp = self.expression(); next(exp); yield exp
 			self.expect(',')
 	
-	# parse params definition (call, signal, lambda)
-	def parseParamDefinition(self):
-		
-		params = {}
-		params_init = {}
-		
-		# param -> <name> [: [<type>]?]? [= <Expression>]?
-		for _ in self.doWhile(lambda: not self.expect(')')):
-			pName = self.consume()
-			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
-			
-			# initialisation
-			if self.expect('='):
-				pInit = self.expression()
-				initType = next(pInit)
-				pType = pType or initType
-				params_init[pName] = pInit
-			
-			pType = pType or 'Variant'
-			self.expect(',')
-			params[pName] = pType
-		
-		# NOTE: params_init only used in method definition
-		return params, params_init
 	
-	
-	""" parsing utils """
+	""" parsing """
 	
 	def advance(self):
 		try:
@@ -926,6 +918,30 @@ class Parser:
 			result.append(self.consume())
 		return separator.join(result)
 	
+	# parse params definition (call, signal, lambda)
+	def parseParamDefinition(self):
+		
+		params = {}
+		params_init = {}
+		
+		# param -> <name> [: [<type>]?]? [= <Expression>]?
+		for _ in self.doWhile(lambda: not self.expect(')')):
+			pName = self.consume()
+			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
+			
+			# initialisation
+			if self.expect('='):
+				pInit = self.expression()
+				initType = next(pInit)
+				pType = pType or initType
+				params_init[pName] = pInit
+			
+			pType = pType or 'Variant'
+			self.expect(',')
+			params[pName] = pType
+		
+		# NOTE: params_init only used in method definition
+		return params, params_init
 	
 	# called when an endline is excpected
 	# addBreak is for switch statements

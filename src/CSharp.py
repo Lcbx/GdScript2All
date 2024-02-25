@@ -1,5 +1,5 @@
 from StringBuilder import StringBuilder
-import godot_types as ref
+from godot_types import godot_types
 
 
 class Transpiler:
@@ -23,15 +23,15 @@ class Transpiler:
 		
 		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
-		
-		# members names and types
-		self.members = {}
-		self.methods = {}
+	
+	# class name as str and class definition as ClassData
+	def current_class(self, class_name, klass):
+		self.class_name = class_name
+		self.klass = klass
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
-		if base_class in ref.godot_types: base_class = f'Godot.{base_class}'
-		self += f'public partial class {name} : {base_class}'
+		self += f'public partial class {name} : {translate_type(base_class)}'
 		self.UpScope()
 		self += '\n'
 	
@@ -62,10 +62,8 @@ class Transpiler:
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
-		self.members[name] = type
 	
 	def setget(self, member, accessors):
-		member = toPascal(member)
 		
 		self.addLayer()
 		self.UpScope()
@@ -88,10 +86,11 @@ class Transpiler:
 		
 		code = self.popLayer()
 		
-		# add private property if missing
-		if not toPrivate(member) in self.members:
+		# add private property if missing)
+		private_version = toPrivate(member)
+		if not private_version in self.klass.members:
 			privateMember = '}\n' + '\t' * self.level + \
-				f'private {self.members[member]} {toPrivate(member)};\n'
+				f'private {translate_type(self.klass.members[member])} {toPascal(private_version)};\n'
 			code = rReplace(code, '}', privateMember)
 		
 		# this is for prettiness
@@ -119,8 +118,8 @@ class Transpiler:
 	
 	def cleanGetSetCode(self, code, member):
 		# use private value
-		if not toPrivate(member) in self.members:
-			code = code.replace(member, toPrivate(member))
+		if not toPrivate(member) in self.klass.members:
+			code = code.replace(toPascal(member), toPrivate(toPascal(member)))
 		return code
 	
 	def declare_variable(self, type, name):
@@ -129,8 +128,6 @@ class Transpiler:
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
 		return_type = translate_type(return_type)
 		name = toPascal(name)
-		
-		self.methods[name] = return_type
 		
 		if not code:
 			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
@@ -423,7 +420,7 @@ def toPascal(text):
 def translate_type(type):
 	if type == None: return 'void'
 	if type in ['Array', 'Dictionary']: return type
-	if type in ref.godot_types: return f'Godot.{type}'
+	if type in godot_types: return f'Godot.{type}'
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
 	if type == 'float': return 'double' # C# uses doubles
 	return type

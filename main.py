@@ -61,8 +61,18 @@ def transpile(filename, outname):
 		parser.transpile()
 		
 	except Exception as e:
-		exceptionStr = str(e)
-		def printException(): print(exceptionStr)
+		ex_msg = str(e); ex_msg = ex_msg if ex_msg != 'None' else ''
+		ex_type = type(e).__name__
+		tb = e.__traceback__
+		def printException():
+			nonlocal tb
+			print(f'\033[91m{ex_type} {ex_msg}\033[0m')
+			while tb != None:
+				filename = os.path.split(tb.tb_frame.f_code.co_filename)[1]
+				lineno = tb.tb_lineno
+				name = tb.tb_frame.f_code.co_name
+				print(f'  at {filename}:{lineno}\t{name}')
+				tb = tb.tb_next
 	
 	finally:
 		code = transpiler.get_result()

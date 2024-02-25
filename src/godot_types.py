@@ -14,15 +14,19 @@ from ClassData import ClassData
 SAVEFILE = 'src/godot_types.pickle'
 DOC_FOLDER = 'classData'
 
+
+# the data people we import in this script
 # { 'class': ClassData }
 godot_types = {}
 
-if __name__ != "__main__":
+
+def _import_type_definitions_():
+	global godot_types
+	
 	# load class datas
 	with open(SAVEFILE, 'rb') as f:
 		godot_types = load(f)
 	
-	##################
 	# decompression/flattening :
 	# add base class members to child class
 	
@@ -40,7 +44,6 @@ if __name__ != "__main__":
 	type_items.sort(key=lambda kv: sortKey[kv[0]])
 	type_items.reverse()
 	
-	#print(sortKey)
 	#print( *(f'{k} {v.base} {sortKey[k]}\n' for k,v in type_items ) )
 	
 	# assert parents are really before their children
@@ -59,13 +62,11 @@ if __name__ != "__main__":
 			for method in parent.methods: data.methods[method] = parent.methods[method]
 			for member in parent.members: data.members[member] = parent.members[member]
 			for const in parent.constants: data.constants[const] = parent.constants[const]
+
+def _update_type_definitions_():
+	global godot_types
 	
-	#print(godot_types['RefCounted'].members)
-	#print(godot_types['Node3D'].members)
-	#print(godot_types['CharacterBody3D'].members)
-	
-# otherwise generate the pickle file
-else:
+	# generate the pickle file
 	from untangle import parse
 	
 	classDocPaths = [
@@ -120,10 +121,22 @@ else:
 				data.members[signalName] = f'signal/{signalName}'
 	
 	# adding builtin that aren't in doc
-	godot_types['@GlobalScope'].methods['range'] = 'int[]'
-	godot_types['@GlobalScope'].methods['load'] = 'Resource'
-	godot_types['@GlobalScope'].methods['preload'] = 'Resource'
+	add_function('range', 'int[]')
+	add_function('load', 'Resource')
+	add_function('preload', 'Resource')
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)
+
+def add_function(name, return_type):
+	godot_types['@GlobalScope'].methods[name] = return_type
+
+
+# if import then load types
+if __name__ != "__main__":
+	_import_type_definitions_()
+
+# else update the type pickle
+else:
+	_update_type_definitions_()
 

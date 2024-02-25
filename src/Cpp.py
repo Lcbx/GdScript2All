@@ -1,5 +1,5 @@
 from StringBuilder import StringBuilder
-import godot_types as ref
+from godot_types import godot_types
 
 
 class Transpiler:
@@ -19,25 +19,22 @@ class Transpiler:
 		# onready assignments that need to be moved to the ready function
 		self.onready_assigns = []
 		
-		# unnamed enums don't exist in C#, so we use a counter to give them a name
-		self.unnamed_enums = 0
-		
-		# members names and types
-		self.klass = []
-		self.members = {}
-		self.methods = {}
+		# script level class name
+		self.script_class = ''
+	
+	# class name as str and class definition as ClassData
+	def current_class(self, class_name, klass):
+		self.class_name = class_name
+		self.klass = klass
+		# first defined class is script-level class
+		if not self.script_class: self.script_class = class_name
 	
 	def define_class(self, name, base_class, is_tool):
-		# first class defined is main script class
-		self.klass.append(name)
-		self.hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});'
+		self.hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});\n'
 	
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
 	def enum(self, name, definition):
-		# unnamed enums not supported in C#
-		if not name:
-			name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
 		self += f'public enum {name} {definition}'
 	
 	def annotation(self, name, params, memberName):
@@ -57,7 +54,6 @@ class Transpiler:
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
-		self.members[name] = type
 	
 	def setget(self, member, accessors):
 		self.addLayer()
@@ -82,9 +78,9 @@ class Transpiler:
 		code = self.popLayer()
 		
 		# add private property if missing
-		if not asPrivate(member) in self.members:
+		if not asPrivate(member) in self.klass.members:
 			privateMember = '}\n' + '\t' * self.level + \
-				f'private {self.members[member]} {asPrivate(member)};\n'
+				f'private {self.klass.members[member]} {asPrivate(member)};\n'
 			code = rReplace(code, '}', privateMember)
 		
 		# this is for prettiness
@@ -110,7 +106,7 @@ class Transpiler:
 	
 	def cleanGetSetCode(self, code, member):
 		# use private value
-		if not asPrivate(member) in self.members:
+		if not asPrivate(member) in self.klass.members:
 			code = code.replace(member, asPrivate(member))
 		return code
 
@@ -119,10 +115,7 @@ class Transpiler:
 		self += f'var {name}'
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
-		
 		return_type = translate_type(return_type)
-		
-		self.methods[name] = return_type
 		
 		if not code:
 			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
@@ -214,6 +207,9 @@ class Transpiler:
 	
 	def this(self):
 		self += 'this.'
+	
+	def property(self, name):
+		self += name
 	
 	def variable(self, name):
 		self += variable_replacements.get(name, None) or name # TODO: ToPascal(name)
@@ -338,7 +334,7 @@ class Transpiler:
 		self.hpp += '\n}'
 		
 		self.hpp = header \
-			.replace('__MAINCLASS__', self.klass[0].upper()) \
+			.replace('__SCRIPT_CLASS__', self.script_class.upper()) \
 			.replace('__IMPLEMENTATION__', self.hpp.getvalue())
 	
 	def comment(self, content):
@@ -384,9 +380,6 @@ class Transpiler:
 	
 	def DownScope(self):
 		self.vprint('DownScope')
-		#if self.level < len(self.klass):
-		#	self += f'/* {self.klass} end */'
-		#	self.klass.pop()
 		self.level -= 1
 		self += '\n}'
 	
@@ -414,7 +407,7 @@ def asPrivate(name):
 def translate_type(type):
 	if type == None: return 'void'
 	if type in ['Array', 'Dictionary']: return type
-	if type in ref.godot_types: return f'Godot.{type}'
+	if type in godot_types: return f'Godot.{type}'
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
 	if type == 'float': return 'double' # C# uses doubles
 	return type
@@ -424,8 +417,8 @@ get = next
 
 # Default imports and aliases that almost every class needs.
 header = """
-#ifndef __MAINCLASS___H
-#define __MAINCLASS___H
+#ifndef __SCRIPT_CLASS___H
+#define __SCRIPT_CLASS___H
 
 #include <Godot.hpp>
 
@@ -433,7 +426,7 @@ using namespace godot;
 
 __IMPLEMENTATION__
 
-#endif // __MAINCLASS___H
+#endif // __SCRIPT_CLASS___H
 """;
 
 export_replacements = {
