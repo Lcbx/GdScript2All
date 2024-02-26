@@ -10,6 +10,7 @@
 - [x] use argparse instead of hand-parsing sys.argv
 - [x] move C# translations out of godot_type.py
 - [x] add onready assignments to ready method
+- [x] support onreadies in nested classes (rn they get added to script class)
 - [x] add c++ transpiling backend
 - [ ] c++ : generate bindings for methods and exported properties
 - [ ] support user-defined classes in type inference

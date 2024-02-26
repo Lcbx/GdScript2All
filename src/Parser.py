@@ -123,12 +123,12 @@ class Parser:
 		class_name = self.consume()
 		base_class = self.consume() if self.expect('extends') else 'Object'
 		# NOTE: can inner classes be tools ? are they the same as their script class ?
+		self.add_class(class_name, base_class)
 		self.out.define_class(class_name, base_class, False)
 		self.expect(':')
 		
 		self.level += 1
 		class_lvl = self.level
-		# NOTE: technically there would be no annotations in inner classes
 		for _ in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
 		
 		self.end_class()
@@ -157,7 +157,6 @@ class Parser:
 		while self.expect('@'):
 			
 			# NOTE: special case for onready (needs moving the assignment into ready function)
-			# TODO: call out.assignement with onready flag (later)
 			if self.expect('onready'):
 				onready = True;
 				self.out.multiline_comment(' @onready '); self.out+= ' '
@@ -846,6 +845,7 @@ class Parser:
 		self.out.current_class(name, classData)
 	
 	def end_class(self):
+		self.out.end_class(self.classes[-1])
 		if len(self.classes) > 1: self.classes.pop()
 		self.out.current_class(self.classes[-1], self.getClass())
 	

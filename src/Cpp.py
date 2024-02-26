@@ -12,15 +12,30 @@ class Transpiler:
 		# scope level
 		self.level = 0
 		
-		# for cpp, we use layers only in .cpp, not .hpp file
-		self.hpp = StringBuilder()
-		self.layers = [StringBuilder()]
-		
-		# onready assignments that need to be moved to the ready function
-		self.onready_assigns = []
-		
 		# script level class name
 		self.script_class = ''
+		
+		# onready assignments
+		# they are moved moved to the ready function of the corresponding class
+		# (class_name:assignment_str)
+		self.onready_assigns = {}
+		
+		# annotations (property_name:tuple<annotation_name,params> )
+		self.annotations = {}
+		
+		# header definitions (class_name:Stringbuilder)
+		# NOTE: cpp actually supports nested classes
+		# but it is frowned upon, so we flatten them
+		self.hpps = {}
+		
+		# for cpp, we use layers only in .cpp
+		self.layers = [StringBuilder()]
+		
+		# result hpp
+		self.hpp = ''
+		# result cpp
+		self.cpp = ''
+		
 	
 	# class name as str and class definition as ClassData
 	def current_class(self, class_name, klass):
@@ -30,24 +45,26 @@ class Transpiler:
 		if not self.script_class: self.script_class = class_name
 	
 	def define_class(self, name, base_class, is_tool):
-		self.hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});\n'
+		self.hpps[name] = StringBuilder()
+		self.getHpp() + f'''
+class {name} : public {base_class} {{
+	GDCLASS({name}, {base_class});
+protected:
+	static void _bind_methods();
+public:
+'''
+	
+	def getHpp(self):
+		return self.hpps[self.class_name]
 	
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
 	def enum(self, name, definition):
-		self += f'public enum {name} {definition}'
+		self.getHpp() + f'\tenum {name} {definition}\n'
 	
 	def annotation(self, name, params, memberName):
-		# TODO: check replacements are exhaustive
-		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
-		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = export_replacements[name] if name in export_replacements else name + (params and '(')
-		self += f'[{name}"{params}")]' if params else f'[{name}]'
-		self += '\n'
-		
-		# NOTE: might be a good idea to save exported members names
-		# so we can generate bindings in c++
-		if 'export' in name: pass
+		# TODO: add corresponding bindings in _bind_methods()
+		self.annotations[memberName] = (name, params)
 	
 	def declare_property(self, type, name, constant, static):
 		type = translate_type(type)
@@ -78,9 +95,9 @@ class Transpiler:
 		code = self.popLayer()
 		
 		# add private property if missing
-		if not asPrivate(member) in self.klass.members:
+		if not toPrivate(member) in self.klass.members:
 			privateMember = '}\n' + '\t' * self.level + \
-				f'private {self.klass.members[member]} {asPrivate(member)};\n'
+				f'private {self.klass.members[member]} {toPrivate(member)};\n'
 			code = rReplace(code, '}', privateMember)
 		
 		# this is for prettiness
@@ -106,8 +123,8 @@ class Transpiler:
 	
 	def cleanGetSetCode(self, code, member):
 		# use private value
-		if not asPrivate(member) in self.klass.members:
-			code = code.replace(member, asPrivate(member))
+		if not toPrivate(member) in self.klass.members:
+			code = code.replace(member, toPrivate(member))
 		return code
 
 	
@@ -132,12 +149,14 @@ class Transpiler:
 		
 		self += ')'
 		
-		# add onready assignments if method is script-level _ready
-		if name == '_ready' and self.level == 1:
-			onreadies = '{' + ''.join(map(lambda stmt: f'\n\t\t{stmt};', self.onready_assigns))
-			code = code.replace('{', onreadies, 1)
-			self.onready_assigns.clear()
-		
+		# add onready assignments if method is _ready
+		if name == '_ready' and self.class_name in self.onready_assigns:
+			onreadies = self.onready_assigns[self.class_name]
+			tabs = '\t' * (self.level +1)
+			onreadies_code = '{' + ''.join(map(lambda stmt: f'\n{tabs}{stmt};', onreadies))
+			code = code.replace('{', onreadies_code, 1)
+			del self.onready_assigns[self.class_name]
+					
 		self.write(code)
 	
 	def define_signal(self, name, params):
@@ -149,7 +168,7 @@ class Transpiler:
 		if onreadyName:
 			self.addLayer()
 			self.write(f'{onreadyName} = '); get(exp)
-			self.onready_assigns.append(self.popLayer())
+			self.onready_assigns.setdefault(self.class_name, []).append(self.popLayer())
 			return
 		self += ' = '; get(exp)
 	
@@ -212,7 +231,8 @@ class Transpiler:
 		self += name
 	
 	def variable(self, name):
-		self += variable_replacements.get(name, None) or name # TODO: ToPascal(name)
+		#TODO: update replacements for cpp
+		self += variable_replacements.get(name, None) or name
 	
 	def singleton(self, name):
 		self += translate_type(name)
@@ -221,10 +241,10 @@ class Transpiler:
 		self += '.' + name
 	
 	def call(self, name, params, global_function = False):
-		if global_function: name = function_replacements.get(name, name) # TODO: ToPascal(name)
+		if global_function: name = function_replacements.get(name, name)
 		self += name + '('
 		for i, p in enumerate(params):
-			if i>0: self += ','
+			if i>0: self += ', '
 			get(p)
 		self += ')'
 	
@@ -319,23 +339,41 @@ class Transpiler:
 					if when: self += ' && '; get(when)
 					self += ')'
 	
-	def end_script(self):
+	def end_class(self, name):
 		# add ready function if there are onready_assigns remaining
-		# NOTE : if there are onready properties before and after a user-defined _ready method
-		# this will result in 2 _ready functions in generated code
-		if self.onready_assigns: self.define_method('_ready')
+		# NOTE : we can end up with 2 _ready functions in generated code
+		# we could fix this by accumulating onreadies (and _ready definition if exists)
+		# then appending it at the end on script
+		# (or replacing a dummy string ex:__READY__ if _ready was defined by user)
+		if name in self.onready_assigns:
+			self.define_method('_ready')
 		
-		# TODO: in cpp, add member and method bindings
+		# TODO: add bindings
+	
+	def end_script(self):
+		self.end_class(self.script_class)
 		
 		# close remaining scopes (notably script-level class)
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
 		
-		self.hpp += '\n}'
+		# NOTE: this is not necessarily the name of the hpp file !
+		self.cpp = f'#include "{self.class_name}".hpp"\n\n' + self.getLayer().getvalue()
 		
-		self.hpp = header \
-			.replace('__SCRIPT_CLASS__', self.script_class.upper()) \
-			.replace('__IMPLEMENTATION__', self.hpp.getvalue())
+		hpp = StringBuilder()
+		for sb in self.hpps.values(): hpp += sb.getvalue()
+		self.hpp = '''
+#ifndef __CLASS___H
+#define __CLASS___H
+
+#include <Godot.hpp>
+
+using namespace godot;
+
+__IMPLEMENTATION__
+
+#endif // __CLASS___H
+'''.replace('__CLASS__', self.script_class.upper()).replace('__IMPLEMENTATION__', hpp.getvalue())
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -360,7 +398,7 @@ class Transpiler:
 		self.getLayer().write(txt)
 	
 	def get_result(self):
-		return [self.hpp, self.getLayer().getvalue()]
+		return (self.hpp, self.cpp)
 	
 	def save_result(self, outname):
 		if not outname.endswith('.cpp'): outname += '.cpp'
@@ -401,7 +439,7 @@ class Transpiler:
 def rReplace(string, toReplace, newValue, n = 1):
 	return newValue.join(string.rsplit(toReplace,n))
 
-def asPrivate(name):
+def toPrivate(name):
 	return '_' + name
 
 def translate_type(type):
@@ -414,20 +452,6 @@ def translate_type(type):
 
 # trick for generator values
 get = next
-
-# Default imports and aliases that almost every class needs.
-header = """
-#ifndef __SCRIPT_CLASS___H
-#define __SCRIPT_CLASS___H
-
-#include <Godot.hpp>
-
-using namespace godot;
-
-__IMPLEMENTATION__
-
-#endif // __SCRIPT_CLASS___H
-""";
 
 export_replacements = {
 	"export_range":"Export(PropertyHint.Range,",

@@ -12,22 +12,29 @@ class Transpiler:
 		# scope level
 		self.level = 0
 		
-		# allows to parse code and rearrange it
-		self.layers = [StringBuilder()]
+		# script level class name
+		self.script_class = ''
 		
-		# default imports
-		self += header
-		
-		# onready assignments that need to be moved to the ready function
-		self.onready_assigns = []
+		# onready assignments
+		# they are moved moved to the ready function of the corresponding class
+		# (class_name:assignment_str)
+		self.onready_assigns = {}
 		
 		# unnamed enums don't exist in C#, so we use a counter to give them a name
 		self.unnamed_enums = 0
+		
+		# allows to parse code and rearrange it
+		self.layers = [StringBuilder()]
+		
+		# result cs
+		self.cs = ''
 	
 	# class name as str and class definition as ClassData
 	def current_class(self, class_name, klass):
 		self.class_name = class_name
 		self.klass = klass
+		# first defined class is script-level class
+		if not self.script_class: self.script_class = class_name
 	
 	def define_class(self, name, base_class, is_tool):
 		if is_tool: self += '[Tool]\n'
@@ -127,14 +134,13 @@ class Transpiler:
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
 		return_type = translate_type(return_type)
-		name = toPascal(name)
 		
 		if not code:
 			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
 		
 		exposed = 'protected' if name[0] == '_' else 'public'
 		static_str = 'static ' if static else ''
-		self += f'{exposed} {static_str}{return_type} {name}('
+		self += f'{exposed} {static_str}{return_type} {toPascal(name)}('
 		
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
@@ -144,11 +150,13 @@ class Transpiler:
 		
 		self += ')'
 		
-		# add onready assignments if method is script-level _ready
-		if name == toPascal('_ready') and self.level == 1:
-			onreadies = '{' + ''.join(map(lambda stmt: f'\n\t\t{stmt};', self.onready_assigns))
-			code = code.replace('{', onreadies, 1)
-			self.onready_assigns.clear()
+		# add onready assignments if method is _ready
+		if name == '_ready' and self.class_name in self.onready_assigns:
+			onreadies = self.onready_assigns[self.class_name]
+			tabs = '\t' * (self.level +1)
+			onreadies_code = '{' + ''.join(map(lambda stmt: f'\n{tabs}{stmt};', onreadies))
+			code = code.replace('{', onreadies_code, 1)
+			del self.onready_assigns[self.class_name]
 		
 		self.write(code)
 	
@@ -162,7 +170,7 @@ class Transpiler:
 		if onreadyName:
 			self.addLayer()
 			self.write(f'{toPascal(onreadyName)} = '); get(exp)
-			self.onready_assigns.append(self.popLayer())
+			self.onready_assigns.setdefault(self.class_name, []).append(self.popLayer())
 			return
 		self += ' = '; get(exp)
 	
@@ -332,17 +340,23 @@ class Transpiler:
 					if when: self += ' && '; get(when)
 					self += ')'
 	
-	def end_script(self):
+	def end_class(self, name):
 		# add ready function if there are onready_assigns remaining
-		# NOTE : if there are onready properties before and after a user-defined _ready method
-		# this will result in 2 _ready functions in generated code
-		if self.onready_assigns: self.define_method('_ready')
-		
-		# TODO: in cpp, add member and method bindings
+		# NOTE : we can end up with 2 _ready functions in generated code
+		# we could fix this by accumulating onreadies (and _ready definition if exists)
+		# then appending it at the end on script
+		# (or replacing a dummy string ex:__READY__ if _ready was defined by user)
+		if name in self.onready_assigns:
+			self.define_method('_ready')
+	
+	def end_script(self):
+		self.end_class(self.script_class)
 		
 		# close remaining scopes (notably script-level class)
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
+		
+		self.cs = header + self.getLayer().getvalue()
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -367,12 +381,12 @@ class Transpiler:
 		self.getLayer().write(txt)
 	
 	def get_result(self):
-		return self.getLayer().getvalue()
+		return (self.cs,) 
 	
 	def save_result(self, outname):
 		if not outname.endswith('.cs'): outname += '.cs'
 		with open(outname,'w+') as wf:
-			wf.write(self.get_result())
+			wf.write(self.get_result()[0])
 	
 	def UpScope(self):
 		self.vprint('UpScope')
