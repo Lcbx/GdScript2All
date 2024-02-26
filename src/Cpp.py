@@ -368,6 +368,8 @@ public:
 		bindings += '}\n'
 		
 		self.define_method('_bind_methods', code = bindings.getvalue(), static = True)
+		
+		self.getHpp() + '}\n'
 	
 	def end_script(self):
 		self.end_class(self.script_class)
