@@ -28,31 +28,31 @@ public partial class statements : Godot.Node
 		}
 		else
 		{
-			GD.Print(I);
+			GD.Print(i);
 		}
 		
 		while(false)
 		{
-			I += 1;
+			i += 1;
 			break;
 			continue;
 		}
 		
-		foreach(int j in Range(I))
+		foreach(int j in Range(i))
 		{
-			I += j;
+			i += j;
 		}
 		
-		switch(I)
+		switch(i)
 		{
 			case "1":
 			{
-				GD.Print(I);
+				GD.Print(i);
 				break;
 			}
 			case 1:
 			{
-				GD.Print(I);
+				GD.Print(i);
 				break;
 			}
 			case 0: if(true)
@@ -73,7 +73,7 @@ public partial class statements : Godot.Node
 			}
 		}
 		
-		I += 3 / 3 + 2 * 0.5;
+		i += 3 / 3 + 2 * 0.5;
 		
 		await ToSignal(this, "jump");
 		await ToSignal(GetTree(), "ProcessFrame");

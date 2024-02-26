@@ -413,11 +413,9 @@ class Transpiler:
 		self.layers.pop()
 		return scope
 
-def rReplace(string, toReplace, newValue, n = 1):
-	return newValue.join(string.rsplit(toReplace,n))
+def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
 
-def toPrivate(name):
-	return '_' + name
+def toPrivate(name): return '_' + name
 
 def toPascal(text):
 	split_ = text.split('_')

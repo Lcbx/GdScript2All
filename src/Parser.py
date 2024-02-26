@@ -3,6 +3,7 @@ import os
 from copy import copy
 from enum import IntFlag as Flags
 
+from ClassData import ClassData
 from godot_types import godot_types
 from Tokenizer import Tokenizer
 
@@ -36,8 +37,9 @@ class Parser:
 		
 		# class names in order of definition in file
 		self.classes = []
+		
 		# local class definitions (class_name:classData)
-		self.definitions = {}
+		self.class_definitions = {}
 		
 		# local variables (name:type)
 		self.locals = {}
@@ -666,8 +668,9 @@ class Parser:
 		# a singleton (ex: RenderingServer)
 		# a global constant (ex: KEY_ESCAPE)
 		singleton = name in godot_types
-		property = name in self.getClass().members
+		property = name in self.getClass().members or name in self.getClassParent().members
 		type = self.getClass().members.get(name, None) \
+			or self.getClassParent().members.get(name, None) \
 			or self.locals.get(name, None) \
 			or godot_types['@GlobalScope'].constants.get(name, None) \
 			or (name if singleton else None)
@@ -720,6 +723,7 @@ class Parser:
 		global_function = not calling_type and name in godot_types['@GlobalScope'].methods
 		type = (name if constructor else None ) \
 			or self.getClass().methods.get(name, None) \
+			or self.getClassParent().methods.get(name, None) \
 			or (godot_types[calling_type].methods.get(name, None) if godot_method \
 			else godot_types['@GlobalScope'].methods.get(name, None) if global_function \
 			else None)
@@ -839,9 +843,9 @@ class Parser:
 	# using a stack to keep track of class being defined
 	def add_class(self, name, base_class):
 		self.classes.append(name)
-		classData = copy(godot_types.get(base_class, None) or godot_types.get('Object', None))
+		classData = ClassData()
 		classData.base = base_class
-		self.definitions[name] = classData
+		self.class_definitions[name] = classData
 		self.out.current_class(name, classData)
 	
 	def end_class(self):
@@ -850,7 +854,14 @@ class Parser:
 		self.out.current_class(self.classes[-1], self.getClass())
 	
 	def getClass(self):
-		return self.definitions[self.classes[-1]]
+		return self.class_definitions[self.classes[-1]]
+		
+	def getClassParent(self):
+		class_name = self.classes[-1]
+		parent = self.class_definitions[class_name].base
+		res = self.class_definitions.get(parent, None) or godot_types.get(parent, None)
+		assert res, f"can't find {class_name}'s parent ({parent})"
+		return res
 	
 	# parse call params
 	def parseCallParams(self):

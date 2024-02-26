@@ -134,12 +134,10 @@ public:
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
 		return_type = translate_type(return_type)
 		
-		if not code:
-			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
+		if not code: self.addLayer(); self += '\n{\n}'; code = self.popLayer()
 		
-		exposed = 'protected' if name[0] == '_' else 'public'
 		static_str = 'static ' if static else ''
-		self += f'{exposed} {static_str}{return_type} {name}('
+		self += f'{static_str}{return_type} {self.class_name}::{name}('
 		
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
@@ -348,7 +346,28 @@ public:
 		if name in self.onready_assigns:
 			self.define_method('_ready')
 		
-		# TODO: add bindings
+		# add bindings
+		bindings = StringBuilder()
+		bindings += ' {\n'
+		
+		# members
+		for prop, type in self.klass.members.items():
+			if prop in self.annotations and not type.startswith('signal'):
+				an_name, an_args = self.annotations[prop]
+				an_name = export_replacements.get(an_name, None) or an_name.upper()
+				bindings += f'\tADD_PROPERTY(PropertyInfo(Variant::{type.upper()}, "{prop}"'
+				if an_name != 'EXPORT': bindings += f', {an_name}, "{an_args}"'
+				bindings += f'), "{toSet(prop)}", "{toGet(prop)}");\n'
+		
+		# methods
+		for meth, type in self.klass.methods.items():
+			#TODO: add method arg names
+			bindings += f'\tClassDB::bind_method(D_METHOD("{meth}" /* TODO: arg names */), &{self.class_name}::{meth});\n'
+		
+		
+		bindings += '}\n'
+		
+		self.define_method('_bind_methods', code = bindings.getvalue(), static = True)
 	
 	def end_script(self):
 		self.end_class(self.script_class)
@@ -439,8 +458,9 @@ __IMPLEMENTATION__
 def rReplace(string, toReplace, newValue, n = 1):
 	return newValue.join(string.rsplit(toReplace,n))
 
-def toPrivate(name):
-	return '_' + name
+def toPrivate(name): return '_' + name
+def toSet(name): return f'set_{name}'
+def toGet(name): return f'get_{name}'
 
 def translate_type(type):
 	if type == None: return 'void'
@@ -454,11 +474,11 @@ def translate_type(type):
 get = next
 
 export_replacements = {
-	"export_range":"Export(PropertyHint.Range,",
-	"export_exp_easing ": "Export(PropertyHint.ExpEasing)",
-	"export_color_no_alpha":"Export(PropertyHint.ColorNoAlpha)",
-	"export_flags":"Export(PropertyHint.Flags,",
-	"export_enum":"Export(PropertyHint.Enum,",
+	"export_range":"PROPERTY_HINT_RANGE,",
+	"export_exp_easing ": "PROPERTY_HINT_EXP_EASING",
+	"export_color_no_alpha":"PROPERTY_HINT_COLOR_NO_ALPHA",
+	"export_flags":"PROPERTY_HINT_FLAGS",
+	"export_enum":"PROPERTY_HINT_ENUM",
 	# TODO: fill more if needed /possible
 }
 
