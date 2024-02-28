@@ -23,7 +23,8 @@ transforms = {
 newReadme = template 
 
 for placeholder, filename in transforms.items():
-	newReadme = newReadme.replace(placeholder, read_file(filename))
+	newReadme = newReadme.replace(placeholder, read_file(filename) \
+		.replace('\t', '    ')) # github tabs are huge
 
 with open('README.md', 'w+') as f: f.write(newReadme)
 

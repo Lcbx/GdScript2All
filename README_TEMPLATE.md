@@ -1,5 +1,5 @@
 ## GdScript2All
-A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to any languages (C# only currently but eventually c++) with features like type inference.
+A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to any languages (currently C# and c++) with features like type inference.
 It should be fairly easy to add new langugages (see [here](#Adding-new-languages))
 
 ### Usage
@@ -16,10 +16,11 @@ C# output :
 ```cs
 __test.cs__
 ```
-c++ output (TODO!) :
+c++ output (header) :
 ```c++
 __test.hpp__
 ```
+c++ output (implementation) :
 ```c++
 __test.cpp__
 ```
@@ -34,6 +35,7 @@ py main.py -t CustomTranspiler <file_or_folder_path>
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
 - type inference does not currently support user-defined classes
+- generated C++ does not contain the includes nor does it handle pointers
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
