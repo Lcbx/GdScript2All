@@ -46,10 +46,10 @@ class Transpiler:
 			name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
 		self += f'public enum {name} {definition}'
 	
-	def annotation(self, name, params, memberName):
+	def annotation(self, name, params, memberName = None):
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		start = export_replacements.get(name, None) or ( toPascal(name) + (params and '(') )
+		start = export_replacements.get(name) or ( toPascal(name) + (params and '(') )
 		self += f'[{start}"{params}")]' if params else f'[{start}]'
 	
 	def declare_property(self, type, name, assignment, constant, static):

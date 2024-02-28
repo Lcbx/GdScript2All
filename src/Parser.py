@@ -167,7 +167,7 @@ class Parser:
 			if not ann_endline: ann_endline = ' '
 			
 			# another annotation, means that this one is probably a group/subgroup
-			if self.match_value('@'): self.out.annotation(annotation, ann_params, None); self.out.write(ann_endline)
+			if self.match_value('@'): self.out.annotation(annotation, ann_params); self.out.write(ann_endline)
 		
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
 		constant = self.expect('const')
@@ -666,10 +666,10 @@ class Parser:
 		# a global constant (ex: KEY_ESCAPE)
 		singleton = name in godot_types
 		property = name in self.getClass().members or name in self.getClassParent().members
-		type = self.getClass().members.get(name, None) \
-			or self.getClassParent().members.get(name, None) \
-			or self.locals.get(name, None) \
-			or godot_types['@GlobalScope'].constants.get(name, None) \
+		type = self.getClass().members.get(name) \
+			or self.getClassParent().members.get(name) \
+			or self.locals.get(name) \
+			or godot_types['@GlobalScope'].constants.get(name) \
 			or (name if singleton else None)
 		signal = type and type.startswith('signal')
 		
@@ -719,10 +719,10 @@ class Parser:
 		godot_method = calling_type and calling_type in godot_types
 		global_function = not calling_type and name in godot_types['@GlobalScope'].methods
 		type = (name if constructor else None ) \
-			or self.getClass().methods.get(name, None) \
-			or self.getClassParent().methods.get(name, None) \
-			or (godot_types[calling_type].methods.get(name, None) if godot_method \
-			else godot_types['@GlobalScope'].methods.get(name, None) if global_function \
+			or self.getClass().methods.get(name) \
+			or self.getClassParent().methods.get(name) \
+			or (godot_types[calling_type].methods.get(name) if godot_method \
+			else godot_types['@GlobalScope'].methods.get(name) if global_function \
 			else None)
 		
 		params = ( *self.parseCallParams() ,)
@@ -861,9 +861,9 @@ class Parser:
 	def getClassParent(self):
 		class_name = self.classes[-1]
 		parent_name = self.class_definitions[class_name].base
-		parent = self.class_definitions.get(parent_name, None) \
-			or godot_types.get(parent_name, None) \
-			or godot_types.get('Object', None)
+		parent = self.class_definitions.get(parent_name) \
+			or godot_types.get(parent_name) \
+			or godot_types.get('Object')
 		return parent
 	
 	# parse call params

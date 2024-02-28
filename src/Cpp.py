@@ -83,7 +83,7 @@ class Transpiler:
 	def enum(self, name, definition):
 		public = self.getClass().public(); public += f'\tenum {name} {definition};'
 	
-	def annotation(self, name, params, memberName):
+	def annotation(self, name, params, memberName = None):
 		self.getClass().annotations.append( (memberName, name, params) )
 	
 	def declare_property(self, type, name, assignment, constant, static):
@@ -354,15 +354,15 @@ class Transpiler:
 			if prop: # @export_... property
 				type = self.klass.members[prop]
 				if not type.startswith('signal'):
-					an_name = export_replacements.get(an_name, None) or an_name.upper()
+					an_name = export_replacements.get(an_name) or an_name.upper()
 					
 					property_bindings += f'\tADD_PROPERTY(PropertyInfo({type_enum(type)}, "{prop}"'
 					
 					# PROPERTY_HINT_*****, "args"
 					if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
 					
-					accessor_get = self.getClass().accessors_get.get(prop, None)
-					accessor_set = self.getClass().accessors_set.get(prop, None)
+					accessor_get = self.getClass().accessors_get.get(prop)
+					accessor_set = self.getClass().accessors_set.get(prop)
 					
 					# add accessors to binding
 					property_bindings += f'), "{accessor_set or toSet(prop)}", "{accessor_get or toGet(prop)}");\n'
