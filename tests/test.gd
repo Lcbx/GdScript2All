@@ -78,6 +78,7 @@ func async_function():
 	
 	var myLambda = func(): print("look ma i'm jumping")
 	
+	# lambdas are not perfectly translated
 	jump.connect( myLambda )
 	
 	movement.emit(Vector3.UP, .1)

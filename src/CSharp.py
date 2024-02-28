@@ -51,24 +51,24 @@ class Transpiler:
 		self += f'public enum {name} {definition}'
 	
 	def annotation(self, name, params, memberName):
-		# TODO: check replacements are exhaustive
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		name = export_replacements[name] if name in export_replacements else toPascal(name) + (params and '(')
-		self += f'[{name}"{params}")]' if params else f'[{name}]'
+		start = export_replacements.get(name, None) or ( toPascal(name) + (params and '(') )
+		self += f'[{start}"{params}")]' if params else f'[{start}]'
 		self += '\n'
 		
 		# NOTE: might be a good idea to save exported members names
 		# so we can generate bindings in c++
 		if 'export' in name: pass
 	
-	def declare_property(self, type, name, constant, static):
+	def declare_property(self, type, name, assignment, constant, static):
 		type = translate_type(type)
 		name = name.upper() if constant else toPascal(name)
 		
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{type} {name}'
+		if assignment: get(assignment)
 	
 	def setget(self, member, accessors):
 		
@@ -129,8 +129,9 @@ class Transpiler:
 			code = code.replace(toPascal(member), toPrivate(toPascal(member)))
 		return code
 	
-	def declare_variable(self, type, name):
+	def declare_variable(self, type, name, assignment):
 		self += f'var {name}'
+		if assignment: get(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False):
 		return_type = translate_type(return_type)
@@ -162,7 +163,7 @@ class Transpiler:
 	
 	def define_signal(self, name, params):
 		name = toPascal(name)
-		paramStr = ','.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
+		paramStr = ', '.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
 		self += '[Signal]\n'
 		self += f'public delegate void {name}Handler({paramStr});'
 	
@@ -180,19 +181,19 @@ class Transpiler:
 	def create_array(self, values):
 		self += 'new Array{'; self.level += 1
 		for value in values:
-			get(value); self += ','
+			get(value); self += ', '
 		self += '}'; self.level -= 1
 		
 	def create_dict(self, kv):
 		self += 'new Dictionary{'; self.level += 1
 		for key, value in kv:
-			self += '{'; get(key); self += ','; get(value); self+= '},'
+			self += '{'; get(key); self += ', '; get(value); self+= '},'
 		self += '}'; self.level -= 1
 	
 	def create_dict(self, kv):
 		self += 'new Dictionary{'; self.level += 1
 		for key, value in kv:
-			self += '{'; get(key); self += ','; get(value); self+= '},'
+			self += '{'; get(key); self += ', '; get(value); self+= '},'
 		self += '}'; self.level -= 1
 	
 	def create_lambda(self, params, code):
@@ -203,7 +204,6 @@ class Transpiler:
 		self += ') =>'
 		# cleanup
 		code = code.replace('{', '{\t', 1)
-		code = code.replace(';;', ';')
 		code = rReplace(code, '}', '};')
 		self.write(code)
 	
@@ -356,7 +356,7 @@ class Transpiler:
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
 		
-		self.cs = header + self.getLayer().getvalue()
+		self.cs = header + prettyfy(self.getLayer().getvalue())
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -437,6 +437,23 @@ def translate_type(type):
 	if type == 'float': return 'double' # C# uses doubles
 	return type
 
+# for prettier output
+def prettyfy(value):
+	def impl():
+		cnt = 0
+		for c in value:
+			if c == '\n':
+				cnt += 1
+				yield c
+			elif cnt > 0 and c == ';':
+				pass
+			elif cnt > 0 and c == '\t':
+				yield c
+			else:
+				cnt = 0
+				yield c
+	return ''.join(impl())
+
 # trick for generator values
 get = next
 
@@ -448,12 +465,43 @@ using Array = Godot.Collections.Array;
 """;
 
 export_replacements = {
-	"export_range":"Export(PropertyHint.Range,",
-	"export_exp_easing ": "Export(PropertyHint.ExpEasing)",
-	"export_color_no_alpha":"Export(PropertyHint.ColorNoAlpha)",
-	"export_flags":"Export(PropertyHint.Flags,",
-	"export_enum":"Export(PropertyHint.Enum,",
-	# TODO: fill more if needed /possible
+	'export_range':'Export(PropertyHint.Range',
+	'export_enum':'Export(PropertyHint.Enum',
+	'export_enum_suggestion':'Export(PropertyHint.EnumSuggestion',
+	'export_exp_easing':'Export(PropertyHint.ExpEasing',
+	'export_link':'Export(PropertyHint.Link',
+	'export_flags':'Export(PropertyHint.Flags',
+	'export_layers_2d_render':'Export(PropertyHint.Layers2DRender',
+	'export_layers_2d_physics':'Export(PropertyHint.Layers2DPhysics',
+	'export_layers_2d_navigation':'Export(PropertyHint.Layers2DNavigation',
+	'export_layers_3d_render':'Export(PropertyHint.Layers3DRender',
+	'export_layers_3d_physics':'Export(PropertyHint.Layers3DPhysics',
+	'export_layers_3d_navigation':'Export(PropertyHint.Layers3DNavigation',
+	'export_layers_avoidance':'Export(PropertyHint.LayersAvoidance',
+	'export_file':'Export(PropertyHint.File',
+	'export_dir':'Export(PropertyHint.Dir',
+	'export_global_file':'Export(PropertyHint.GlobalFile',
+	'export_global_dir':'Export(PropertyHint.GlobalDir',
+	'export_resource_type':'Export(PropertyHint.RessourceType',
+	'export_multiline_text':'Export(PropertyHint.MultilineText',
+	'export_expression':'Export(PropertyHint.Expression',
+	'export_placeholder_text':'Export(PropertyHint.PlaceholderText',
+	'export_color_no_alpha':'Export(PropertyHint.ColorNoAlpha',
+	'export_object_id':'Export(PropertyHint.ObjectId',
+	'export_type_string':'Export(PropertyHint.TypeString',
+	'export_node_path_to_edited_nod':'Export(PropertyHint.NodePathToEditedNode',
+	'export_object_too_big':'Export(PropertyHint.ObjectTooBig',
+	'export_node_path_valid_types':'Export(PropertyHint.NodePathValidTypes',
+	'export_save_file':'Export(PropertyHint.SaveFile',
+	'export_global_save_file':'Export(PropertyHint.GlobalSaveFile',
+	'export_int_is_objectid':'Export(PropertyHint.IntIsObjectId',
+	'export_int_is_pointer':'Export(PropertyHint.IntIsPointer',
+	'export_array_type':'Export(PropertyHint.ArrayType',
+	'export_locale_id':'Export(PropertyHint.LocaleId',
+	'export_localizable_string':'Export(PropertyHint.LocalizableString',
+	'export_node_type':'Export(PropertyHint.NodeType',
+	'export_hide_quaternion_edit':'Export(PropertyHint.HideQuaternionEdit',
+	'export_password':'Export(PropertyHint.Password',
 }
 
 variable_replacements = {
@@ -588,7 +636,6 @@ function_replacements = {
 	'var_to_bytes' : 'GD.VarToBytes',
 	'var_to_bytes_with_objects' : 'GD.VarToBytesWithObjects',
 	'var_to_str' : 'GD.VarToStr',
-	'weakref' : 'GodotObject.WeakRef',
 	'wrap' : 'Mathf.Wrap',
 	'wrapf' : 'Mathf.Wrap',
 	'wrapi' : 'Mathf.Wrap'

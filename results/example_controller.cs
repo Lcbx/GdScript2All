@@ -101,7 +101,7 @@ public partial class Character : Godot.CharacterBody3D
 	[Signal]
 	public delegate void CollisionHandler(Godot.KinematicCollision3D collision);
 	[Signal]
-	public delegate void MovementHandler(Godot.Vector3 dir,double speed);
+	public delegate void MovementHandler(Godot.Vector3 dir, double speed);
 	[Signal]
 	public delegate void JumpHandler(double speed);
 	

@@ -90,6 +90,7 @@ func async_function():
 	
 	var myLambda = func(): print("look ma i'm jumping")
 	
+	# lambdas are not perfectly translated
 	jump.connect( myLambda )
 	
 	movement.emit(Vector3.UP, .1)
@@ -143,7 +144,7 @@ public partial class test : Godot.Node
 	public Godot.Variant ExportParam;
 	
 	
-	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
+	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant ExportFlags;
 	
 	// basic property definitions / expressions
@@ -153,9 +154,9 @@ public partial class test : Godot.Node
 	public string BigStr = @"
 		this is a multiline string
 	";
-	public Array Array = new Array{0,1,2,};
-	public Dictionary Dict = new Dictionary{{0,1},{1,2},{2,3},};
-	public Array<string> StringArray = new Array{"0","1",};
+	public Array Array = new Array{0, 1, 2, };
+	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
+	public Array<string> StringArray = new Array{"0", "1", };
 	
 	// method
 	public double Method(double param = 5.0)
@@ -190,7 +191,7 @@ public partial class test : Godot.Node
 	[Signal]
 	public delegate void JumpHandler();
 	[Signal]
-	public delegate void MovementHandler(Godot.Vector3 dir,double speed);
+	public delegate void MovementHandler(Godot.Vector3 dir, double speed);
 	
 	// property getters and setters
 	public double GetsetVar
@@ -226,18 +227,19 @@ public partial class test : Godot.Node
 		{	GD.Print("look ma i'm jumping");
 		};
 		
-		;jump += myLambda;
+		// lambdas are not perfectly translated
+		jump += myLambda;
 		
 		EmitSignal("movement", Godot.Vector3.UP, 0.1);
 	}
 	
 	// this becomes rapidly unreadable once translated though
 	protected const Dictionary _DEFAULT_DATA = new Dictionary{
-		{"t",100},
-		{"rafg","asfgh"},
-		{"u",false},// Example Comment
-		{"r",new Array{"a",new Dictionary{{"b",false},},}},
-		{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
+		{"t", 100},
+		{"rafg", "asfgh"},
+		{"u", false},// Example Comment
+		{"r", new Array{"a", new Dictionary{{"b", false},}, }},
+		{"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
 		};
 	
 	// automatic _ready generation
@@ -251,10 +253,216 @@ public partial class test : Godot.Node
 ```
 c++ output (TODO!) :
 ```c++
-__test.hpp__
+
+#ifndef TEST_H
+#define TEST_H
+
+#include <godot_cpp/godot.hpp>
+
+using namespace godot;
+
+namespace godot {
+
+// line comment
+
+/* multiline
+   comment
+*/
+
+class Nested1 : public test {
+	GDCLASS(Nested1, test);
+public:
+
+	static void _bind_methods();
+}
+class test : public Node {
+	GDCLASS(test, Node);
+public:
+	enum  {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY};
+	enum Named {THING_1,THING_2,ANOTHER_THING=-1};
+
+protected:
+	Variant export;
+
+	Variant export_param;
+
+	Variant export_flags;
+
+// basic property definitions / expressions
+	Variant foo;
+	static int i = 0;
+	const string str = "the fox said \"get off my lawn\"";
+	string big_str = "\
+	this is a multiline string\
+";
+	Array array = new Array{0,1,2,};
+	Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
+	Array<string> string_array = new Array{"0","1",};
+
+// method
+
+// type inference on members
+
+public:
+	float method(float param = 5.0);
+
+protected:
+	int j = this->i;
+	string k = string_array[0];
+
+// determine type based on godot doc
+	Node* x = this->get_parent();
+	float x = new Vector3().x;
+	Dictionary aClass = ProjectSettings.get_global_class_list()[10];
+	const int flag = RenderingServer::NO_INDEX_ARRAY;
+	float global_function = angle_difference(0.1, 0.2);
+
+// Gdscript special syntax
+	Node* get_node = get_node("node");
+	Node* get_node2 = get_node("../node");
+	Node* get_unique_node = get_node("%unique_node");
+	Resource* preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
+	Resource* load_resource = load("res://path");
+
+// signals
+	/* signal jump() */
+	/* signal movement(Vector3 dir, float speed) */
+
+// property getters and setters
+	float getset_var;
+
+	float getset_var2 =  - 0.1;
+
+public:
+	void set_getset_var2(float value);
+
+	float get_getset_var2();
+
+// this becomes rapidly unreadable once translated though
+	void async_function();
+
+protected:
+	const Dictionary _default_data = new Dictionary{
+	{"t",100},
+	{"rafg","asfgh"},
+	{"u",false},// Example Comment
+	{"r",new Array{"a",new Dictionary{{"b",false},},}},
+	{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
+	};
+
+// automatic _ready generation
+/* @onready */	int k;
+
+public:
+	void _ready();
+	void set_export(Variant value);
+	Variant get_export();
+	void set_export_param(Variant value);
+	Variant get_export_param();
+	void set_export_flags(Variant value);
+	Variant get_export_flags();
+
+	static void _bind_methods();
+}
+
+}
+
+#endif // TEST_H
+
 ```
 ```c++
-__test.cpp__
+#include "test.hpp"
+#include <godot_cpp/core/class_db.hpp>
+
+
+static void Nested1::_bind_methods() {
+}
+
+float test::method(float param)
+{
+	int val = 2;
+	for(string k : string_array)
+	{
+		print(k);
+	}
+	return val * param;
+}
+
+void test::set_getset_var2(float value)
+{
+	getset_var2 = value;
+}
+
+float test::get_getset_var2()
+{
+	return getset_var2;
+}
+
+void test::async_function()
+{
+	/* await self.jump; */ // no equivalent to await in c++ !
+	/* await get_tree().process_frame; */ // no equivalent to await in c++ !
+	
+	get_tree().emit_signal("process_frame", 0.7);
+	
+	Callable myLambda = () =>
+	{	print("look ma i'm jumping");
+	};
+	
+	// lambdas are not perfectly translated
+	connect("jump", myLambda);
+	
+	emit_signal("movement", Vector3::UP, 0.1);
+}
+
+void test::_ready()
+{
+	k = 42;
+}
+
+void test::set_export(Variant value){
+	export = value;
+}
+
+Variant test::get_export(){
+	 return export;
+}
+
+void test::set_export_param(Variant value){
+	export_param = value;
+}
+
+Variant test::get_export_param(){
+	 return export_param;
+}
+
+void test::set_export_flags(Variant value){
+	export_flags = value;
+}
+
+Variant test::get_export_flags(){
+	 return export_flags;
+}
+
+static void test::_bind_methods() {
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+	ADD_SIGNAL(MethodInfo("jump"));
+	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
+	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
+	ClassDB::bind_method(D_METHOD("set_getset_var2", "value"), &test::set_getset_var2);
+	ClassDB::bind_method(D_METHOD("get_getset_var2"), &test::get_getset_var2);
+	ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
+	ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
+	ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
+	ClassDB::bind_method(D_METHOD("set_export_param", "value"), &test::set_export_param);
+	ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
+	ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
+	ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
+}
+
+
 ```
 
 ### Adding new languages

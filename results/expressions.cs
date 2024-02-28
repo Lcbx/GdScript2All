@@ -14,9 +14,9 @@ public partial class expressions : Godot.Node
 	this is a multiline string
 	";
 	protected bool _ProtectedBool = true;
-	public Array Array = new Array{0,1,2,};
-	public Dictionary Dict = new Dictionary{{0,1},{1,2},{2,3},};
-	public Array<string> StringArray = new Array{"0","1",};
+	public Array Array = new Array{0, 1, 2, };
+	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
+	public Array<string> StringArray = new Array{"0", "1", };
 	public int Parenthesis = (42);
 	public int DelayedExpression = 1;
 	public double AsKeyword = 3;

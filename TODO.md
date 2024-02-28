@@ -4,6 +4,7 @@
 - [x] support signals
 - [x] support lambda functions
 - [ ] support lambda return type inference
+- [ ] support export groups/subgroups annotations
 - [ ] support enum as a type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 - [ ] detect base class method override (_ready, _process, ...)
 - [x] support await ex: "await" => "await ToSignal(....)
@@ -12,7 +13,8 @@
 - [x] add onready assignments to ready method
 - [x] support onreadies in nested classes (rn they get added to script class)
 - [x] add c++ transpiling backend
-- [ ] c++ : generate bindings for methods and exported properties
+- [x] c++ : generate bindings for methods and exported properties
+- [ ] c++ : lambda creation syntax
 - [ ] support user-defined classes in type inference
 - [x] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] support special literals :

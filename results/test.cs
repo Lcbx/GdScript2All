@@ -31,7 +31,7 @@ public partial class test : Godot.Node
 	public Godot.Variant ExportParam;
 	
 	
-	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
+	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant ExportFlags;
 	
 	// basic property definitions / expressions
@@ -41,9 +41,9 @@ public partial class test : Godot.Node
 	public string BigStr = @"
 		this is a multiline string
 	";
-	public Array Array = new Array{0,1,2,};
-	public Dictionary Dict = new Dictionary{{0,1},{1,2},{2,3},};
-	public Array<string> StringArray = new Array{"0","1",};
+	public Array Array = new Array{0, 1, 2, };
+	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
+	public Array<string> StringArray = new Array{"0", "1", };
 	
 	// method
 	public double Method(double param = 5.0)
@@ -78,7 +78,7 @@ public partial class test : Godot.Node
 	[Signal]
 	public delegate void JumpHandler();
 	[Signal]
-	public delegate void MovementHandler(Godot.Vector3 dir,double speed);
+	public delegate void MovementHandler(Godot.Vector3 dir, double speed);
 	
 	// property getters and setters
 	public double GetsetVar
@@ -114,18 +114,19 @@ public partial class test : Godot.Node
 		{	GD.Print("look ma i'm jumping");
 		};
 		
-		;jump += myLambda;
+		// lambdas are not perfectly translated
+		jump += myLambda;
 		
 		EmitSignal("movement", Godot.Vector3.UP, 0.1);
 	}
 	
 	// this becomes rapidly unreadable once translated though
 	protected const Dictionary _DEFAULT_DATA = new Dictionary{
-		{"t",100},
-		{"rafg","asfgh"},
-		{"u",false},// Example Comment
-		{"r",new Array{"a",new Dictionary{{"b",false},},}},
-		{"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
+		{"t", 100},
+		{"rafg", "asfgh"},
+		{"u", false},// Example Comment
+		{"r", new Array{"a", new Dictionary{{"b", false},}, }},
+		{"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
 		};
 	
 	// automatic _ready generation

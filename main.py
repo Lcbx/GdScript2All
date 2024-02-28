@@ -79,7 +79,8 @@ def transpile(filename, outname):
 		if args.verbose:
 			print("")
 			print("****************  generated code  ****************")
-			print(code.replace('\t', '_ '))
+			print(code[0].replace('\t', '_ '))
+			if len(code) > 1: print(code[1].replace('\t', '_ '))
 			print("**************************************************")
 		
 		printException()

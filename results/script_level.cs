@@ -28,12 +28,29 @@ public partial class script_level : Godot.Node
 	public Godot.Variant Export;
 	
 	
+	
+	
 	[Export("param1,param2")]
 	public Godot.Variant ExportParam;
 	
 	
-	[Export(PropertyHint.Flags,"Self:4,Allies:8,Foes:16")]
+	
+	
+	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant ExportFlags;
+	
+	
+	
+	
+	[Export("subgroup")]
+	public Godot.Variant GetVar3
+	{
+		get
+		{return _GetVar3;
+		}
+	}
+	private Godot.Variant _GetVar3;
+
 	
 	public double GetsetVar
 	{
@@ -43,7 +60,7 @@ public partial class script_level : Godot.Node
 	private double _GetsetVar;
 
 	
-	public double DEF =  - 0.1 // Step
+	public double DEF =  - 0.1 // comment
 	{
 		set
 		{
@@ -60,6 +77,6 @@ public partial class script_level : Godot.Node
 	[Signal]
 	public delegate void AHandler();
 	[Signal]
-	public delegate void BHandler(int a,Type b);
+	public delegate void BHandler(int c, Type d);
 	
 }

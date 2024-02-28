@@ -167,8 +167,7 @@ class Parser:
 			annotation = self.consume()
 			# NOTE: this should work for most cases
 			if self.expect('('):
-				params = self.consumeUntil(')').replace('"', '').replace("'", '')
-				self.expect(')')
+				params = self.consumeUntil(')').replace('"', '').replace("'", ''); self.expect(')')
 			self.endline()
 		
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
@@ -418,14 +417,12 @@ class Parser:
 		# emit code
 		if flags & self.DECL_FLAGS.property:
 			self.getClass().members[name] = type
-			self.out.declare_property(type, name, \
+			self.out.declare_property(type, name, ass, \
 				flags & self.DECL_FLAGS.constant, \
 				flags & self.DECL_FLAGS.static)
 		else:
 			self.locals[name] = type
-			self.out.declare_variable(type, name)
-		
-		if ass: next(ass)
+			self.out.declare_variable(type, name, ass)
 		
 		return foundSetGet
 	
