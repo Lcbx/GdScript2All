@@ -14,12 +14,14 @@ public:
 
 	static void _bind_methods();
 }
+
 class Nested3 : public Object {
 	GDCLASS(Nested3, Object);
 public:
 
 	static void _bind_methods();
 }
+
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
@@ -31,6 +33,7 @@ public:
 
 	static void _bind_methods();
 }
+
 class script_level : public Node {
 	GDCLASS(script_level, Node);
 public:

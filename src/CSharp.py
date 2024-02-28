@@ -356,7 +356,7 @@ class Transpiler:
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
 		
-		self.cs = header + prettyfy(self.getLayer().getvalue())
+		self.cs = header + prettyfy(str(self.getLayer()))
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -409,7 +409,7 @@ class Transpiler:
 		
 	def popLayer(self):
 		# add top scope txt to lower then remove top
-		scope = self.layers[-1].getvalue()
+		scope = str(self.layers[-1])
 		self.layers.pop()
 		return scope
 

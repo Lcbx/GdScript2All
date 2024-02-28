@@ -1,7 +1,7 @@
 extends Node
 
 class Nested1 extends test:
-			
+
 class Nested2:
 	class Nested3:
 

@@ -8,7 +8,7 @@ class ClassDefinition:
 		
 		# remember if currently is declaring protected or public members
 		# True == protected, False == public
-		self.protected_public = False
+		self.toggle_protected_public = False
 		
 		# method arguments for bindings (method_name:args[])
 		self.method_args = {}
@@ -28,15 +28,15 @@ class ClassDefinition:
 		self.accessors_set = {}
 	
 	def protected(self):
-		if not self.protected_public: 
+		if not self.toggle_protected_public: 
 			self.hpp += '\nprotected:\n'
-			self.protected_public = True
+			self.toggle_protected_public = True
 		return self.hpp
 	
 	def public(self):
-		if self.protected_public: 
+		if self.toggle_protected_public: 
 			self.hpp += '\npublic:\n'
-			self.protected_public = False
+			self.toggle_protected_public = False
 		return self.hpp
 
 class Transpiler:
@@ -69,6 +69,7 @@ class Transpiler:
 	# NOTE: self.klass is the class data the parser generated
 	# while self.class_definitions are the code we are currently generating
 	def current_class(self, class_name, klass):
+		#print('current_class', class_name)
 		self.class_name = class_name
 		self.klass = klass
 		# first defined class is script-level class
@@ -148,11 +149,8 @@ class Transpiler:
 			return def_
 		
 		static_str = 'static ' if static else ''
-		hpp = f'\t{static_str}{translate_type(return_type)} {name}({paramStr(True)});\n'
-		cpp = f'{static_str}{translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})'
-		
-		self.getClass().public() + hpp
-		self += cpp
+		self.getClass().public() + f'\t{static_str}{translate_type(return_type)} {name}({paramStr(True)});\n' # hpp
+		self += f'{static_str}{translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})' # cpp
 		
 		# add onready assignments if method is _ready
 		if name == '_ready' and self.getClass().onready_assigns:
@@ -344,8 +342,7 @@ class Transpiler:
 		# we could fix this by accumulating onreadies (and _ready definition if exists)
 		# then appending it at the end on script
 		# (or replacing a dummy string ex:__READY__ if _ready was defined by user)
-		if self.getClass().onready_assigns:
-			self.define_method('_ready')
+		if self.getClass().onready_assigns: self.define_method('_ready')
 		
 		# add bindings
 		bindings = StringBuilder() + ' {\n'
@@ -388,10 +385,13 @@ class Transpiler:
 		bindings += '}\n'
 		
 		self.getClass().public() + '\n'
-		self.define_method('_bind_methods', code = bindings.getvalue(), static = True)
+		self.define_method('_bind_methods', code = str(bindings), static = True)
+		
+		#print('ending_class', name)
+		#if name.startswith('Nested'): print(self.getClass().hpp)
 		
 		# add class definition + close it
-		self.hpp += self.getClass().hpp.getvalue() + '}\n'
+		self.hpp += str(self.getClass().hpp) + '}\n\n'
 		self.current_class_index -= 1
 	
 	def end_script(self):
@@ -405,13 +405,12 @@ class Transpiler:
 		self.cpp = f'#include "{self.class_name}.hpp"\n' \
 			+ '#include <godot_cpp/core/class_db.hpp>\n\n\n' \
 			+ prettyfy( \
-				self.getLayer() \
-				.getvalue().replace('\n}', '\n}\n\n').replace(' ;', '') \
+				str(self.getLayer()).replace('\n}', '\n}\n\n').replace(' ;', '') \
 			)
 		self.hpp = prettyfy( hpp_template \
 			.replace('__CLASS__', self.script_class.upper()) \
 			.replace('__IMPLEMENTATION__', \
-				self.hpp.getvalue()) \
+				str(self.hpp)) \
 			)
 	
 	def comment(self, content):
@@ -483,7 +482,7 @@ class Transpiler:
 		
 	def popLayer(self):
 		# add top scope txt to lower then remove top
-		scope = self.layers[-1].getvalue()
+		scope = str(self.layers[-1])
 		self.layers.pop()
 		return scope
 

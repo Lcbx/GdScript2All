@@ -20,6 +20,7 @@ public:
 
 	static void _bind_methods();
 }
+
 class test : public Node {
 	GDCLASS(test, Node);
 public:
