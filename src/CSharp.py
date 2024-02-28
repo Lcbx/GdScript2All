@@ -347,7 +347,7 @@ class Transpiler:
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
 		
-		self.cs = header + prettyfy(str(self.getLayer()))
+		self.cs = header + prettify(str(self.getLayer()))
 	
 	def comment(self, content):
 		self += f"//{content}"
@@ -429,7 +429,7 @@ def translate_type(type):
 	return type
 
 # for prettier output
-def prettyfy(value):
+def prettify(value):
 	def impl():
 		cnt = 0
 		for c in value:
@@ -438,6 +438,8 @@ def prettyfy(value):
 				yield c
 			elif cnt > 0 and c == ';':
 				pass
+			elif cnt > 0 and c == ' ':
+				yield c
 			elif cnt > 0 and c == '\t':
 				yield c
 			else:

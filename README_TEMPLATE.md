@@ -1,5 +1,5 @@
 ## GdScript2All
-A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to any languages (currently C# and c++) with features like type inference.
+A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference.
 It should be fairly easy to add new langugages (see [here](#Adding-new-languages))
 
 ### Usage
@@ -27,15 +27,15 @@ __test.cpp__
 
 ### Adding new languages
 If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
-modify it as needed, then to use it you just have to pass its name with the ```-t``` flag:
+modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
 ```bash
-py main.py -t CustomTranspiler <file_or_folder_path>
+py main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
 - type inference does not currently support user-defined classes
-- generated C++ does not contain the includes nor does it handle pointers
+- generated C++ does not add necessary includes nor does it handle pointers well
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
@@ -46,7 +46,7 @@ match [34, 6]:
 ```
 will probably not be supported (too complicated to generate an equivalent)
 
-### To update the API definition
+### Updating the API definition
 * clone the offical godot repo
 * copy it's ```doc/classes``` folder and paste it into our ```classData``` folder
 * install untangle (xml parsing library) if you don't have it (```pip install untangle```)

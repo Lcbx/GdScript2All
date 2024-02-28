@@ -18,8 +18,10 @@ var export
 @export(param1, param2)
 var export_param
 
+@export_group('group')
+
 @export_flags("Self:4", "Allies:8", "Foes:16")
-var export_flags
+var export_flags : int
 
 # basic property definitions / expressions
 var foo

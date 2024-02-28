@@ -29,8 +29,10 @@ public partial class test : Godot.Node
 	[Export("param1,param2")]
 	public Godot.Variant ExportParam;
 	
+	[ExportGroup("group")]
+	
 	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
-	public Godot.Variant ExportFlags;
+	public int ExportFlags;
 	
 	// basic property definitions / expressions
 	public Godot.Variant Foo;

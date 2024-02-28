@@ -368,8 +368,8 @@ class Transpiler:
 					property_bindings += f'), "{accessor_set or toSet(prop)}", "{accessor_get or toGet(prop)}");\n'
 					
 					# define accessors if missing
-					if not accessor_get: self.setter(prop, 'value', f'{{\n\t{prop} = value;\n}}\n')
-					if not accessor_get: self.getter(prop, f'{{\n\t return {prop};\n}}\n')
+					if not accessor_get: self.setter(prop, 'value', f' {{\n\t{prop} = value;\n}}\n')
+					if not accessor_get: self.getter(prop, f' {{\n\treturn {prop};\n}}\n')
 			
 			else: # @export_group, subgroup, category
 				an_name = an_name.replace('export_','').upper()
@@ -419,10 +419,10 @@ class Transpiler:
 		# NOTE: class_name is not necessarily the name of the hpp file !
 		self.cpp = f'#include "{self.class_name}.hpp"\n' \
 			+ '#include <godot_cpp/core/class_db.hpp>\n\n\n' \
-			+ prettyfy( \
+			+ prettify( \
 				str(self.getLayer()).replace('\n}', '\n}\n\n').replace(' ;', '') \
 			)
-		self.hpp = prettyfy( hpp_template \
+		self.hpp = prettify( hpp_template \
 			.replace('__CLASS__', self.class_name.upper()) \
 			.replace('__IMPLEMENTATION__', \
 				str(self.hpp)) \
@@ -505,7 +505,6 @@ class Transpiler:
 def rReplace(string, toReplace, newValue, n = 1):
 	return newValue.join(string.rsplit(toReplace,n))
 
-def toPrivate(name): return '_' + name
 def toSet(name): return f'set_{name}'
 def toGet(name): return f'get_{name}'
 
@@ -526,7 +525,7 @@ def literal_type(type):
 		or 'Transform' in type
 
 # for prettier output
-def prettyfy(value):
+def prettify(value):
 	def impl():
 		cnt = 0
 		for c in value:
@@ -535,6 +534,8 @@ def prettyfy(value):
 				if cnt < 3: yield c
 			elif cnt > 0 and c == ';':
 				pass
+			elif cnt > 0 and c == ' ':
+				yield c
 			elif cnt > 0 and c == '\t':
 				yield c
 			else:

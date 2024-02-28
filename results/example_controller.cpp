@@ -102,12 +102,12 @@ void Character::set_view_dir(Vector3 value)
 	emit_signal("viewDirChanged", view_dir);
 }
 
-void Character::set_movements(Array<MovementState> value){
+void Character::set_movements(Array<MovementState> value) {
 	movements = value;
 }
 
-Array<MovementState> Character::get_movements(){
-	 return movements;
+Array<MovementState> Character::get_movements() {
+	return movements;
 }
 
 static void Character::_bind_methods() {

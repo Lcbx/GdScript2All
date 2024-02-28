@@ -6,7 +6,7 @@ static void Nested1::_bind_methods() {
 
 }
 
-float test::method(float param)
+ float test::method(float param)
 {
 	int val = 2;
 	for(string k : string_array)
@@ -48,28 +48,28 @@ void test::_ready()
 	k = 42;
 }
 
-void test::set_export(Variant value){
+void test::set_export(Variant value) {
 	export = value;
 }
 
-Variant test::get_export(){
-	 return export;
+Variant test::get_export() {
+	return export;
 }
 
-void test::set_export_param(Variant value){
+void test::set_export_param(Variant value) {
 	export_param = value;
 }
 
-Variant test::get_export_param(){
-	 return export_param;
+Variant test::get_export_param() {
+	return export_param;
 }
 
-void test::set_export_flags(Variant value){
+void test::set_export_flags(int value) {
 	export_flags = value;
 }
 
-Variant test::get_export_flags(){
-	 return export_flags;
+int test::get_export_flags() {
+	return export_flags;
 }
 
 static void test::_bind_methods() {
@@ -86,7 +86,8 @@ static void test::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+	ADD_GROUP("group","");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
 	ADD_SIGNAL(MethodInfo("jump"));
 	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 }

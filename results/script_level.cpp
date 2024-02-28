@@ -41,28 +41,28 @@ void script_level::_ready()
 	getset_var = 0.0;
 }
 
-void script_level::set_export(Variant value){
+void script_level::set_export(Variant value) {
 	export = value;
 }
 
-Variant script_level::get_export(){
-	 return export;
+Variant script_level::get_export() {
+	return export;
 }
 
-void script_level::set_export_param(Variant value){
+void script_level::set_export_param(Variant value) {
 	export_param = value;
 }
 
-Variant script_level::get_export_param(){
-	 return export_param;
+Variant script_level::get_export_param() {
+	return export_param;
 }
 
-void script_level::set_export_flags(Variant value){
+void script_level::set_export_flags(Variant value) {
 	export_flags = value;
 }
 
-Variant script_level::get_export_flags(){
-	 return export_flags;
+Variant script_level::get_export_flags() {
+	return export_flags;
 }
 
 static void script_level::_bind_methods() {

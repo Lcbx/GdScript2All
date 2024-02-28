@@ -1,5 +1,5 @@
 ## GdScript2All
-A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to any languages (currently C# and c++) with features like type inference.
+A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference.
 It should be fairly easy to add new langugages (see [here](#Adding-new-languages))
 
 ### Usage
@@ -30,8 +30,10 @@ var export
 @export(param1, param2)
 var export_param
 
+@export_group('group')
+
 @export_flags("Self:4", "Allies:8", "Foes:16")
-var export_flags
+var export_flags : int
 
 # basic property definitions / expressions
 var foo
@@ -142,8 +144,10 @@ public partial class test : Godot.Node
     [Export("param1,param2")]
     public Godot.Variant ExportParam;
     
+    [ExportGroup("group")]
+    
     [Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
-    public Godot.Variant ExportFlags;
+    public int ExportFlags;
     
     // basic property definitions / expressions
     public Godot.Variant Foo;
@@ -285,7 +289,7 @@ protected:
 
     Variant export_param;
 
-    Variant export_flags;
+    int export_flags;
 
 // basic property definitions / expressions
     Variant foo;
@@ -358,8 +362,8 @@ public:
     Variant get_export();
     void set_export_param(Variant value);
     Variant get_export_param();
-    void set_export_flags(Variant value);
-    Variant get_export_flags();
+    void set_export_flags(int value);
+    int get_export_flags();
 
     static void _bind_methods();
 }
@@ -379,7 +383,7 @@ static void Nested1::_bind_methods() {
 
 }
 
-float test::method(float param)
+ float test::method(float param)
 {
     int val = 2;
     for(string k : string_array)
@@ -421,28 +425,28 @@ void test::_ready()
     k = 42;
 }
 
-void test::set_export(Variant value){
+void test::set_export(Variant value) {
     export = value;
 }
 
-Variant test::get_export(){
-     return export;
+Variant test::get_export() {
+    return export;
 }
 
-void test::set_export_param(Variant value){
+void test::set_export_param(Variant value) {
     export_param = value;
 }
 
-Variant test::get_export_param(){
-     return export_param;
+Variant test::get_export_param() {
+    return export_param;
 }
 
-void test::set_export_flags(Variant value){
+void test::set_export_flags(int value) {
     export_flags = value;
 }
 
-Variant test::get_export_flags(){
-     return export_flags;
+int test::get_export_flags() {
+    return export_flags;
 }
 
 static void test::_bind_methods() {
@@ -459,7 +463,8 @@ static void test::_bind_methods() {
 
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+    ADD_GROUP("group","");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
     ADD_SIGNAL(MethodInfo("jump"));
     ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 }
@@ -469,15 +474,15 @@ static void test::_bind_methods() {
 
 ### Adding new languages
 If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
-modify it as needed, then to use it you just have to pass its name with the ```-t``` flag:
+modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
 ```bash
-py main.py -t CustomTranspiler <file_or_folder_path>
+py main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
 - type inference does not currently support user-defined classes
-- generated C++ does not contain the includes nor does it handle pointers
+- generated C++ does not add necessary includes nor does it handle pointers well
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
@@ -488,7 +493,7 @@ match [34, 6]:
 ```
 will probably not be supported (too complicated to generate an equivalent)
 
-### To update the API definition
+### Updating the API definition
 * clone the offical godot repo
 * copy it's ```doc/classes``` folder and paste it into our ```classData``` folder
 * install untangle (xml parsing library) if you don't have it (```pip install untangle```)

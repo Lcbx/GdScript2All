@@ -32,7 +32,7 @@ protected:
 
 	Variant export_param;
 
-	Variant export_flags;
+	int export_flags;
 
 // basic property definitions / expressions
 	Variant foo;
@@ -105,8 +105,8 @@ public:
 	Variant get_export();
 	void set_export_param(Variant value);
 	Variant get_export_param();
-	void set_export_flags(Variant value);
-	Variant get_export_flags();
+	void set_export_flags(int value);
+	int get_export_flags();
 
 	static void _bind_methods();
 }
