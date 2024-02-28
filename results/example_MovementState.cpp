@@ -1,7 +1,6 @@
 #include "MovementState.hpp"
 #include <godot_cpp/core/class_db.hpp>
 
-
 void MovementState::set_acceleration(float value) {
 	acceleration = value;
 }

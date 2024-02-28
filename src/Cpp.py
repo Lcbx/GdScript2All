@@ -83,7 +83,8 @@ class Transpiler:
 	def enum(self, name, definition):
 		public = self.getClass().public(); public += f'\tenum {name} {definition};'
 	
-	def annotation(self, name, params, memberName = None):
+	# NOTE: endline is the following space, for prettier output
+	def annotation(self, name, params, memberName, endline):
 		self.getClass().annotations.append( (memberName, name, params) )
 	
 	def declare_property(self, type, name, assignment, constant, static):
@@ -416,10 +417,9 @@ class Transpiler:
 		while self.level > 0: self.DownScope()
 		
 		# NOTE: class_name is not necessarily the name of the hpp file !
-		self.cpp = f'#include "{self.class_name}.hpp"\n' \
+		self.cpp = prettify(f'#include "{self.class_name}.hpp"\n' \
 			+ '#include <godot_cpp/core/class_db.hpp>\n\n\n' \
-			+ prettify( \
-				str(self.getLayer()).replace('\n}', '\n}\n\n').replace(' ;', '') \
+			+ str(self.getLayer()).replace('\n}', '\n}\n\n') \
 			)
 		self.hpp = prettify( hpp_template \
 			.replace('__CLASS__', self.class_name.upper()) \
@@ -441,14 +441,13 @@ class Transpiler:
 			else self.hpp
 	
 	def end_statement(self):
-		self += ';'
+		if self.level > 0: self += ';'
 	
 	""" code generation utils """
 	
 	# += operator override to generate code
 	def __iadd__(self, txt):
 		endline_only = all( ( c=='\n' for c in txt ) )
-		#if endline_only: print('endline_only', txt.replace('\n', ''))
 		handler = self.getWhitespaceHandler() if endline_only else self
 		
 		# automatic indentation
@@ -531,15 +530,10 @@ def prettify(value):
 			if c == '\n':
 				cnt += 1
 				if cnt < 3: yield c
-			elif cnt > 0 and c == ';':
-				pass
-			elif cnt > 0 and c == ' ':
-				yield c
-			elif cnt > 0 and c == '\t':
-				yield c
-			else:
-				cnt = 0
-				yield c
+			elif cnt > 0 and c == ';':  pass
+			elif cnt > 0 and c == ' ':  yield c
+			elif cnt > 0 and c == '\t': yield c
+			else: cnt = 0; yield c
 	return ''.join(impl())
 
 # trick for generator values

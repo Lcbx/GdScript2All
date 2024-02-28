@@ -1,7 +1,6 @@
 #include "script_level.hpp"
 #include <godot_cpp/core/class_db.hpp>
 
-
 static void Nested1::_bind_methods() {
 
 }
@@ -18,7 +17,7 @@ static void Nested4::_bind_methods() {
 
 }
 
-     float script_level::get_get_var3()
+float script_level::get_get_var3()
 {return get_var3;
 }
 

@@ -1,8 +1,7 @@
 #include "Character.hpp"
 #include <godot_cpp/core/class_db.hpp>
 
-
-;;;;;;;;void Character::_process(float delta)
+void Character::_process(float delta)
 {
 	// in air
 	if(!is_on_floor())

@@ -1,12 +1,11 @@
 #include "test.hpp"
 #include <godot_cpp/core/class_db.hpp>
 
-
 static void Nested1::_bind_methods() {
 
 }
 
- float test::method(float param)
+float test::method(float param)
 {
 	int val = 2;
 	for(string k : string_array)

@@ -164,16 +164,15 @@ class Parser:
 			
 			self.out.addLayer(); self.endline()
 			ann_endline = self.out.popLayer()
-			if not ann_endline: ann_endline = ' '
 			
 			# another annotation, means that this one is probably a group/subgroup
-			if self.match_value('@'): self.out.annotation(annotation, ann_params); self.out.write(ann_endline)
+			if self.match_value('@'): self.out.annotation(annotation, ann_params, None, ann_endline)
 		
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
 		constant = self.expect('const')
 		if constant or self.expect('var'):
 			memberName = self.consume()
-			if annotation: self.out.annotation(annotation, ann_params, memberName); self.out.write(ann_endline)
+			if annotation: self.out.annotation(annotation, ann_params, memberName, ann_endline)
 			foundSetGet = self.declare( memberName, \
 					 self.DECL_FLAGS.property \
 				| (  self.DECL_FLAGS.constant if constant \

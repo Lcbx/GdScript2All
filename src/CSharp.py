@@ -42,15 +42,16 @@ class Transpiler:
 	# lazily passing the enum definition as-is for now
 	def enum(self, name, definition):
 		# unnamed enums not supported in C#
-		if not name:
-			name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
+		if not name: name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
 		self += f'public enum {name} {definition}'
 	
-	def annotation(self, name, params, memberName = None):
+	# NOTE: endline is the following space, for prettier output
+	def annotation(self, name, params, memberName, endline):
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
 		start = export_replacements.get(name) or ( toPascal(name) + (params and '(') )
 		self += f'[{start}"{params}")]' if params else f'[{start}]'
+		self.write(endline if endline else ' ')
 	
 	def declare_property(self, type, name, assignment, constant, static):
 		type = translate_type(type)
@@ -434,17 +435,11 @@ def prettify(value):
 		cnt = 0
 		for c in value:
 			if c == '\n':
-				cnt += 1
-				yield c
-			elif cnt > 0 and c == ';':
-				pass
-			elif cnt > 0 and c == ' ':
-				yield c
-			elif cnt > 0 and c == '\t':
-				yield c
-			else:
-				cnt = 0
-				yield c
+				cnt += 1; yield c
+			elif cnt > 0 and c == ';':  pass
+			elif cnt > 0 and c == ' ':  yield c
+			elif cnt > 0 and c == '\t': yield c
+			else: cnt = 0; yield c
 	return ''.join(impl())
 
 # trick for generator values
