@@ -76,6 +76,7 @@ Array statements::method()
 	
 	return new Array{};;static void statements::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method"), &statements::method);
+
 }
 
 }

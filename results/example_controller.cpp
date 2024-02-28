@@ -111,12 +111,6 @@ Array<MovementState> Character::get_movements(){
 }
 
 static void Character::_bind_methods() {
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "movements"), "set_movements", "get_movements");
-	ADD_SIGNAL(MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
-	ADD_SIGNAL(MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
-	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
-	ADD_SIGNAL(MethodInfo("jump", PropertyInfo(Variant::FLOAT, "speed")));
-	ADD_SIGNAL(MethodInfo("viewDirChanged", PropertyInfo(Variant::VECTOR3, "euler")));
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
 	ClassDB::bind_method(D_METHOD("get_global_mov_dir"), &Character::get_global_mov_dir);
 	ClassDB::bind_method(D_METHOD("set_global_mov_dir", "value"), &Character::set_global_mov_dir);
@@ -126,5 +120,12 @@ static void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_view_dir", "value"), &Character::set_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);
 	ClassDB::bind_method(D_METHOD("get_movements"), &Character::get_movements);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "movements"), "set_movements", "get_movements");
+	ADD_SIGNAL(MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
+	ADD_SIGNAL(MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
+	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
+	ADD_SIGNAL(MethodInfo("jump", PropertyInfo(Variant::FLOAT, "speed")));
+	ADD_SIGNAL(MethodInfo("viewDirChanged", PropertyInfo(Variant::VECTOR3, "euler")));
 }
 

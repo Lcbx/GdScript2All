@@ -3,6 +3,7 @@
 
 
 static void Nested1::_bind_methods() {
+
 }
 
 float test::method(float param)
@@ -72,11 +73,6 @@ Variant test::get_export_flags(){
 }
 
 static void test::_bind_methods() {
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
-	ADD_SIGNAL(MethodInfo("jump"));
-	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
 	ClassDB::bind_method(D_METHOD("set_getset_var2", "value"), &test::set_getset_var2);
 	ClassDB::bind_method(D_METHOD("get_getset_var2"), &test::get_getset_var2);
@@ -87,5 +83,11 @@ static void test::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
 	ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
 	ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+	ADD_SIGNAL(MethodInfo("jump"));
+	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 }
 

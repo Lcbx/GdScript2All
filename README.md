@@ -127,6 +127,7 @@ using Array = Godot.Collections.Array;
 [Tool]
 public partial class test : Godot.Node
 {
+    [Tool]
     public partial class Nested1 : test
     {
         
@@ -135,14 +136,11 @@ public partial class test : Godot.Node
     public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
     public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
     
-    
     [Export]
     public Godot.Variant Export;
     
-    
     [Export("param1,param2")]
     public Godot.Variant ExportParam;
-    
     
     [Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
     public Godot.Variant ExportFlags;
@@ -243,9 +241,9 @@ public partial class test : Godot.Node
         };
     
     // automatic _ready generation
-    /* @onready */ public int K;
+    public int K;
     
-    protected void _Ready()
+    protected override void _Ready()
     {
         K = 42;
     }
@@ -352,10 +350,10 @@ protected:
     };
 
 // automatic _ready generation
-/* @onready */    int k;
+    int k;
 
 public:
-    void _ready();
+    void _ready() override;
     void set_export(Variant value);
     Variant get_export();
     void set_export_param(Variant value);
@@ -378,6 +376,7 @@ c++ output (implementation) :
 
 
 static void Nested1::_bind_methods() {
+
 }
 
 float test::method(float param)
@@ -447,11 +446,6 @@ Variant test::get_export_flags(){
 }
 
 static void test::_bind_methods() {
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
-    ADD_SIGNAL(MethodInfo("jump"));
-    ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
     ClassDB::bind_method(D_METHOD("set_getset_var2", "value"), &test::set_getset_var2);
     ClassDB::bind_method(D_METHOD("get_getset_var2"), &test::get_getset_var2);
@@ -462,6 +456,12 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
     ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
     ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
+
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+    ADD_SIGNAL(MethodInfo("jump"));
+    ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 }
 
 

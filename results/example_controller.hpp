@@ -43,7 +43,7 @@ protected:
 /* movement state / animations */
 
 public:
-	void _process(float delta);
+	void _process(float delta) override;
 	/* signal changedState(MovementEnum* state) */
 	/* signal collision(KinematicCollision3D* collision) */
 	/* signal movement(Vector3 dir, float speed) */

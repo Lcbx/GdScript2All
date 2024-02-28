@@ -3,9 +3,9 @@
 - [x] support getset properties
 - [x] support signals
 - [x] support lambda functions
-- [ ] detect base class method override (_ready, _process, ...)
+- [x] detect base class method override (_ready, _process, ...)
 - [ ] lambda return type inference
-- [ ] export groups/subgroups annotations
+- [x] export groups/subgroups annotations
 - [ ] enum as a type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
 - [x] await ex: "await" => "await ToSignal(....)
 - [x] use argparse instead of hand-parsing sys.argv
@@ -14,7 +14,7 @@
 - [x] support onreadies in nested classes (rn they get added to script class)
 - [x] add c++ transpiling backend
 - [x] c++ : generate bindings for methods and exported properties
-- [ ] c++ : fix duplicated nested class bug (see script-level.hpp)
+- [ ] c++ : fix duplicated nested class bug (see script-level.hpp) + cleanup Stringbuilder
 - [ ] c++ : move property initalization to a constructor ?
 - [ ] c++ : lambda creation syntax
 - [ ] support user-defined classes in type inference

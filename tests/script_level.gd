@@ -5,6 +5,10 @@ class Nested1 extends test:
 class Nested2:
 	class Nested3:
 
+	class Nested4:
+
+class Nested5:
+
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum Named {THING_1, THING_2, ANOTHER_THING = -1}
 
@@ -23,11 +27,11 @@ var export_flags
 
 @export_group("group")
 @export_subgroup("subgroup")
-@export
-var get_var3 :
+@export var get_var3 : float :
 	get: return get_var3
 
-var getset_var : float : set = _set, get = _get
+@onready
+var getset_var : float = 0. : set = _set, get = _get
 
 var DEF = -0.1: # comment
 	set(value):

@@ -97,10 +97,10 @@ protected:
 	};
 
 // automatic _ready generation
-/* @onready */	int k;
+	int k;
 
 public:
-	void _ready();
+	void _ready() override;
 	void set_export(Variant value);
 	Variant get_export();
 	void set_export_param(Variant value);

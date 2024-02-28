@@ -81,12 +81,10 @@ class Parser:
 		self.is_tool = self.expect('@', 'tool'); self.endline()
 		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
 		class_name = self.consume() if self.expect('class_name') else self.script_name
+		# NOTE: no endline after class name since we declare the class before that
 		
 		# initialize script class data
-		self.add_class(class_name, base_class)
-		
-		# no endline after class name since we declare the class before that
-		self.out.define_class(class_name, base_class, self.is_tool); self.endline()
+		self.add_class(class_name, base_class, self.is_tool); self.endline()
 		
 		# script-level loop
 		for i in range(2):
@@ -95,9 +93,7 @@ class Parser:
 				self.class_body()
 			
 			# get out if EOF reached
-			if self.match_type('EOF'):
-				self.vprint("reached EOF")
-				break
+			if self.match_type('EOF'): self.vprint("reached EOF"); break
 			
 			# panic system : drop current line if we can't parse it
 			token = self.current
@@ -126,7 +122,6 @@ class Parser:
 		base_class = self.consume() if self.expect('extends') else 'Object'
 		# NOTE: can inner classes be tools ? are they the same as their script class ?
 		self.add_class(class_name, base_class)
-		self.out.define_class(class_name, base_class, False)
 		self.expect(':')
 		
 		self.level += 1
@@ -155,26 +150,30 @@ class Parser:
 		# exports and such : @annotation[(params)]?
 		# while is used to get out in case of on_ready
 		annotation = None
-		params = ''
+		ann_params = ''
+		ann_endline = ''
 		while self.expect('@'):
 			
 			# NOTE: special case for onready (needs moving the assignment into ready function)
-			if self.expect('onready'):
-				onready = True;
-				self.out.multiline_comment(' @onready '); self.out+= ' '
-				break
+			if self.expect('onready'): onready = True; self.endline(); break
 			
 			annotation = self.consume()
 			# NOTE: this should work for most cases
-			if self.expect('('):
-				params = self.consumeUntil(')').replace('"', '').replace("'", ''); self.expect(')')
-			self.endline()
+			if self.expect('('): ann_params = self.consumeUntil(')').replace('"', '').replace("'", ''); self.expect(')')
+			else: ann_params = ''
+			
+			self.out.addLayer(); self.endline()
+			ann_endline = self.out.popLayer()
+			if not ann_endline: ann_endline = ' '
+			
+			# another annotation, means that this one is probably a group/subgroup
+			if self.match_value('@'): self.out.annotation(annotation, ann_params, None); self.out.write(ann_endline)
 		
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
 		constant = self.expect('const')
 		if constant or self.expect('var'):
 			memberName = self.consume()
-			if annotation: self.out.annotation(annotation, params, memberName)
+			if annotation: self.out.annotation(annotation, ann_params, memberName); self.out.write(ann_endline)
 			foundSetGet = self.declare( memberName, \
 					 self.DECL_FLAGS.property \
 				| (  self.DECL_FLAGS.constant if constant \
@@ -252,8 +251,9 @@ class Parser:
 		
 		returnType = returnType or blockType
 		self.getClass().methods[name] = returnType
+		override = not static and name in self.getClassParent().methods
 		
-		self.out.define_method(name, params, params_init, returnType, code, static)
+		self.out.define_method(name, params, params_init, returnType, code, static, override)
 	
 	
 	def Block(self, addBreak = False):
@@ -838,16 +838,21 @@ class Parser:
 	""" utils """
 	
 	# using a stack to keep track of class being defined
-	def add_class(self, name, base_class):
-		self.classes.append(name)
+	def add_class(self, class_name, base_class, is_tool = False):
+		self.classes.append(class_name)
 		classData = ClassData()
 		classData.base = base_class
-		self.class_definitions[name] = classData
-		self.out.current_class(name, classData)
+		self.class_definitions[class_name] = classData
+		
+		self.emit_class_change()
+		self.out.define_class(class_name, base_class, self.is_tool)
 	
 	def end_class(self):
 		self.out.end_class(self.classes[-1])
 		if len(self.classes) > 1: self.classes.pop()
+		self.emit_class_change()
+	
+	def emit_class_change(self):
 		self.out.current_class(self.classes[-1], self.getClass())
 	
 	def getClass(self):
@@ -855,10 +860,11 @@ class Parser:
 		
 	def getClassParent(self):
 		class_name = self.classes[-1]
-		parent = self.class_definitions[class_name].base
-		res = self.class_definitions.get(parent, None) or godot_types.get(parent, None)
-		assert res, f"can't find {class_name}'s parent ({parent})"
-		return res
+		parent_name = self.class_definitions[class_name].base
+		parent = self.class_definitions.get(parent_name, None) \
+			or godot_types.get(parent_name, None) \
+			or godot_types.get('Object', None)
+		return parent
 	
 	# parse call params
 	def parseCallParams(self):

@@ -35,7 +35,7 @@ public partial class Character : Godot.CharacterBody3D
 	public Godot.Variant JumpCoolDown = Utils.CreateTimer(this, 0.15);
 	
 	
-	protected void _Process(double delta)
+	protected override void _Process(double delta)
 	{
 		// in air
 		if(!IsOnFloor())
@@ -106,8 +106,7 @@ public partial class Character : Godot.CharacterBody3D
 	public delegate void JumpHandler(double speed);
 	
 	public enum MovementEnum {crouch,walk,run,fall}
-	[Export]
-	public Array<MovementState> Movements;
+	[Export] public Array<MovementState> Movements;
 	
 	public Godot.Variant MovementState = MovementEnum.Walk
 	{

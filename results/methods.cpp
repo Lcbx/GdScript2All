@@ -45,6 +45,7 @@ float methods::return_inference(float param)
 	ClassDB::bind_method(D_METHOD("returning", "v"), &methods::returning);
 	ClassDB::bind_method(D_METHOD("declare"), &methods::declare);
 	ClassDB::bind_method(D_METHOD("return_inference", "param"), &methods::return_inference);
+
 }
 
 }

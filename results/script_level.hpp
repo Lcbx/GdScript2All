@@ -22,6 +22,18 @@ public:
 	static void _bind_methods();
 }
 
+class Nested3 : public Object {
+	GDCLASS(Nested3, Object);
+public:
+
+	static void _bind_methods();
+class Nested4 : public Object {
+	GDCLASS(Nested4, Object);
+public:
+
+	static void _bind_methods();
+}
+
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
@@ -29,6 +41,23 @@ public:
 	static void _bind_methods();
 class Nested2 : public Object {
 	GDCLASS(Nested2, Object);
+public:
+
+	static void _bind_methods();
+}
+
+class Nested1 : public test {
+	GDCLASS(Nested1, test);
+public:
+
+	static void _bind_methods();
+class Nested2 : public Object {
+	GDCLASS(Nested2, Object);
+public:
+
+	static void _bind_methods();
+class Nested5 : public Object {
+	GDCLASS(Nested5, Object);
 public:
 
 	static void _bind_methods();
@@ -47,10 +76,10 @@ protected:
 
 	Variant export_flags;
 
-	Variant get_var3;
+	float get_var3;
 
 public:
-	Variant get_get_var3();
+	float get_get_var3();
 
 protected:
 	float getset_var;
@@ -63,6 +92,7 @@ public:
 	float get_DEF();
 	/* signal a() */
 	/* signal b(int c, Type* d) */
+	void _ready() override;
 	void set_export(Variant value);
 	Variant get_export();
 	void set_export_param(Variant value);

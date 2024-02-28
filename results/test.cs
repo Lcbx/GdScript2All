@@ -14,6 +14,7 @@ using Array = Godot.Collections.Array;
 [Tool]
 public partial class test : Godot.Node
 {
+	[Tool]
 	public partial class Nested1 : test
 	{
 		
@@ -22,14 +23,11 @@ public partial class test : Godot.Node
 	public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
 	public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
 	
-	
 	[Export]
 	public Godot.Variant Export;
 	
-	
 	[Export("param1,param2")]
 	public Godot.Variant ExportParam;
-	
 	
 	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
 	public Godot.Variant ExportFlags;
@@ -130,9 +128,9 @@ public partial class test : Godot.Node
 		};
 	
 	// automatic _ready generation
-	/* @onready */ public int K;
+	public int K;
 	
-	protected void _Ready()
+	protected override void _Ready()
 	{
 		K = 42;
 	}
