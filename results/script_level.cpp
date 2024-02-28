@@ -6,19 +6,15 @@ static void Nested1::_bind_methods() {
 
 }
 
+static void Nested2::_bind_methods() {
+
+}
+
 static void Nested3::_bind_methods() {
 
 }
 
 static void Nested4::_bind_methods() {
-
-}
-
-static void Nested2::_bind_methods() {
-
-}
-
-static void Nested5::_bind_methods() {
 
 }
 

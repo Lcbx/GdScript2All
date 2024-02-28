@@ -1,7 +1,9 @@
 from StringBuilder import StringBuilder
 from godot_types import godot_types
 
-
+# ClassDefinition
+# contains the code being generated for a class
+# as we need to reorder it a lot
 class ClassDefinition:
 	def __init__(self):
 		self.class_hpp = StringBuilder()
@@ -50,10 +52,9 @@ class Transpiler:
 		self.level = 0
 		
 		# class definitions
-		# NOTE: self.klass is the class data the parser generated
+		# NOTE: self.klass is the ClassData the parser generated
 		# while self.class_definitions are the code we are currently generating
-		self.current_class_index = -1
-		self.class_definitions = []
+		self.class_definitions = {}
 		
 		# allows to parse code and rearrange it
 		self.layers = [StringBuilder()]
@@ -71,12 +72,11 @@ class Transpiler:
 		self.klass = klass
 	
 	def define_class(self, name, base_class, is_tool):
-		self.class_definitions.append(ClassDefinition())
-		self.current_class_index += 1
+		self.class_definitions[name] = ClassDefinition()
 		self.getClass().class_hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});\npublic:\n'
 	
 	def getClass(self):
-		return self.class_definitions[self.current_class_index]
+		return self.class_definitions[self.class_name]
 	
 	# NOTE: enums have similar syntax in gdscript, C# and cpp
 	# lazily passing the enum definition as-is for now
@@ -407,7 +407,6 @@ class Transpiler:
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
 		self.hpp += '}\n\n'
-		self.current_class_index -= 1
 	
 	def end_script(self):
 		self.end_class(self.class_name)
@@ -438,7 +437,7 @@ class Transpiler:
 	
 	def getWhitespaceHandler(self):
 		return self if self.level > 0 \
-			else self.getClass().class_hpp if self.current_class_index >= 0 \
+			else self.getClass().class_hpp if self.class_definitions \
 			else self.hpp
 	
 	def end_statement(self):

@@ -4,6 +4,7 @@
 - [x] support signals
 - [x] support lambda functions
 - [x] detect base class method override (_ready, _process, ...)
+- [x] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] lambda return type inference
 - [x] export groups/subgroups annotations
 - [ ] enum as a type, ex: "var v = MyEnum.FOO" => "MyEnum v = MyEnum.FOO;"
@@ -14,11 +15,10 @@
 - [x] support onreadies in nested classes (rn they get added to script class)
 - [x] add c++ transpiling backend
 - [x] c++ : generate bindings for methods and exported properties
-- [ ] c++ : fix duplicated nested class bug (see script-level.hpp) + cleanup Stringbuilder
+- [x] c++ : fix duplicated nested class bug (see script-level.hpp) + cleanup Stringbuilder
 - [ ] c++ : move property initalization to a constructor ?
 - [ ] c++ : lambda creation syntax
 - [ ] support user-defined classes in type inference
-- [x] C# : rename methods/properties to Pascal-case ex: "Engine.is_editor_hint" => "Engine.IsEditorHint"
 - [ ] special literals :
   * floating exponents : 58e-10
   * base16 int : 0x8E

@@ -11,24 +11,20 @@ public partial class script_level : Godot.Node
 		
 	}
 	
-	public partial class Nested2 : Godot.Object
+	public partial class Nested4 : Godot.Object
 	{
+		
+		public partial class Nested2 : Godot.Object
+		{
+			
+		}
 		
 		public partial class Nested3 : Godot.Object
 		{
 			
 		}
-		
-		public partial class Nested4 : Godot.Object
-		{
-			
-		}
 	}
 	
-	public partial class Nested5 : Godot.Object
-	{
-		
-	}
 	
 	public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
 	public enum Named {THING_1,THING_2,ANOTHER_THING=-1}

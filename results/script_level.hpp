@@ -15,8 +15,8 @@ public:
 	static void _bind_methods();
 }
 
-class Nested3 : public Object {
-	GDCLASS(Nested3, Object);
+class Nested2 : public Object {
+	GDCLASS(Nested2, Object);
 public:
 
 	static void _bind_methods();
@@ -27,37 +27,10 @@ class Nested3 : public Object {
 public:
 
 	static void _bind_methods();
+}
+
 class Nested4 : public Object {
 	GDCLASS(Nested4, Object);
-public:
-
-	static void _bind_methods();
-}
-
-class Nested1 : public test {
-	GDCLASS(Nested1, test);
-public:
-
-	static void _bind_methods();
-class Nested2 : public Object {
-	GDCLASS(Nested2, Object);
-public:
-
-	static void _bind_methods();
-}
-
-class Nested1 : public test {
-	GDCLASS(Nested1, test);
-public:
-
-	static void _bind_methods();
-class Nested2 : public Object {
-	GDCLASS(Nested2, Object);
-public:
-
-	static void _bind_methods();
-class Nested5 : public Object {
-	GDCLASS(Nested5, Object);
 public:
 
 	static void _bind_methods();
