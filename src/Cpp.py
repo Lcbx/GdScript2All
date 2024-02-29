@@ -1,5 +1,6 @@
 from StringBuilder import StringBuilder
-from godot_types import godot_types
+from godot_types import *
+
 
 # ClassDefinition
 # contains the code being generated for a class
@@ -417,8 +418,7 @@ class Transpiler:
 		while self.level > 0: self.DownScope()
 		
 		# NOTE: class_name is not necessarily the name of the hpp file !
-		self.cpp = prettify(f'#include "{self.class_name}.hpp"\n' \
-			+ '#include <godot_cpp/core/class_db.hpp>\n\n\n' \
+		self.cpp = prettify(f'#include "{self.class_name}.hpp"\n\n\n' \
 			+ str(self.getLayer()).replace('\n}', '\n}\n\n') \
 			)
 		self.hpp = prettify( hpp_template \
@@ -510,17 +510,16 @@ def translate_type(type):
 	if type == None: return 'void'
 	if type == 'Variant': return type
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
-	if literal_type(type): return type
+	if toVariantEnumType(type): return type
 	return type + '*'
 
-def type_enum(type):
-	return 'Variant::' +  ( type.upper() if literal_type(type) else 'OBJECT' )
+def toVariantEnumType(type):
+	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())
+	return 'OBJECT' if type=='Variant' else next( match, None)
 
-# ther are actually a lot of variant types (see @Globalscope.sml type enum)
-def literal_type(type):
-	return type in ['Array', 'Dictionary', 'string', 'int', 'float', 'bool', 'RID', 'Quaternion'] \
-		or 'Vector' in type \
-		or 'Transform' in type
+def type_enum(type):
+	translated = toVariantEnumType(type)
+	return 'Variant::' + (translated.replace('TYPE_', '', 1) if translated else 'OBJECT')
 
 # for prettier output
 def prettify(value):
@@ -543,7 +542,10 @@ hpp_template = '''
 #ifndef __CLASS___H
 #define __CLASS___H
 
+// default includes
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 

@@ -259,7 +259,10 @@ c++ output (header) :
 #ifndef TEST_H
 #define TEST_H
 
+// default includes
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 
@@ -376,7 +379,6 @@ public:
 c++ output (implementation) :
 ```c++
 #include "test.hpp"
-#include <godot_cpp/core/class_db.hpp>
 
 static void Nested1::_bind_methods() {
 

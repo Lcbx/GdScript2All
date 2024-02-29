@@ -1,5 +1,5 @@
 from StringBuilder import StringBuilder
-from godot_types import godot_types
+from godot_types import *
 
 
 class Transpiler:
@@ -498,19 +498,16 @@ variable_replacements = {
 	"TAU":"Mathf.Tau",
 	"INF":"Mathf.Inf",
 	"NAN":"Mathf.NaN",
-	"TYPE_ARRAY":"typeof(Array)",
-	"TYPE_BOOL":"typeof(bool)",
-	"TYPE_COLOR":"typeof(Color)",
-	"TYPE_DICTIONARY":"typeof(Dictionary)",
-	"TYPE_INT":"typeof(int)",
 	"TYPE_NIL":"null",
 	"TYPE_OBJECT":"typeof(Godot.Object)",
+	"TYPE_BOOL":"typeof(bool)",
+	"TYPE_INT":"typeof(int)",
 	"TYPE_REAL":"typeof(double)",
-	"TYPE_RECT2":"typeof(Rect2)",
 	"TYPE_RID":"typeof(RID)",
 	"TYPE_STRING":"typeof(string)",
-	"TYPE_VECTOR2":"typeof(Vector2)",
 }
+for missing_vt in (vt for vt in variant_types if vt not in variable_replacements):
+	variable_replacements[missing_vt] = f'typeof(' + toPascal(missing_vt.replace('TYPE_', '').lower()) + ')'
 
 function_replacements = {
 	'preload': "/* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */",

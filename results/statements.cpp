@@ -1,5 +1,4 @@
 #include "statements.hpp"
-#include <godot_cpp/core/class_db.hpp>
 
 Array statements::method()
 {

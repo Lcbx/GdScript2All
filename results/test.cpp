@@ -1,5 +1,4 @@
 #include "test.hpp"
-#include <godot_cpp/core/class_db.hpp>
 
 static void Nested1::_bind_methods() {
 

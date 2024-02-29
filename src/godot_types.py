@@ -19,13 +19,19 @@ DOC_FOLDER = 'classData'
 # { 'class': ClassData }
 godot_types = {}
 
+# variant types (names)
+variant_types = []
 
 def _import_type_definitions_():
 	global godot_types
+	global variant_types
 	
 	# load class datas
 	with open(SAVEFILE, 'rb') as f:
 		godot_types = load(f)
+	
+	# get variant type enum Ex: TYPE_FLOAT, TYPE_VECTOR2, etc
+	variant_types = [ cst for cst in godot_types['@GlobalScope'].constants.keys() if cst.startswith('TYPE_') and not cst.endswith('MAX')]
 	
 	# decompression/flattening :
 	# add base class members to child class
