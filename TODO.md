@@ -17,7 +17,7 @@
 - [x] c++ : generate bindings for methods and exported properties
 - [x] c++ : fix duplicated nested class bug (see script-level.hpp) + cleanup Stringbuilder
 - [ ] c++ : move property initalization to a constructor ?
-- [ ] c++ : lambda creation syntax
+- [x] c++ : lambda creation syntax
 - [ ] support user-defined classes in type inference
 - [ ] special literals :
   * floating exponents : 58e-10
