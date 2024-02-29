@@ -259,10 +259,7 @@ c++ output (header) :
 #ifndef TEST_H
 #define TEST_H
 
-// default includes
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/core/object.hpp>
-#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 
@@ -319,7 +316,7 @@ protected:
 // determine type based on godot doc
     Node* x = this->get_parent();
     float x = new Vector3().x;
-    Dictionary aClass = ProjectSettings.get_global_class_list()[10];
+    Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const int flag = RenderingServer::NO_INDEX_ARRAY;
     float global_function = angle_difference(0.1, 0.2);
 
@@ -378,7 +375,10 @@ public:
 ```
 c++ output (implementation) :
 ```c++
+
 #include "test.hpp"
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 static void Nested1::_bind_methods() {
 
@@ -407,11 +407,11 @@ float test::get_getset_var2()
 void test::async_function()
 {
     /* await self.jump; */ // no equivalent to await in c++ !
-    /* await get_tree().process_frame; */ // no equivalent to await in c++ !
+    /* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
     
-    get_tree().emit_signal("process_frame", 0.7);
+    get_tree()->emit_signal("process_frame", 0.7);
     
-    Callable myLambda = () =>
+    Callable myLambda = []() 
     {    print("look ma i'm jumping");
     };
     

@@ -230,7 +230,7 @@ class Transpiler:
 	def singleton(self, name):
 		self += translate_type(name)
 	
-	def reference(self, name):
+	def reference(self, name, type, is_singleton = False):
 		self += '.' + toPascal(name)
 	
 	def call(self, name, params, global_function = False):

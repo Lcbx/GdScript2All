@@ -661,7 +661,7 @@ class Parser:
 		# could be :
 		# a member (including signals)
 		# a local
-		# a singleton (ex: RenderingServer)
+		# a singleton or constructor (ex: RenderingServer, Vector3)
 		# a global constant (ex: KEY_ESCAPE)
 		singleton = name in godot_types
 		property = name in self.getClass().members or name in self.getClassParent().members
@@ -685,7 +685,7 @@ class Parser:
 		
 		# reference
 		elif self.expect('.'):
-			reference = self.reference(type)
+			reference = self.reference(type, singleton)
 			yield next(reference)
 			if this: self.out.this()
 			if not signal: emit(name)
@@ -752,7 +752,7 @@ class Parser:
 		yield
 	
 	
-	def reference(self, type):
+	def reference(self, type, singleton = False):
 		name = self.consume()
 		# TODO: take classes defined locally into account
 		member_type = godot_types[type].members[name] if \
@@ -776,25 +776,25 @@ class Parser:
 			call = self.call(name, type)
 			yield next(call)
 			# emit '.' while call() emits <name>(...)
-			self.out.reference('')
+			self.out.reference('', type, singleton)
 			next(call)
 		
 		# other reference
 		elif self.expect('.'):
-			r = self.reference(member_type)
+			r = self.reference(member_type, singleton)
 			yield next(r)
 			if not signal:
-				self.out.reference(name)
+				self.out.reference(name, type, singleton)
 			else:
 				# emit '.', next reference will be connect or emit
-				self.out.reference('')
+				self.out.reference('', type, singleton)
 			next(r)
 		
 		# subscription
 		elif self.expect('['):
 			s = self.subscription(type)
 			yield next(s)
-			self.out.reference(name)
+			self.out.reference(name, type, singleton)
 			next(s)
 		
 		# could be a constant
@@ -805,7 +805,7 @@ class Parser:
 		# end leaf
 		else:
 			yield member_type
-			self.out.reference(name)
+			self.out.reference(name, type, singleton)
 		yield
 	
 	

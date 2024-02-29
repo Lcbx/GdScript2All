@@ -1,4 +1,7 @@
+
 #include "test.hpp"
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 static void Nested1::_bind_methods() {
 
@@ -27,11 +30,11 @@ float test::get_getset_var2()
 void test::async_function()
 {
 	/* await self.jump; */ // no equivalent to await in c++ !
-	/* await get_tree().process_frame; */ // no equivalent to await in c++ !
+	/* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
 	
-	get_tree().emit_signal("process_frame", 0.7);
+	get_tree()->emit_signal("process_frame", 0.7);
 	
-	Callable myLambda = () =>
+	Callable myLambda = []() 
 	{	print("look ma i'm jumping");
 	};
 	

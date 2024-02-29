@@ -1,4 +1,7 @@
+
 #include "statements.hpp"
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 Array statements::method()
 {
@@ -67,10 +70,10 @@ Array statements::method()
 	i += 3 / 3 + 2 * 0.5;
 	
 	/* await self.jump; */ // no equivalent to await in c++ !
-	/* await get_tree().process_frame; */ // no equivalent to await in c++ !
+	/* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
 	
-	get_tree().emit_signal("process_frame", 0.7);
-	get_tree().connect("process_frame", something);
+	get_tree()->emit_signal("process_frame", 0.7);
+	get_tree()->connect("process_frame", something);
 	
 	return new Array{};;static void statements::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method"), &statements::method);

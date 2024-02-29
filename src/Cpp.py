@@ -198,11 +198,11 @@ class Transpiler:
 		self += '}'; self.level -= 1
 	
 	def create_lambda(self, params, code):
-		self += '('
+		self += '[]('
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
 			self += f'{translate_type(pType)} {pName}'
-		self += ') =>'
+		self += ') '
 		# cleanup
 		code = code.replace('{', '{\t', 1)
 		code = rReplace(code, '}', '};')
@@ -236,8 +236,11 @@ class Transpiler:
 	def singleton(self, name):
 		self += name
 	
-	def reference(self, name):
-		self += '.' + name
+	def reference(self, name, type, is_singleton = False):
+		self +=  '::get_singleton()->' if is_singleton \
+			else '->' if translate_type(type)[-1] == '*' \
+			else  '.'
+		self += name
 	
 	def call(self, name, params, global_function = False):
 		if global_function: name = function_replacements.get(name, name)
@@ -401,11 +404,6 @@ class Transpiler:
 		pb = self.getClass().public(); pb += '\n'
 		self.define_method('_bind_methods', code = str(bindings), static = True)
 		
-		#print('ending_class', name)
-		#if name.startswith('Nested'):
-		#	print('------------------------')
-		#	print(self.getClass().class_hpp)
-		
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
 		self.hpp += '}\n\n'
@@ -418,7 +416,8 @@ class Transpiler:
 		while self.level > 0: self.DownScope()
 		
 		# NOTE: class_name is not necessarily the name of the hpp file !
-		self.cpp = prettify(f'#include "{self.class_name}.hpp"\n\n\n' \
+		self.cpp = prettify( \
+			cpp_template.replace('__class__', self.class_name) \
 			+ str(self.getLayer()).replace('\n}', '\n}\n\n') \
 			)
 		self.hpp = prettify( hpp_template \
@@ -454,7 +453,7 @@ class Transpiler:
 		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
 		handler.write(txt)
 
-		self.vprint(">", txt.replace("\n", "<EOL>").replace('\t', '  '))
+		self.vprint("emit:", txt.replace("\n", "<EOL>").replace('\t', '  '))
 		return self
 	
 	def write(self, txt):
@@ -538,14 +537,11 @@ def prettify(value):
 # trick for generator values
 get = next
 
-hpp_template = '''
+hpp_template = """
 #ifndef __CLASS___H
 #define __CLASS___H
 
-// default includes
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/core/object.hpp>
-#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 
@@ -556,7 +552,16 @@ __IMPLEMENTATION__
 }
 
 #endif // __CLASS___H
-'''
+"""
+
+cpp_template = """
+#include "__class__.hpp"
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/core/class_db.hpp>
+
+
+
+"""
 
 export_replacements = {
 	'export_range':'PROPERTY_HINT_RANGE',

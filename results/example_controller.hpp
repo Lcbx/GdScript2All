@@ -2,10 +2,7 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-// default includes
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/core/object.hpp>
-#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 
@@ -38,7 +35,7 @@ protected:
 	const Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
 	const Vector3 XY = new Vector3(1.0, 1.0, 0.0);
 
-	static Variant gravity = ProjectSettings.get_setting("physics/3d/default_gravity");
+	static Variant gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
 
 	Variant coyoteTime = Utils.createTimer(self, 0.15);
 	Variant jumpCoolDown = Utils.createTimer(self, 0.15);
