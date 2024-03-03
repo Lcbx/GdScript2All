@@ -21,9 +21,9 @@ protected:
 this is a multiline string\
 ";
 	bool _protected_bool = true;
-	Array array = new Array{0,1,2,};
-	Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
-	Array<string> string_array = new Array{"0","1",};
+	Array array = new Array{0, 1, 2, };
+	Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
+	Array<string> string_array = new Array{"0", "1", };
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	float asKeyword = 3;
@@ -34,9 +34,6 @@ this is a multiline string\
 	Variant ternary = ( true ? cond_true : cond_false );
 	int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | 4 : cond12_false && 0 ) );
 
-public:
-
-	static void _bind_methods();
 }
 
 }

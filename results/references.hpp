@@ -22,9 +22,6 @@ protected:
 	Variant refMethod = foo.bar.baz();
 	Variant methodRef = foo.bar().baz;
 	Variant subscription = this->dict[0];
-public:
-
-	static void _bind_methods();
 }
 
 }

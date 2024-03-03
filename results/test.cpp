@@ -3,10 +3,6 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-static void Nested1::_bind_methods() {
-
-}
-
 float test::method(float param)
 {
 	int val = 2;
@@ -17,30 +13,32 @@ float test::method(float param)
 	return val * param;
 }
 
-void test::set_getset_var2(float value)
+void test::set_getset_sprite(Sprite2D* value)
 {
-	getset_var2 = value;
+	getset_sprite = value;
+	getset_sprite->set_position(Vector2(1, 2));
+	getset_sprite->set_position( /* position += */ + Vector2(1, 2));// cpp will need help here
 }
 
-float test::get_getset_var2()
+Sprite2D* test::get_getset_sprite()
 {
-	return getset_var2;
+	return getset_sprite;
 }
 
 void test::async_function()
 {
-	/* await self.jump; */ // no equivalent to await in c++ !
-	/* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
-	
+	/* await this->jump; */ // no equivalent to await in c++ !
+	/* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+
 	get_tree()->emit_signal("process_frame", 0.7);
-	
+
 	Callable myLambda = []() 
 	{	print("look ma i'm jumping");
 	};
-	
+
 	// lambdas are not perfectly translated
 	connect("jump", myLambda);
-	
+
 	emit_signal("movement", Vector3::UP, 0.1);
 }
 
@@ -75,8 +73,8 @@ int test::get_export_flags() {
 
 static void test::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-	ClassDB::bind_method(D_METHOD("set_getset_var2", "value"), &test::set_getset_var2);
-	ClassDB::bind_method(D_METHOD("get_getset_var2"), &test::get_getset_var2);
+	ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
+	ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
 	ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
 	ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
 	ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);

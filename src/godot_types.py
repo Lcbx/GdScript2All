@@ -70,7 +70,6 @@ def _import_type_definitions_():
 			for const in parent.constants: data.constants[const] = parent.constants[const]
 
 def _update_type_definitions_():
-	global godot_types
 	
 	# generate the pickle file
 	from untangle import parse
@@ -124,7 +123,7 @@ def _update_type_definitions_():
 		if 'signals' in klass:
 			for signal in klass.signals.signal:
 				signalName = signal['name']
-				data.members[signalName] = f'signal/{signalName}'
+				data.members[signalName] = toSignalType(signalName)
 	
 	# adding builtin that aren't in doc
 	add_function('range', 'int[]')
@@ -134,9 +133,12 @@ def _update_type_definitions_():
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)
 
+	print('updated godot type definitions')
+
 def add_function(name, return_type):
 	godot_types['@GlobalScope'].methods[name] = return_type
 
+def toSignalType(signal_name): return f'{signal_name}signal'
 
 # if import then load types
 if __name__ != "__main__":

@@ -19,14 +19,14 @@ void Character::_process(float delta)
 			jumpCoolDown.start();
 			// TODO: apply fall damage + play landing animation
 		}
-		
+
 		// on ground
 		movementState = wantedMovement;
 		coyoteTime.start();
 	}
-	
+
 	Variant ground_speed = calculate_ground_speed();
-	
+
 	// jump
 	// TODO?: maybe add a special function to jump called on just_pressed
 	if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
@@ -35,26 +35,26 @@ void Character::_process(float delta)
 		coyoteTime.stop();
 		jump.emit(ground_speed);
 	}
-	
+
 	// when running, always go forward 
 	Variant direction = ( movementState != MovementEnum.run ? global_mov_dir : basis.z );
-	
-	Variant top_speed = movements[movementState];
-	Variant nimbleness = movements[movementState];
-	Variant acceleration = movements[movementState] + ground_speed * nimbleness;
-	
+
+	Variant top_speed = movements[movementState].top_speed;
+	Variant nimbleness = movements[movementState].nimbleness;
+	Variant acceleration = movements[movementState].acceleration + ground_speed * nimbleness;
+
 	float redirect = clampf(1.0 - nimbleness * delta, 0.0, 1.0);
 	float vel_delta = acceleration * delta;
-	
+
 	velocity.x = move_toward(velocity.x * redirect, direction.x * top_speed, vel_delta);
 	velocity.z = move_toward(velocity.z * redirect, direction.z * top_speed, vel_delta);
-	
+
 	Variant new_ground_speed = calculate_ground_speed();
-	
+
 	movement.emit(local_dir, new_ground_speed);
-	
+
 	move_and_slide();
-	
+
 	for(int i : range(get_slide_collision_count()))
 	{
 		collision.emit(get_slide_collision(i));

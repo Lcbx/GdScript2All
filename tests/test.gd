@@ -33,6 +33,12 @@ var big_str : string = """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
+var complex = {
+	"t" : 100,
+	"rafg" : 'asfgh',
+	"u" : false, # Example Comment
+	"t":{"e":{"g":1,"f":2},},
+} ['rafg']
 
 # method
 func method(param = 5.):
@@ -59,18 +65,20 @@ var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
+# getters and setters
+var getset_var := .1 : set = _set, get = _get
+
+var getset_sprite : Sprite2D :
+	set (value):
+		getset_sprite = value
+		getset_sprite.position = Vector2(1,2)
+		getset_sprite.position += Vector2(1,2) # cpp will need help here
+	get:
+		return getset_sprite
+
 # signals
 signal jump
 signal movement(dir:Vector3, speed:float)
-
-# property getters and setters
-var getset_var : float : set = _set, get = _get
-
-var getset_var2 = -0.1 :
-	set (value):
-		getset_var2 = value
-	get:
-		return getset_var2
 
 func async_function():
 	await jump
@@ -85,15 +93,6 @@ func async_function():
 	
 	movement.emit(Vector3.UP, .1)
 
-# this becomes rapidly unreadable once translated though
-const _default_data = {
-	"t" : 100,
-	"rafg" : 'asfgh',
-	"u" : false,# Example Comment
-	"r":["a",{"b":false}],
-	"t":{"e":{"g":1,"f":2},},
-}
-
-# automatic _ready generation
+# _ready generation when @onready is used
 @onready var k = 42
 

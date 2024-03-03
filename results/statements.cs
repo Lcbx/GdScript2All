@@ -9,11 +9,10 @@ public partial class statements : Godot.Node
 {
 	public Array Method()
 	{
-		
-		
-		
+
+
 		var i = 0;
-		
+
 		if(ABC)
 		{
 			Assert(false);
@@ -30,36 +29,33 @@ public partial class statements : Godot.Node
 		{
 			GD.Print(i);
 		}
-		
+
 		while(false)
 		{
 			i += 1;
 			break;
 			continue;
 		}
-		
+
 		foreach(int j in Range(i))
 		{
 			i += j;
 		}
-		
+
 		switch(i)
 		{
 			case "1":
 			{
 				GD.Print(i);
-				break;
-			}
+				break; }
 			case 1:
 			{
 				GD.Print(i);
-				break;
-			}
+				break; }
 			case 0: if(true)
 			{
 				GD.Print("zero!");
-				break;
-			}
+				break; }
 			//var x when false:
 			//	print("unreachable")
 			//[var x, var y] when true:
@@ -69,18 +65,18 @@ public partial class statements : Godot.Node
 			default:
 			{
 				GD.Print("unknown");
-				break;
-			}
+				break; }
 		}
-		
+
 		i += 3 / 3 + 2 * 0.5;
-		
+
 		await ToSignal(this, "jump");
 		await ToSignal(GetTree(), "ProcessFrame");
-		
+
 		GetTree().EmitSignal("process_frame", 0.7);
 		GetTree().process_frame += something;
-		
-		return new Array{};;
+
+		return new Array{};
 	}
+
 }

@@ -15,4 +15,5 @@ public partial class references : Godot.Node
 	public Godot.Variant RefMethod = foo.Bar.Baz();
 	public Godot.Variant MethodRef = foo.Bar().Baz;
 	public Godot.Variant Subscription = this.dict[0];
+
 }

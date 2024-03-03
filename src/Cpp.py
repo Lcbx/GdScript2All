@@ -88,16 +88,17 @@ class Transpiler:
 	def annotation(self, name, params, memberName, endline):
 		self.getClass().annotations.append( (memberName, name, params) )
 	
-	def declare_property(self, type, name, assignment, constant, static):
-		type = translate_type(type)
-		if assignment: 
-			self.addLayer()
-			get(assignment)
-			assignment = self.popLayer()
-		else: assignment = ''
+	def declare_property(self, type, name, assignment, constant, static, onready):
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		protected = self.getClass().protected()
-		protected += f'\t{const_decl}{type} {name}' + assignment + ';'
+		protected += f'\t{const_decl}{translate_type(type)} {name}'
+		if assignment:
+			self.addLayer()
+			if onready:
+				self += name; self.assignment(assignment)
+				self.getClass().onready_assigns.append(self.popLayer())
+			else: self.assignment(assignment); protected += self.popLayer()
+		protected += ';'
 	
 	def setget(self, member, accessors):
 		# call the appropriate Transpiler method (defined afterward)
@@ -123,7 +124,7 @@ class Transpiler:
 	
 	def declare_variable(self, type, name, assignment):
 		self += f'{type} {name}'
-		if assignment: get(assignment)
+		if assignment: self.assignment(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
 		
@@ -168,12 +169,7 @@ class Transpiler:
 		hpp = self.getClass().class_hpp
 		hpp += f'\t/* signal {name}({paramStr}) */'
 	
-	def assignment(self, exp, onreadyName):
-		if onreadyName:
-			self.addLayer()
-			self.write(f'{onreadyName} = '); get(exp)
-			self.getClass().onready_assigns.append(self.popLayer())
-			return
+	def assignment(self, exp):
 		self += ' = '; get(exp)
 	
 	def subexpression(self, expression):
@@ -181,21 +177,19 @@ class Transpiler:
 	
 	def create_array(self, values):
 		self += 'new Array{'; self.level += 1
-		for value in values:
-			get(value); self += ','
+		self += values
 		self += '}'; self.level -= 1
+
+	def array_item(self, item):
+		get(item); self += ', '
 		
-	def create_dict(self, kv):
+	def create_dict(self, values):
 		self += 'new Dictionary{'; self.level += 1
-		for key, value in kv:
-			self += '{'; get(key); self += ','; get(value); self+= '},'
+		self += values
 		self += '}'; self.level -= 1
-	
-	def create_dict(self, kv):
-		self += 'new Dictionary{'; self.level += 1
-		for key, value in kv:
-			self += '{'; get(key); self += ','; get(value); self+= '},'
-		self += '}'; self.level -= 1
+
+	def dict_item(self, key, value):
+		self += '{'; get(key); self += ', '; get(value); self += '},'
 	
 	def create_lambda(self, params, code):
 		self += '[]('
@@ -205,7 +199,7 @@ class Transpiler:
 		self += ') '
 		# cleanup
 		code = code.replace('{', '{\t', 1)
-		code = rReplace(code, '}', '};')
+		code = replaceClosingBrace(code, '};' )
 		self.write(code)
 	
 	def literal(self, value):
@@ -219,7 +213,7 @@ class Transpiler:
 		elif isinstance(value, bool):
 			self += str(value).lower(); return
 		
-		self += str(value)
+		self.write(str(value))
 	
 	def constant(self, name):
 		self += '::' + name
@@ -235,12 +229,22 @@ class Transpiler:
 	
 	def singleton(self, name):
 		self += name
-	
-	def reference(self, name, type, is_singleton = False):
+
+	def reference(self, name, obj_type, member_type, is_singleton = False):
+		use_get = self._dereference(name, obj_type, member_type, is_singleton)
+		self += f'{toGet(name)}()' if use_get else name
+
+	def reassignment(self, name, obj_type, member_type, is_singleton, op, val):
+		use_set = self._dereference(name, obj_type, member_type, is_singleton)
+		op_comment = f' /* {name} {op} */ ' + op.replace('=', '') + ' ' if op != '=' else '' 
+		if use_set: self += f'{toSet(name)}(' + op_comment; get(val); self += f')'
+		else:  self += f'{name} {op} '; get(val)
+
+	def _dereference(self, name, obj_type, member_type, is_singleton):
 		self +=  '::get_singleton()->' if is_singleton \
-			else '->' if translate_type(type)[-1] == '*' \
+			else '->' if is_pointer(obj_type) \
 			else  '.'
-		self += name
+		return name and member_type and not member_type.startswith('signal') and is_pointer(obj_type)
 	
 	def call(self, name, params, global_function = False):
 		if global_function: name = function_replacements.get(name, name)
@@ -250,8 +254,9 @@ class Transpiler:
 			get(p)
 		self += ')'
 	
-	def constructor(self, name, params):
-		self += 'new '; self.call(name, params)
+	def constructor(self, name, type, params):
+		if is_pointer(type): self += 'new '
+		self.call(name, params)
 	
 	def subscription(self, key):
 		self+= '['; get(key); self += ']'
@@ -294,7 +299,9 @@ class Transpiler:
 	def continueStmt(self): self += 'continue;'
 	
 	def awaitStmt(self, object, signalName):
-		self += f'/* await {object}.{signalName}; */ // no equivalent to await in c++ !'
+		object = object.replace('self', 'this')
+		signalName = rReplace(rReplace(signalName, 'get_', '', 1), '()', '', 1)
+		self += f'/* await {object}->{signalName}; */ // no equivalent to await in c++ !'
 	
 	def emitSignal(self, name, params):
 		self += f'emit_signal("{name}"'
@@ -307,21 +314,22 @@ class Transpiler:
 		self += f'connect("{name}", '; get(params[0]); self += ')'
 	
 	def matchStmt(self, evaluated, cases):
-		
 		type = get(evaluated)
-		
+
 		# use switch on literals
 		if type in ('int', 'string', 'float'):
 			
 			self += 'switch('; get(evaluated); self += ')'
 			self.UpScope()
 			
-			for pattern, when in cases(True):
+			for pattern, when, code in cases():
 				if pattern == 'default':
 					self += 'default:'
 				else:
 					self += 'case '; get(pattern); self += ':'
 					if when: self += ' if('; get(when); self += ')'
+				code = replaceClosingBrace(code, '\tbreak; }')
+				self.write(code)
 		
 		 # default to if else chains for objects
 		else:
@@ -331,7 +339,7 @@ class Transpiler:
 			self += ' == '
 			comparison = self.popLayer()
 			
-			for pattern, when in cases():
+			for pattern, when, code in cases():
 				if pattern == 'default':
 					self += 'else '
 				else:
@@ -339,6 +347,7 @@ class Transpiler:
 					get(pattern)
 					if when: self += ' && '; get(when)
 					self += ')'
+				self.write(code)
 	
 	def end_class(self, name):
 		# add ready function if there are onready_assigns remaining
@@ -348,61 +357,62 @@ class Transpiler:
 		# (or replacing a dummy string ex:__READY__ if _ready was defined by user)
 		if self.getClass().onready_assigns: self.define_method('_ready', override=True)
 		
-		# bindings ( _bind_methods() static function )
-		# NOTE: we generate property bindings first so we can generate missing get set methods,
-		# but into a buffer since they need to be declared after method bindings
-		bindings = StringBuilder()
-		property_bindings = StringBuilder()
-		
-		bindings += ' {\n'
-		for prop, an_name, an_args in self.getClass().annotations:
-			if prop: # @export_... property
-				type = self.klass.members[prop]
-				if not type.startswith('signal'):
-					an_name = export_replacements.get(an_name) or an_name.upper()
-					
-					property_bindings += f'\tADD_PROPERTY(PropertyInfo({type_enum(type)}, "{prop}"'
-					
-					# PROPERTY_HINT_*****, "args"
-					if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
-					
-					accessor_get = self.getClass().accessors_get.get(prop)
-					accessor_set = self.getClass().accessors_set.get(prop)
-					
-					# add accessors to binding
-					property_bindings += f'), "{accessor_set or toSet(prop)}", "{accessor_get or toGet(prop)}");\n'
-					
-					# define accessors if missing
-					if not accessor_get: self.setter(prop, 'value', f' {{\n\t{prop} = value;\n}}\n')
-					if not accessor_get: self.getter(prop, f' {{\n\treturn {prop};\n}}\n')
+		# bindings -> _bind_methods() static function
+		if self.getClass().annotations or self.klass.methods or self.getClass().signals:
+			# NOTE: we generate property bindings first so we can generate missing get set methods,
+			# but into a buffer since they need to be declared after method bindings
+			bindings = StringBuilder()
+			property_bindings = StringBuilder()
 			
-			else: # @export_group, subgroup, category
-				an_name = an_name.replace('export_','').upper()
-				property_bindings += f'\tADD_{an_name}("{an_args}","");\n'
-		
-		# signals
-		for signal, args in self.getClass().signals.items():
-			params = ', '.join(map(lambda item: f'PropertyInfo({type_enum(item[1])}, "{item[0]}")', args.items()))
-			params = ', ' +params if params else params 
-			property_bindings += f'\tADD_SIGNAL(MethodInfo("{signal}"{params}));\n'
-		
-		# methods
-		for meth, type in self.klass.methods.items():
-			if not meth.startswith('_'): # _method => not exported
-				params = ', '.join(map(lambda s: f'"{s}"', self.getClass().method_args[meth]))
-				params = ', ' + params if params else params
-				bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
-		
-		bindings += '\n'
-		
-		# property bindings go after method bindings
-		bindings += property_bindings
-		
-		# close bindings method
-		bindings += '}\n'
-		
-		pb = self.getClass().public(); pb += '\n'
-		self.define_method('_bind_methods', code = str(bindings), static = True)
+			bindings += ' {\n'
+			for prop, an_name, an_args in self.getClass().annotations:
+				if prop: # @export_... property
+					type = self.klass.members[prop]
+					if not type.startswith('signal'):
+						an_name = export_replacements.get(an_name) or an_name.upper()
+						
+						property_bindings += f'\tADD_PROPERTY(PropertyInfo({type_enum(type)}, "{prop}"'
+						
+						# PROPERTY_HINT_*****, "args"
+						if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
+						
+						accessor_get = self.getClass().accessors_get.get(prop)
+						accessor_set = self.getClass().accessors_set.get(prop)
+						
+						# add accessors to binding
+						property_bindings += f'), "{accessor_set or toSet(prop)}", "{accessor_get or toGet(prop)}");\n'
+						
+						# define accessors if missing
+						if not accessor_get: self.setter(prop, 'value', f' {{\n\t{prop} = value;\n}}\n')
+						if not accessor_get: self.getter(prop, f' {{\n\treturn {prop};\n}}\n')
+				
+				else: # @export_group, subgroup, category
+					an_name = an_name.replace('export_','').upper()
+					property_bindings += f'\tADD_{an_name}("{an_args}","");\n'
+			
+			# signals
+			for signal, args in self.getClass().signals.items():
+				params = ', '.join(map(lambda item: f'PropertyInfo({type_enum(item[1])}, "{item[0]}")', args.items()))
+				params = ', ' +params if params else params 
+				property_bindings += f'\tADD_SIGNAL(MethodInfo("{signal}"{params}));\n'
+			
+			# methods
+			for meth, type in self.klass.methods.items():
+				if not meth.startswith('_'): # _method => not exported
+					params = ', '.join(map(lambda s: f'"{s}"', self.getClass().method_args[meth]))
+					params = ', ' + params if params else params
+					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
+			
+			bindings += '\n'
+			
+			# property bindings go after method bindings
+			bindings += property_bindings
+			
+			# close bindings method
+			bindings += '}\n'
+			
+			pb = self.getClass().public(); pb += '\n'; self += '\n'
+			self.define_method('_bind_methods', code = str(bindings), static = True)
 		
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
@@ -499,8 +509,22 @@ class Transpiler:
 		self.layers.pop()
 		return scope
 
-def rReplace(string, toReplace, newValue, n = 1):
-	return newValue.join(string.rsplit(toReplace,n))
+def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
+
+def replaceClosingBrace(string, replacement):
+	def impl():
+		open_brackets = 0
+		for c in string:
+			if c == '{': open_brackets += 1
+			elif c == '}':
+				open_brackets -= 1
+				if open_brackets == 0:
+					yield replacement
+					# ensure it triggers only once
+					open_brackets = 999
+					continue
+			yield c
+	return ''.join(impl())
 
 def toSet(name): return f'set_{name}'
 def toGet(name): return f'get_{name}'
@@ -511,6 +535,8 @@ def translate_type(type):
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
 	if toVariantEnumType(type): return type
 	return type + '*'
+
+def is_pointer(type): return translate_type(type)[-1] == '*'
 
 def toVariantEnumType(type):
 	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())
@@ -524,14 +550,16 @@ def type_enum(type):
 def prettify(value):
 	def impl():
 		cnt = 0
+		line = ''
 		for c in value:
 			if c == '\n':
+				line = ''
 				cnt += 1
 				if cnt < 3: yield c
 			elif cnt > 0 and c == ';':  pass
-			elif cnt > 0 and c == ' ':  yield c
-			elif cnt > 0 and c == '\t': yield c
-			else: cnt = 0; yield c
+			elif cnt > 0 and c == ' ':  line += c
+			elif cnt > 0 and c == '\t': line += c
+			else: cnt = 0; yield line + c; line = ''
 	return ''.join(impl())
 
 # trick for generator values

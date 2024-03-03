@@ -31,9 +31,9 @@ protected:
 	const float MIN_JUMP_VELOCITY = 3.5;
 	const float MAX_Y_SPEED = 10.0;
 
-	const Vector3 XZ = new Vector3(1.0, 0.0, 1.0);
-	const Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
-	const Vector3 XY = new Vector3(1.0, 1.0, 0.0);
+	const Vector3 XZ = Vector3(1.0, 0.0, 1.0);
+	const Vector3 YZ = Vector3(0.0, 1.0, 1.0);
+	const Vector3 XY = Vector3(1.0, 1.0, 0.0);
 
 	static Variant gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
 
@@ -64,8 +64,8 @@ protected:
 
 /* steering variables */
 
-	Vector3 _global_mov_dir = new Vector3();
-	Vector3 global_mov_dir = new Vector3();
+	Vector3 _global_mov_dir = Vector3();
+	Vector3 global_mov_dir = Vector3();
 
 public:
 	Vector3 get_global_mov_dir();
@@ -88,7 +88,7 @@ public:
 	/* signal viewDirChanged(Vector3 euler) */
 
 protected:
-	Vector3 view_dir = new Vector3();
+	Vector3 view_dir = Vector3();
 
 public:
 	void set_view_dir(Vector3 value);

@@ -45,6 +45,12 @@ var big_str : string = """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
+var complex = {
+    "t" : 100,
+    "rafg" : 'asfgh',
+    "u" : false, # Example Comment
+    "t":{"e":{"g":1,"f":2},},
+} ['rafg']
 
 # method
 func method(param = 5.):
@@ -71,18 +77,20 @@ var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
+# getters and setters
+var getset_var := .1 : set = _set, get = _get
+
+var getset_sprite : Sprite2D :
+    set (value):
+        getset_sprite = value
+        getset_sprite.position = Vector2(1,2)
+        getset_sprite.position += Vector2(1,2) # cpp will need help here
+    get:
+        return getset_sprite
+
 # signals
 signal jump
 signal movement(dir:Vector3, speed:float)
-
-# property getters and setters
-var getset_var : float : set = _set, get = _get
-
-var getset_var2 = -0.1 :
-    set (value):
-        getset_var2 = value
-    get:
-        return getset_var2
 
 func async_function():
     await jump
@@ -97,16 +105,7 @@ func async_function():
     
     movement.emit(Vector3.UP, .1)
 
-# this becomes rapidly unreadable once translated though
-const _default_data = {
-    "t" : 100,
-    "rafg" : 'asfgh',
-    "u" : false,# Example Comment
-    "r":["a",{"b":false}],
-    "t":{"e":{"g":1,"f":2},},
-}
-
-# automatic _ready generation
+# _ready generation when @onready is used
 @onready var k = 42
 
 
@@ -132,34 +131,40 @@ public partial class test : Godot.Node
     [Tool]
     public partial class Nested1 : test
     {
-        
+
     }
-    
+
     public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
     public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
-    
+
     [Export]
     public Godot.Variant Export;
-    
+
     [Export("param1,param2")]
     public Godot.Variant ExportParam;
-    
+
     [ExportGroup("group")]
-    
+
     [Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
     public int ExportFlags;
-    
+
     // basic property definitions / expressions
     public Godot.Variant Foo;
     public static int I = 0;
-    public const string STR = "the fox said \"get off my lawn\"";
+    public const string str = "the fox said \"get off my lawn\"";
     public string BigStr = @"
-        this is a multiline string
-    ";
+            this is a multiline string
+        ";
     public Array Array = new Array{0, 1, 2, };
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
-    
+    public Godot.Variant Complex = new Dictionary{
+                {"t", 100},
+                {"rafg", "asfgh"},
+                {"u", false},// Example Comment
+                {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
+                }["rafg"];
+
     // method
     public double Method(double param = 5.0)
     {
@@ -170,83 +175,77 @@ public partial class test : Godot.Node
         }
         return val * param;
     }
-    
+
     // type inference on members
     public int J = this.I;
     public string K = StringArray[0];
-    
+
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const int FLAG = Godot.RenderingServer.NO_INDEX_ARRAY;
+    public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
-    
+
     // Gdscript special syntax
     public Godot.Node GetNode = GetNode("node");
     public Godot.Node GetNode2 = GetNode("../node");
     public Godot.Node GetUniqueNode = GetNode("%unique_node");
     public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     public Godot.Resource LoadResource = Load("res://path");
-    
-    // signals
-    [Signal]
-    public delegate void JumpHandler();
-    [Signal]
-    public delegate void MovementHandler(Godot.Vector3 dir, double speed);
-    
-    // property getters and setters
-    public double GetsetVar
+
+    // getters and setters
+    public double GetsetVar = 0.1
     {
         set => _Set(value);
         get => _Get();
     }
     private double _GetsetVar;
 
-    
-    public double GetsetVar2 =  - 0.1
+
+    public Godot.Sprite2D GetsetSprite
     {
         set
         {
-            _GetsetVar2 = value;
+            _GetsetSprite = value;
+            _GetsetSprite.Position = new Vector2(1, 2);
+            _GetsetSprite.Position += new Vector2(1, 2);// cpp will need help here
         }
         get
         {
-            return _GetsetVar2;
+            return _GetsetSprite;
         }
     }
-    private double _GetsetVar2;
+    private Godot.Sprite2D _GetsetSprite;
 
-    
+
+    // signals
+    [Signal]
+    public delegate void JumpHandler();
+    [Signal]
+    public delegate void MovementHandler(Godot.Vector3 dir, double speed);
+
     public void AsyncFunction()
     {
         await ToSignal(this, "Jump");
         await ToSignal(GetTree(), "ProcessFrame");
-        
+
         GetTree().EmitSignal("process_frame", 0.7);
-        
+
         var myLambda = () =>
         {    GD.Print("look ma i'm jumping");
         };
-        
+
         // lambdas are not perfectly translated
         jump += myLambda;
-        
+
         EmitSignal("movement", Godot.Vector3.UP, 0.1);
     }
-    
-    // this becomes rapidly unreadable once translated though
-    protected const Dictionary _DEFAULT_DATA = new Dictionary{
-        {"t", 100},
-        {"rafg", "asfgh"},
-        {"u", false},// Example Comment
-        {"r", new Array{"a", new Dictionary{{"b", false},}, }},
-        {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
-        };
-    
-    // automatic _ready generation
+
+    // _ready generation when @onready is used
     public int K;
-    
+
+
     protected override void _Ready()
     {
         K = 42;
@@ -275,7 +274,6 @@ class Nested1 : public test {
     GDCLASS(Nested1, test);
 public:
 
-    static void _bind_methods();
 }
 
 class test : public Node {
@@ -298,9 +296,15 @@ protected:
     string big_str = "\
     this is a multiline string\
 ";
-    Array array = new Array{0,1,2,};
-    Dictionary dict = new Dictionary{{0,1},{1,2},{2,3},};
-    Array<string> string_array = new Array{"0","1",};
+    Array array = new Array{0, 1, 2, };
+    Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
+    Array<string> string_array = new Array{"0", "1", };
+    Variant complex = new Dictionary{
+        {"t", 100},
+        {"rafg", "asfgh"},
+        {"u", false},// Example Comment
+        {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
+        }["rafg"];
 
 // method
 
@@ -315,7 +319,7 @@ protected:
 
 // determine type based on godot doc
     Node* x = this->get_parent();
-    float x = new Vector3().x;
+    float x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const int flag = RenderingServer::NO_INDEX_ARRAY;
     float global_function = angle_difference(0.1, 0.2);
@@ -327,33 +331,23 @@ protected:
     Resource* preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     Resource* load_resource = load("res://path");
 
+// getters and setters
+    float getset_var = 0.1;
+
+    Sprite2D* getset_sprite;
+
+public:
+    void set_getset_sprite(Sprite2D* value);
+
 // signals
+    Sprite2D* get_getset_sprite();
     /* signal jump() */
     /* signal movement(Vector3 dir, float speed) */
 
-// property getters and setters
-    float getset_var;
-
-    float getset_var2 =  - 0.1;
-
-public:
-    void set_getset_var2(float value);
-
-    float get_getset_var2();
-
-// this becomes rapidly unreadable once translated though
+// _ready generation when @onready is used
     void async_function();
 
 protected:
-    const Dictionary _default_data = new Dictionary{
-    {"t",100},
-    {"rafg","asfgh"},
-    {"u",false},// Example Comment
-    {"r",new Array{"a",new Dictionary{{"b",false},},}},
-    {"t",new Dictionary{{"e",new Dictionary{{"g",1},{"f",2},}},}},
-    };
-
-// automatic _ready generation
     int k;
 
 public:
@@ -380,10 +374,6 @@ c++ output (implementation) :
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-static void Nested1::_bind_methods() {
-
-}
-
 float test::method(float param)
 {
     int val = 2;
@@ -394,30 +384,32 @@ float test::method(float param)
     return val * param;
 }
 
-void test::set_getset_var2(float value)
+void test::set_getset_sprite(Sprite2D* value)
 {
-    getset_var2 = value;
+    getset_sprite = value;
+    getset_sprite->set_position(Vector2(1, 2));
+    getset_sprite->set_position( /* position += */ + Vector2(1, 2));// cpp will need help here
 }
 
-float test::get_getset_var2()
+Sprite2D* test::get_getset_sprite()
 {
-    return getset_var2;
+    return getset_sprite;
 }
 
 void test::async_function()
 {
-    /* await self.jump; */ // no equivalent to await in c++ !
-    /* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
-    
+    /* await this->jump; */ // no equivalent to await in c++ !
+    /* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+
     get_tree()->emit_signal("process_frame", 0.7);
-    
+
     Callable myLambda = []() 
     {    print("look ma i'm jumping");
     };
-    
+
     // lambdas are not perfectly translated
     connect("jump", myLambda);
-    
+
     emit_signal("movement", Vector3::UP, 0.1);
 }
 
@@ -452,8 +444,8 @@ int test::get_export_flags() {
 
 static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-    ClassDB::bind_method(D_METHOD("set_getset_var2", "value"), &test::set_getset_var2);
-    ClassDB::bind_method(D_METHOD("get_getset_var2"), &test::get_getset_var2);
+    ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
+    ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);

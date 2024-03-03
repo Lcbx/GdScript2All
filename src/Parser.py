@@ -4,7 +4,7 @@ from copy import copy
 from enum import IntFlag as Flags
 
 from ClassData import ClassData
-from godot_types import godot_types
+from godot_types import godot_types, toSignalType
 from Tokenizer import Tokenizer
 
 
@@ -23,7 +23,7 @@ class Parser:
 		
 		# generator that splits text into tokens
 		self.tokenizer = Tokenizer()
-		self.tokens = self.tokenizer.tokenize(text)
+		self.tokens = self.tokenizer.tokenize(text + '\n')
 		
 		# update current token
 		self.advance()
@@ -65,8 +65,7 @@ class Parser:
 	 |->ForStatement    -> for <variable> in <Expression> | : <Block>
 	 |->MatchStatement  -> match <Expression>: [<Expression>:<Block>]1+
 	 |->ReturnStatement -> return <Expression>
-	 |->Assignment      -> <Expression> = <Expression>
-	 |->Expression (see after statement implementation)
+	 |->Reassign    -> Expression (see after statement implementation)
 	
 	Expression grammar defined later
 	
@@ -155,7 +154,7 @@ class Parser:
 		while self.expect('@'):
 			
 			# NOTE: special case for onready (needs moving the assignment into ready function)
-			if self.expect('onready'): onready = True; self.endline(); break
+			if onready := self.expect('onready'): self.endline(); break
 			
 			annotation = self.consume()
 			# NOTE: this should work for most cases
@@ -169,10 +168,12 @@ class Parser:
 			if self.match_value('@'): self.out.annotation(annotation, ann_params, None, ann_endline)
 		
 		# member : [[static]? var|const] variable_name [: [type]? ]? = expression
-		constant = self.expect('const')
-		if constant or self.expect('var'):
+		if ( constant := self.expect('const') ) or self.expect('var'):
 			memberName = self.consume()
+
 			if annotation: self.out.annotation(annotation, ann_params, memberName, ann_endline)
+
+			# ugly but ':' can be a type annotation or setget delimiter
 			foundSetGet = self.declare( memberName, \
 					 self.DECL_FLAGS.property \
 				| (  self.DECL_FLAGS.constant if constant \
@@ -188,8 +189,7 @@ class Parser:
 				# although scope is used in C# to delimit getters and setters,
 				# c++ does not have that notion
 				# so we don't emit UpScope and DownScope here
-				if self.match_type('COMMENT'):
-					self.out +=' '; self.out.comment(self.consume())
+				if self.match_type('COMMENT'): self.out +=' '; self.out.comment(self.consume())
 				self.expect_type('LINE_END')
 				
 				oldLevel = self.level
@@ -243,9 +243,7 @@ class Parser:
 		# make transpiler write to a buffer
 		# so we can parser block code, emit declaration then emit block code
 		self.out.addLayer()
-		
 		blockType = self.Block()
-		
 		code = self.out.popLayer()
 		
 		returnType = returnType or blockType
@@ -255,7 +253,7 @@ class Parser:
 		self.out.define_method(name, params, params_init, returnType, code, static, override)
 	
 	
-	def Block(self, addBreak = False):
+	def Block(self):
 		self.level += 1
 		block_lvl = self.level
 		return_type = None
@@ -265,18 +263,17 @@ class Parser:
 		for _ in self.doWhile(lambda : self.level >= block_lvl):
 			res = self.statement()
 			return_type = return_type or res
-			self.endline(addBreak = addBreak)
+			self.endline()
 		
 		return return_type
 	
 	def signal(self):
 		name = self.consume()
-		self.getClass().members[name] = f'signal/{name}'
+		self.getClass().members[name] = toSignalType(name)
 		params = {}
 		
 		# TODO: check if signal params can have initializers
-		if self.expect('('):
-			params, _ = self.parseParamDefinition()
+		if self.expect('('): params, _ = self.parseParamDefinition()
 		
 		self.out.define_signal(name, params)
 	
@@ -358,9 +355,9 @@ class Parser:
 			self.expect(':')
 			self.level += 1
 			switch_level = self.level
-			yield type
+			yield
 		
-		def cases(addBreak):
+		def cases():
 			nonlocal return_type
 			for _ in self.doWhile(lambda:self.level >= switch_level):
 				self.endline()
@@ -370,8 +367,10 @@ class Parser:
 				whenExpr = self.boolean() if self.expect('when') else None
 				if whenExpr: next(whenExpr)
 				self.expect(':')
-				yield pattern, whenExpr
-				blockType = self.Block(addBreak)
+				self.out.addLayer()
+				blockType = self.Block()
+				code = self.out.popLayer()
+				yield pattern, whenExpr, code
 				return_type = return_type or blockType
 		
 		self.out.matchStmt(evaluated(), cases)
@@ -407,7 +406,7 @@ class Parser:
 		# parsing assignment if needed
 		ass = None
 		if self.expect('='):
-			ass = self.assignment( name if flags & self.DECL_FLAGS.onready else None )
+			ass = self.expression()
 			ass_type = next(ass)
 			type = type or ass_type
 		
@@ -418,7 +417,8 @@ class Parser:
 			self.getClass().members[name] = type
 			self.out.declare_property(type, name, ass, \
 				flags & self.DECL_FLAGS.constant, \
-				flags & self.DECL_FLAGS.static)
+				flags & self.DECL_FLAGS.static,
+				flags & self.DECL_FLAGS.onready)
 		else:
 			self.locals[name] = type
 			self.out.declare_variable(type, name, ass)
@@ -426,16 +426,14 @@ class Parser:
 		return foundSetGet
 	
 	
-	# reassign : <expression> = <expression>
+	# reassign : <expression> =|+=!*=!... <expression>
 	def reassign(self):
 		# NOTE: expression() handles function calls and modification operators (a += b)
 		# even though it is not conceptually correct
-		exp = self.expression()
-		exists = next(exp)
-		
+		exp = self.expression(); next(exp)
 		if self.expect('='):
-			ass = self.assignment()
-			next(ass); next(exp); next(ass)
+			ass = self.expression(); next(ass)
+			next(exp); self.out.assignment(ass)
 		else: next(exp)
 		self.out.end_statement()
 	
@@ -452,25 +450,18 @@ class Parser:
 	ternary			-> [boolean [if boolean else boolean]* ]
 	boolean			-> arithmetic [and|or|<|>|==|...  arithmetic]*
 	arithmetic		-> [+|-|~] value [*|/|+|-|... value]*
-	value			-> literal|subexpression|textCode
+	dereference		-> value [reference|subscription]?
+	value			-> literal|subexpression|variable[call]?
 	literal			-> int|float|string|array|dict
-	array			-> \[ [expresssion [, expression]*]? \]	
+	array			-> [ [expresssion [, expression]*]? ]
 	dict			-> { [expresssion:expression [, expresssion:expression]*]? }
 	subexpression	-> (expression)
-	textCode		-> variable|reference|call|subscription
 	variable		-> <name>
-	reference		-> textCode.textCode
-	call			-> textCode([*params]?)
-	subscription	-> textcode[<index>]
+	reference		-> .name [reference|call|subscription]?
+	call			-> ([params]*) [reference|subscription]?
+	subscription	-> [expression] [reference|call|subscription]?
 	
-	"""
-	
-	def assignment(self, onreadyName = None):
-		exp = self.expression()
-		yield next(exp);
-		self.out.assignment(exp, onreadyName)
-		yield
-	
+	"""	
 	
 	def expression(self):
 		exp = self.ternary()
@@ -532,26 +523,56 @@ class Parser:
 	
 	
 	def _arithmetic(self):
-		value1 = self.value()
-		value_type = next(value1)
+		val1 = self.dereference()
+		type = next(val1)
 		
-		# NOTE: we accept arithmetic reassignment ex: i += 1
+		# NOTE: we accept arithmetic reassignment ex: i -= 1
 		# which is not exact but simpler to do this way
 		op = self.consume() if self.match_type('ARITHMETIC') else None
 		
 		if op:
-			value2 = self._arithmetic()
-			value_type = next(value2)
-			yield value_type
-			next(value1)
+			val2 = self._arithmetic()
+			type = next(val2)
+			yield type
+			next(val1)
 			self.out.operator(op)
-			next(value2)
+			next(val2)
 		else:
-			yield value_type
-			next(value1)
+			yield type
+			next(val1)
 		yield
 	
-	
+
+	def dereference(self):
+		current_tkn = self.current.value
+		val = self.value()
+		type = next(val)
+		signal = type and type.endswith('signal')
+		singleton = type and type.endswith('singleton')
+		if singleton: type = type.replace('singleton', '')
+		
+		# reference
+		if self.expect('.'):
+			ref = self.reference(type, singleton)
+			yield next(ref)
+			if not signal: next(val)
+			next(ref)
+		
+		# subscription
+		elif self.expect('['):
+			sub = self.subscription(type)
+			yield next(sub)
+			next(val); next(sub)
+
+		# no dereferencing
+		else:
+			yield type
+			next(val)
+
+		yield
+
+
+
 	def value(self):
 		
 		# int
@@ -567,7 +588,7 @@ class Parser:
 			self.out.literal(val)
 			
 		# bool
-		elif self.current.value in ('true', 'false'):
+		elif self.match_value('true', 'false'):
 			val = self.consume() == 'true'
 			yield 'bool'
 			self.out.literal(val)
@@ -577,34 +598,42 @@ class Parser:
 			val = self.consume()
 			yield 'string'
 			self.out.literal(val)
+
 		# "" or '' string
 		elif self.match_type('STRING'):
 			val = self.consume()
 			yield 'string'
 			self.out.literal(val)
-			
+		
+		# NOTE: we try to keep indentation
+		# but pbbly better to just use a layer
+
 		# array
 		elif self.expect('['):
+			self.out.level += 1 # for cpp to keep indentation
+			self.out.addLayer(); self.endline()
+			for val in self.doWhile(lambda: not self.expect(']')):
+				val = self.expression(); next(val)
+				self.out.array_item(val)
+				self.expect(','); self.endline()
+			contents = self.out.popLayer()
+			self.out.level -= 1
 			yield 'Array'
-			def iter():
-				self.endline(emitDownScope = False)
-				for _ in self.doWhile(lambda: not self.expect(']')):
-					val = self.expression(); next(val)
-					self.expect(','); self.endline(emitDownScope = False)
-					yield val
-			self.out.create_array(iter())
+			self.out.create_array(contents)
 			
 		# dictionary
 		elif self.expect('{'):
+			self.out.level += 1 # for cpp to keep indentation
+			self.out.addLayer(); self.endline()
+			for _ in self.doWhile(lambda: not self.expect('}')):
+				key = self.expression(); val = self.expression()
+				next(key); self.expect(':'); next(val)
+				self.out.dict_item(key, val)
+				self.expect(','); self.endline()
+			contents = self.out.popLayer()
+			self.out.level -= 1
 			yield 'Dictionary'
-			def iter():
-				self.endline(emitDownScope = False)
-				for _ in self.doWhile(lambda: not self.expect('}')):
-					key = self.expression(); val = self.expression()
-					next(key); self.expect(':'); next(val)
-					yield (key, val)
-					self.expect(','); self.endline(emitDownScope = False)
-			self.out.create_dict(iter())
+			self.out.create_dict(contents)
 			
 		# subexpression : (expression)
 		elif self.expect('('):
@@ -640,72 +669,49 @@ class Parser:
 			yield 'Callable'
 			self.out.create_lambda(params, code)
 		
-		# textCode : variable|reference|call
+		# variable name
 		elif self.match_type('TEXT'):
-			content = self.textCode()
-			yield next(content)
-			next(content)
+		
+			name = self.consume()
+			
+			# self. is essentially just syntactic in most languages
+			this = name == 'self' and self.expect('.')
+			if this: name = self.consume()
+			
+			# could be :
+			# a member (including signals)
+			# a local
+			# a singleton or constructor (ex: RenderingServer, Vector3)
+			# a global constant (ex: KEY_ESCAPE)
+			singleton = name in godot_types
+			property = name in self.getClass().members or name in self.getClassParent().members
+			type = self.getClass().members.get(name) \
+				or self.getClassParent().members.get(name) \
+				or self.locals.get(name) \
+				or godot_types['@GlobalScope'].constants.get(name) \
+				or (name if singleton else None)
+			if singleton: type += 'singleton' 
+			
+			emit = self.out.singleton if singleton \
+				else self.out.property if property \
+				else self.out.variable
+			
+			# call
+			if self.expect('('):
+				call = self.call(name)
+				yield next(call)
+				if this: self.out.this()
+				next(call)
+			
+			# variable
+			else:
+				yield type
+				if this: self.out.this()
+				emit(name)
+
 		else: yield
 		yield
-	
-	
-	# textCode : variable|call|reference
-	def textCode(self):
-		
-		name = self.consume()
-		
-		# self. is essentially just syntactic in most languages
-		this = name == 'self' and self.expect('.')
-		if this: name = self.consume()
-		
-		# could be :
-		# a member (including signals)
-		# a local
-		# a singleton or constructor (ex: RenderingServer, Vector3)
-		# a global constant (ex: KEY_ESCAPE)
-		singleton = name in godot_types
-		property = name in self.getClass().members or name in self.getClassParent().members
-		type = self.getClass().members.get(name) \
-			or self.getClassParent().members.get(name) \
-			or self.locals.get(name) \
-			or godot_types['@GlobalScope'].constants.get(name) \
-			or (name if singleton else None)
-		signal = type and type.startswith('signal')
-		
-		emit = self.out.singleton if singleton \
-			else self.out.property if property \
-			else self.out.variable
-		
-		# call
-		if self.expect('('):
-			call = self.call(name)
-			yield next(call)
-			if this: self.out.this()
-			next(call)
-		
-		# reference
-		elif self.expect('.'):
-			reference = self.reference(type, singleton)
-			yield next(reference)
-			if this: self.out.this()
-			if not signal: emit(name)
-			next(reference)
-		
-		# subscription
-		elif self.expect('['):
-			s = self.subscription(type)
-			yield next(s)
-			if this: self.out.this()
-			emit(name)
-			next(s)
-		
-		# lone variable or global
-		else:
-			yield type
-			if this: self.out.this()
-			emit(name)
-		yield
-	
+
 	
 	def call(self, name, calling_type = None):
 		
@@ -728,22 +734,22 @@ class Parser:
 		
 		# emission of code 
 		emit = lambda : \
-			self.out.constructor(name, params) if constructor \
+			self.out.constructor(name, type, params) if constructor \
 			else self.out.call(name, params, global_function)
 		
 		# reference
 		if self.expect('.'):
-			r = self.reference(type)
-			yield next(r)
+			ref = self.reference(type)
+			yield next(ref)
 			emit()
-			next(r)
+			next(ref)
 		
 		# subscription
 		elif self.expect('['):
-			s = self.subscription(type)
-			yield next(s)
+			sub = self.subscription(type)
+			yield next(sub)
 			emit()
-			next(s)
+			next(sub)
 		
 		# end
 		else:
@@ -758,12 +764,11 @@ class Parser:
 		member_type = godot_types[type].members[name] if \
 				type in godot_types and name in godot_types[type].members \
 			else None
-		signal = member_type and member_type.startswith('signal')
+		signal = member_type and member_type.endswith('signal')
 		
-		# signal emission/ connection
-		if type and type.startswith('signal'):
-			signal_name = type.split('/')[-1]
-			# determine params (same as call)
+		# signal emission/connection
+		if type and type.endswith('signal'):
+			signal_name = type.replace('signal', '')
 			self.expect('('); params = ( *self.parseCallParams() ,)
 			yield None
 			if name == 'emit':
@@ -776,7 +781,7 @@ class Parser:
 			call = self.call(name, type)
 			yield next(call)
 			# emit '.' while call() emits <name>(...)
-			self.out.reference('', type, singleton)
+			self.out.reference('', type, member_type, singleton)
 			next(call)
 		
 		# other reference
@@ -784,17 +789,17 @@ class Parser:
 			r = self.reference(member_type, singleton)
 			yield next(r)
 			if not signal:
-				self.out.reference(name, type, singleton)
+				self.out.reference(name, type, member_type, singleton)
 			else:
 				# emit '.', next reference will be connect or emit
-				self.out.reference('', type, singleton)
+				self.out.reference('', type, member_type, singleton)
 			next(r)
 		
 		# subscription
 		elif self.expect('['):
 			s = self.subscription(type)
 			yield next(s)
-			self.out.reference(name, type, singleton)
+			self.out.reference(name, type, member_type, singleton)
 			next(s)
 		
 		# could be a constant
@@ -802,10 +807,17 @@ class Parser:
 			yield godot_types[type].constants[name]
 			self.out.constant(name)
 		
+		# handle a reassignment here (not really an expression)
+		elif self.match_value('=') or (self.match_type('ARITHMETIC') and self.current.value.endswith('=')):
+			op = self.consume()
+			val = self.expression() 
+			yield next(val)
+			self.out.reassignment(name, type, member_type, singleton, op, val)
+		
 		# end leaf
 		else:
 			yield member_type
-			self.out.reference(name, type, singleton)
+			self.out.reference(name, type, member_type, singleton)
 		yield
 	
 	
@@ -826,6 +838,14 @@ class Parser:
 			refer = self.reference(type)
 			yield next(refer)
 			self.out.subscription(key)
+			next(refer)
+
+		# subscription
+		elif self.expect('['):
+			sub = self.subscription(type)
+			yield next(sub)
+			self.out.subscription(key)
+			next(sub)
 		
 		# end leaf
 		else:
@@ -912,7 +932,7 @@ class Parser:
 	def consume(self):
 		found = self.current.value
 		self.advance()
-		self.vprint('+', found)
+		self.vprint('consumed:', found)
 		return found
 	
 	# parse type string and format it the way godot docs do
@@ -933,7 +953,6 @@ class Parser:
 	
 	# parse params definition (call, signal, lambda)
 	def parseParamDefinition(self):
-		
 		params = {}
 		params_init = {}
 		
@@ -957,14 +976,11 @@ class Parser:
 		return params, params_init
 	
 	# called when an endline is excpected
-	# addBreak is for switch statements
-	def endline(self, emitDownScope = True, addBreak = False):
+	def endline(self):
 		jumpedLines = 0
 		lastendline = None
 		
 		while self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
-
-			# stub
 			emitComments = (lambda : None)
 
 			# setting scope level only when we encounter non-whitespace
@@ -989,10 +1005,8 @@ class Parser:
 				if lastendline:
 					lvl = int(lastendline.value)
 					while lvl < self.level:
-						if addBreak: self.out += '\n'; self.out.breakStmt(); addBreak =  False
 						self.level -=1
-						if emitDownScope: self.out.DownScope();
-						#self.out += f"      <downscope {self.current}>"
+						self.out.DownScope();
 				emitComments()
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0

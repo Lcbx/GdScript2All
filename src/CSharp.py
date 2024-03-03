@@ -53,14 +53,18 @@ class Transpiler:
 		self += f'[{start}"{params}")]' if params else f'[{start}]'
 		self.write(endline if endline else ' ')
 	
-	def declare_property(self, type, name, assignment, constant, static):
-		type = translate_type(type)
-		name = name.upper() if constant else toPascal(name)
-		
+	def declare_property(self, type, name, assignment, constant, static, onready):
+		name = name if constant else toPascal(name)
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
-		self += f'{exposed} {const_decl}{type} {name}'
-		if assignment: get(assignment)
+		self += f'{exposed} {const_decl}{translate_type(type)} {name}'
+
+		if assignment:
+			self.addLayer()
+			if onready:
+				self += name; self.assignment(assignment)
+				self.onready_assigns.setdefault(self.class_name, []).append(self.popLayer())
+			else: self.assignment(assignment); self += self.popLayer()
 	
 	def setget(self, member, accessors):
 		
@@ -123,7 +127,7 @@ class Transpiler:
 	
 	def declare_variable(self, type, name, assignment):
 		self += f'var {name}'
-		if assignment: get(assignment)
+		if assignment: self += ' = '; get(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
 		
@@ -159,34 +163,27 @@ class Transpiler:
 		self += '[Signal]\n'
 		self += f'public delegate void {name}Handler({paramStr});'
 	
-	def assignment(self, exp, onreadyName):
-		if onreadyName:
-			self.addLayer()
-			self.write(f'{toPascal(onreadyName)} = '); get(exp)
-			self.onready_assigns.setdefault(self.class_name, []).append(self.popLayer())
-			return
+	def assignment(self, exp):
 		self += ' = '; get(exp)
 	
 	def subexpression(self, expression):
 		self += '('; get(expression); self += ')'
 	
 	def create_array(self, values):
-		self += 'new Array{'; self.level += 1
-		for value in values:
-			get(value); self += ', '
-		self += '}'; self.level -= 1
+		self += 'new Array{'
+		self += values
+		self += '}'
+
+	def array_item(self, item):
+		get(item); self += ', '
 		
-	def create_dict(self, kv):
-		self += 'new Dictionary{'; self.level += 1
-		for key, value in kv:
-			self += '{'; get(key); self += ', '; get(value); self+= '},'
-		self += '}'; self.level -= 1
-	
-	def create_dict(self, kv):
-		self += 'new Dictionary{'; self.level += 1
-		for key, value in kv:
-			self += '{'; get(key); self += ', '; get(value); self+= '},'
-		self += '}'; self.level -= 1
+	def create_dict(self, values):
+		self += 'new Dictionary{'
+		self += values
+		self += '}'
+
+	def dict_item(self, key, value):
+		self += '{'; get(key); self += ', '; get(value); self += '},'
 	
 	def create_lambda(self, params, code):
 		self += '('
@@ -230,8 +227,11 @@ class Transpiler:
 	def singleton(self, name):
 		self += translate_type(name)
 	
-	def reference(self, name, type, is_singleton = False):
+	def reference(self, name, obj_type, member_type, is_singleton = False):
 		self += '.' + toPascal(name)
+
+	def reassignment(self, name, obj_type, member_type, is_singleton, op, val):
+		self += f'.{toPascal(name)} {op} '; get(val)
 	
 	def call(self, name, params, global_function = False):
 		if global_function: name = function_replacements.get(name, name)
@@ -241,7 +241,7 @@ class Transpiler:
 			get(p)
 		self += ')'
 	
-	def constructor(self, name, params):
+	def constructor(self, name, type, params):
 		self += 'new '; self.call(name, params)
 	
 	def subscription(self, key):
@@ -299,7 +299,6 @@ class Transpiler:
 		self += f'{name} += '; get(params[0])
 	
 	def matchStmt(self, evaluated, cases):
-		
 		type = get(evaluated)
 		
 		# use switch on literals
@@ -308,12 +307,14 @@ class Transpiler:
 			self += 'switch('; get(evaluated); self += ')'
 			self.UpScope()
 			
-			for pattern, when in cases(True):
+			for pattern, when, code in cases():
 				if pattern == 'default':
 					self += 'default:'
 				else:
 					self += 'case '; get(pattern); self += ':'
 					if when: self += ' if('; get(when); self += ')'
+				code = replaceClosingBrace(code, '\tbreak; }')
+				self.write(code)
 		
 		 # default to if else chains for objects
 		else:
@@ -323,7 +324,7 @@ class Transpiler:
 			self += ' == '
 			comparison = self.popLayer()
 			
-			for pattern, when in cases():
+			for pattern, when, code in cases():
 				if pattern == 'default':
 					self += 'else '
 				else:
@@ -331,6 +332,7 @@ class Transpiler:
 					get(pattern)
 					if when: self += ' && '; get(when)
 					self += ')'
+				self.write(code)
 	
 	def end_class(self, name):
 		# add ready function if there are onready_assigns remaining
@@ -366,7 +368,7 @@ class Transpiler:
 		# automatic indentation
 		if '\n' in txt: txt = txt.replace('\n', '\n' + '\t' * self.level)
 		self.write(txt)
-		self.vprint(">", txt.replace("\n", "<EOL>").replace('\t', '  '))
+		self.vprint("emit:", txt.replace("\n", "<EOL>").replace('\t', '  '))
 		return self
 	
 	def write(self, txt):
@@ -407,6 +409,21 @@ class Transpiler:
 
 def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
 
+def replaceClosingBrace(string, replacement):
+	def impl():
+		open_brackets = 0
+		for c in string:
+			if c == '{': open_brackets += 1
+			elif c == '}':
+				open_brackets -= 1
+				if open_brackets == 0:
+					yield replacement
+					# ensure it triggers only once
+					open_brackets = 999
+					continue
+			yield c
+	return ''.join(impl())
+
 def toPrivate(name): return '_' + name
 
 def toPascal(text):
@@ -433,13 +450,16 @@ def translate_type(type):
 def prettify(value):
 	def impl():
 		cnt = 0
+		line = ''
 		for c in value:
 			if c == '\n':
-				cnt += 1; yield c
+				line = ''
+				cnt += 1
+				if cnt < 4: yield c
 			elif cnt > 0 and c == ';':  pass
-			elif cnt > 0 and c == ' ':  yield c
-			elif cnt > 0 and c == '\t': yield c
-			else: cnt = 0; yield c
+			elif cnt > 0 and c == ' ':  line += c
+			elif cnt > 0 and c == '\t': line += c
+			else: cnt = 0; yield line + c; line = ''
 	return ''.join(impl())
 
 # trick for generator values

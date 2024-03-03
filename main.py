@@ -75,12 +75,11 @@ def transpile(filename, outname):
 				tb = tb.tb_next
 	
 	finally:
-		code = transpiler.get_result()
 		if args.verbose:
 			print("")
 			print("****************  generated code  ****************")
-			print(code[0].replace('\t', '_ '))
-			if len(code) > 1: print(code[1].replace('\t', '_ '))
+			for c in transpiler.get_result():
+				print(str(c).replace('\t', '_ '))
 			print("**************************************************")
 		
 		printException()

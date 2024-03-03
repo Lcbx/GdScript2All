@@ -12,6 +12,7 @@ namespace godot {
 class statements : public Node {
 	GDCLASS(statements, Node);
 public:
+
 	Array method();
 
 	static void _bind_methods();

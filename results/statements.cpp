@@ -5,9 +5,9 @@
 
 Array statements::method()
 {
-	
-			int i = 0;
-	
+
+	int i = 0;
+
 	if(ABC)
 	{
 		assert(false);
@@ -24,36 +24,33 @@ Array statements::method()
 	{
 		print(i);
 	}
-	
+
 	while(false)
 	{
 		i += 1;
 		break;
 		continue;
 	}
-	
+
 	for(int j : range(i))
 	{
 		i += j;
 	}
-	
+
 	switch(i)
 	{
 		case "1":
 		{
 			print(i);
-			break;
-		}
+			break; }
 		case 1:
 		{
 			print(i);
-			break;
-		}
+			break; }
 		case 0: if(true)
 		{
 			print("zero!");
-			break;
-		}
+			break; }
 		//var x when false:
 		//	print("unreachable")
 		//[var x, var y] when true:
@@ -63,22 +60,22 @@ Array statements::method()
 		default:
 		{
 			print("unknown");
-			break;
-		}
+			break; }
 	}
-	
+
 	i += 3 / 3 + 2 * 0.5;
-	
-	/* await self.jump; */ // no equivalent to await in c++ !
-	/* await self.get_tree()->process_frame; */ // no equivalent to await in c++ !
-	
+
+	/* await this->jump; */ // no equivalent to await in c++ !
+	/* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+
 	get_tree()->emit_signal("process_frame", 0.7);
 	get_tree()->connect("process_frame", something);
-	
-	return new Array{};;static void statements::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("method"), &statements::method);
 
+	return new Array{};
 }
+
+static void statements::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("method"), &statements::method);
 
 }
 

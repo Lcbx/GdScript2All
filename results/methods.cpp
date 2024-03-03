@@ -38,7 +38,10 @@ void methods::declare()
 float methods::return_inference(float param)
 {
 	int val = 2;
-	return val * param;;static void methods::_bind_methods() {
+	return val * param;
+}
+
+static void methods::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("empty"), &methods::empty);
 	ClassDB::bind_method(D_METHOD("reassign"), &methods::reassign);
 	ClassDB::bind_method(D_METHOD("assign"), &methods::assign);
@@ -46,8 +49,6 @@ float methods::return_inference(float param)
 	ClassDB::bind_method(D_METHOD("returning", "v"), &methods::returning);
 	ClassDB::bind_method(D_METHOD("declare"), &methods::declare);
 	ClassDB::bind_method(D_METHOD("return_inference", "param"), &methods::return_inference);
-
-}
 
 }
 

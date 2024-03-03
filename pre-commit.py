@@ -22,6 +22,7 @@ transforms = {
 
 newReadme = template 
 
+
 for placeholder, filename in transforms.items():
 	newReadme = newReadme.replace(placeholder, read_file(filename) \
 		.replace('\t', '    ')) # github tabs are huge

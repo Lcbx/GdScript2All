@@ -24,6 +24,7 @@ public:
 	float returning(float v);
 
 	void declare();
+
 	float return_inference(float param = 5.0);
 
 	static void _bind_methods();
