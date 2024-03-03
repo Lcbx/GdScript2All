@@ -203,15 +203,13 @@ class Transpiler:
 		self.write(code)
 	
 	def literal(self, value):
-		# strings
 		if isinstance(value, str):
 			# add quotes / escape the quotes inside if necessary
 			value = value.replace('\n', '\\\n').replace('"', '\\"')
 			value = f'"{value}"'
-		
-		# booleans
+
 		elif isinstance(value, bool):
-			self += str(value).lower(); return
+			value = str(value).lower()
 		
 		self.write(str(value))
 	

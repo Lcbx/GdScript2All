@@ -5,7 +5,7 @@ var foo
 static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : string = """
-this is a multiline string
+	this is a multiline string
 """
 var _protected_bool := true
 var array = [0,1,2]

@@ -12,7 +12,7 @@ public partial class expressions : Godot.Node
 	public const string str = "the fox said \"get off my lawn\"";
 	public string BigStr = @"
 		this is a multiline string
-		";
+	";
 	protected bool _ProtectedBool = true;
 	public Array Array = new Array{0, 1, 2, };
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};

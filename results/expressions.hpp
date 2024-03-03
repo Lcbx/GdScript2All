@@ -18,7 +18,7 @@ protected:
 	static int i = 0;
 	const string str = "the fox said \"get off my lawn\"";
 	string big_str = "\
-this is a multiline string\
+	this is a multiline string\
 ";
 	bool _protected_bool = true;
 	Array array = new Array{0, 1, 2, };

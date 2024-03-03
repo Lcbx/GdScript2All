@@ -39,8 +39,8 @@ public partial class test : Godot.Node
 	public static int I = 0;
 	public const string str = "the fox said \"get off my lawn\"";
 	public string BigStr = @"
-			this is a multiline string
-		";
+		this is a multiline string
+	";
 	public Array Array = new Array{0, 1, 2, };
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<string> StringArray = new Array{"0", "1", };
