@@ -183,7 +183,7 @@ public partial class test : Godot.Node
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
-    public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
+    public Godot.Variant AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
@@ -320,7 +320,7 @@ protected:
 // determine type based on godot doc
     Node* x = this->get_parent();
     float x = Vector3().x;
-    Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
+    Variant aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const int flag = RenderingServer::NO_INDEX_ARRAY;
     float global_function = angle_difference(0.1, 0.2);
 
@@ -410,7 +410,7 @@ void test::async_function()
     // lambdas are not perfectly translated
     connect("jump", myLambda);
 
-    emit_signal("movement", Vector3::UP, 0.1);
+    emit_signal("movement", Vector3::get_singleton()->UP, 0.1);
 }
 
 void test::_ready()
