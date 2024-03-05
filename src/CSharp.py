@@ -4,7 +4,9 @@ from godot_types import *
 
 class Transpiler:
 	
-	def __init__(self, vprint):
+	def __init__(self, script_name, out_name, vprint):
+		
+		self.out_name = out_name
 		
 		# verbose printing
 		self.vprint = vprint
@@ -375,9 +377,9 @@ class Transpiler:
 	def get_result(self):
 		return (self.cs,) 
 	
-	def save_result(self, outname):
-		if not outname.endswith('.cs'): outname += '.cs'
-		with open(outname,'w+') as wf:
+	def save_result(self):
+		if not self.out_name.endswith('.cs'): self.out_name += '.cs'
+		with open(self.out_name,'w+') as wf:
 			wf.write(self.get_result()[0])
 	
 	def UpScope(self):

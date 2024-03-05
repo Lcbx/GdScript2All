@@ -47,7 +47,7 @@ def transpile(filename, outname):
 	# script name without extension
 	script_name = os.path.basename(filename).split('.')[0]
 	
-	transpiler = Transpiler.Transpiler( getPrinter(args.verbose or args.verboseT) )
+	transpiler = Transpiler.Transpiler(script_name, outname, getPrinter(args.verbose or args.verboseT) )
 	
 	parser = Parser.Parser(script_name, text, transpiler, getPrinter(args.verbose or args.verboseP) )
 	
@@ -64,6 +64,7 @@ def transpile(filename, outname):
 		ex_msg = str(e); ex_msg = ex_msg if ex_msg != 'None' else ''
 		ex_type = type(e).__name__
 		tb = e.__traceback__
+		
 		def printException():
 			nonlocal tb
 			print(f'\033[91m{ex_type} {ex_msg}\033[0m')
@@ -84,7 +85,7 @@ def transpile(filename, outname):
 		
 		printException()
 		
-		transpiler.save_result(outname)
+		transpiler.save_result()
 
 
 if args.verbose:

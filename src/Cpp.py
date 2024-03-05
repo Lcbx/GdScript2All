@@ -44,7 +44,10 @@ class ClassDefinition:
 
 class Transpiler:
 	
-	def __init__(self, vprint):
+	def __init__(self, script_name, out_name, vprint):
+		
+		self.script_name = script_name
+		self.out_name = out_name
 		
 		# verbose printing
 		self.vprint = vprint
@@ -423,13 +426,12 @@ class Transpiler:
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
 		
-		# NOTE: class_name is not necessarily the name of the hpp file !
 		self.cpp = prettify( \
-			cpp_template.replace('__class__', self.class_name) \
+			cpp_template.replace('__header__', self.script_name) \
 			+ str(self.getLayer()).replace('\n}', '\n}\n\n') \
 			)
 		self.hpp = prettify( hpp_template \
-			.replace('__CLASS__', self.class_name.upper()) \
+			.replace('__CLASS__', self.script_name.upper()) \
 			.replace('__IMPLEMENTATION__', \
 				str(self.hpp)) \
 			)
@@ -470,15 +472,15 @@ class Transpiler:
 	def get_result(self):
 		return (self.hpp, self.cpp)
 	
-	def save_result(self, outname):
-		if not outname.endswith('.cpp'): outname += '.cpp'
+	def save_result(self):
+		if not self.out_name.endswith('.cpp'): self.out_name += '.cpp'
 		
 		result = self.get_result()
 		
-		with open(outname.replace('.cpp', '.hpp'),'w+') as wf:
+		with open(self.out_name.replace('.cpp', '.hpp'),'w+') as wf:
 			wf.write(result[0])
 			
-		with open(outname,'w+') as wf:
+		with open(self.out_name,'w+') as wf:
 			wf.write(result[1])
 	
 	def UpScope(self):
@@ -581,10 +583,9 @@ __IMPLEMENTATION__
 """
 
 cpp_template = """
-#include "__class__.hpp"
+#include "__header__.hpp"
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
-
 
 
 """

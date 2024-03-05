@@ -1,6 +1,6 @@
 
-#ifndef CHARACTER_H
-#define CHARACTER_H
+#ifndef EXAMPLE_CONTROLLER_H
+#define EXAMPLE_CONTROLLER_H
 
 #include <godot_cpp/godot.hpp>
 
@@ -100,4 +100,4 @@ public:
 
 }
 
-#endif // CHARACTER_H
+#endif // EXAMPLE_CONTROLLER_H

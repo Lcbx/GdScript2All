@@ -30,6 +30,7 @@ for placeholder, filename in transforms.items():
 with open('README.md', 'w+') as f: f.write(newReadme)
 
 # add the change to the commit
-subprocess.run(['git', 'add', '*.md'])
+subprocess.run(['git', 'add', 'README.md'])
+
 # show files commited
 subprocess.run(['git', 'status'])

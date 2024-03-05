@@ -1,6 +1,6 @@
 
-#ifndef MOVEMENTSTATE_H
-#define MOVEMENTSTATE_H
+#ifndef EXAMPLE_MOVEMENTSTATE_H
+#define EXAMPLE_MOVEMENTSTATE_H
 
 #include <godot_cpp/godot.hpp>
 
@@ -34,4 +34,4 @@ public:
 
 }
 
-#endif // MOVEMENTSTATE_H
+#endif // EXAMPLE_MOVEMENTSTATE_H
