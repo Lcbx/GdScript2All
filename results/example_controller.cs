@@ -35,7 +35,7 @@ public partial class Character : Godot.CharacterBody3D
 	public Godot.Variant JumpCoolDown = Utils.CreateTimer(this, 0.15);
 
 
-	protected override void _Process(double delta)
+	protected void _Process(double delta)
 	{
 		// in air
 		if(!IsOnFloor())

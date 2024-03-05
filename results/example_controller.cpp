@@ -88,7 +88,7 @@ Vector3 Character::get_local_dir()
 void Character::set_local_dir(Vector3 value)
 {
 	_local_dir = value;
-	_global_mov_dir =  - value.x * basis.x + value.y * Vector3::UP + value.z * basis.z;
+	_global_mov_dir =  - value.x * basis.x + value.y * Vector3::get_singleton()->UP + value.z * basis.z;
 }
 
 float Character::calculate_ground_speed()

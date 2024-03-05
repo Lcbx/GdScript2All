@@ -69,7 +69,7 @@ public partial class test : Godot.Node
 	// determine type based on godot doc
 	public Godot.Node X = this.GetParent();
 	public double X = new Vector3().X;
-	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
+	public Godot.Variant AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
 	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
 	public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 

@@ -12,7 +12,7 @@ from ClassData import ClassData
 
 
 SAVEFILE = 'src/godot_types.pickle'
-DOC_FOLDER = 'classData'
+RAW_DATA_FILE = 'extension_api.json'
 
 
 # the data people we import in this script
@@ -32,7 +32,8 @@ def _import_type_definitions_():
 	
 	# get variant type enum Ex: TYPE_FLOAT, TYPE_VECTOR2, etc
 	variant_types = [ cst for cst in godot_types['@GlobalScope'].constants.keys() if cst.startswith('TYPE_') and not cst.endswith('MAX')]
-	
+	#print(variant_types)
+
 	# decompression/flattening :
 	# add base class members to child class
 	
@@ -69,66 +70,104 @@ def _import_type_definitions_():
 			for member in parent.members: data.members[member] = parent.members[member]
 			for const in parent.constants: data.constants[const] = parent.constants[const]
 
+
 def _update_type_definitions_():
 	
 	# generate the pickle file
-	from untangle import parse
+	from json import load as parse
 	
-	classDocPaths = [
-		os.path.join(root, file)
-		for root, dirs, files in os.walk(DOC_FOLDER)
-		for file in files
-		if os.path.splitext(file)[1] == '.xml'
-	]
+	with open(RAW_DATA_FILE) as f:
+		data = parse(f)
 	
-	#print(classDocPaths)
+	#print( [ klass['name'] for klass in data['classes'] ])
 	
-	for path in classDocPaths:
-		
-		klass = parse(path).class_
+	for klass in data['builtin_classes'] + data['classes']:
 		klass_name = klass['name']
-		
-		# skip native types
-		if klass_name in ['float', 'int', 'bool']: continue 
-		
-		data = ClassData()
-		godot_types[klass_name] = data
-		
-		data.base = klass['inherits']
-		
-		if 'methods' in klass:
-			for meth in klass.methods.method:
+		#print('*', klass_name)
+
+		if klass_name in {'Nil', 'float', 'int', 'bool'}: continue 
+
+		classd = ClassData()
+		godot_types[klass_name] = classd
+
+		classd.base = klass.get('inherits')
+		#print('->', classd.base)
+
+		if methods := klass.get('methods'):
+			for meth in methods:
 				meth_name = meth['name']
-				data.methods[meth_name] = meth.return_['type'] if 'return_' in meth else None
-		
-		if 'members' in klass:
-			for memb in klass.members.member:
-				memb_name = memb['name']
-				data.members[memb_name] = memb['type']
-		
-		# NOTE: some constants are part of an enum
-		# the enum name is then contained in constant.enum property
-		if 'constants' in klass:
-			for cons in klass.constants.constant:
-				cons_name = cons['name']
-				cons_val = cons['value']
-				# no type in docs, so best guess
-				# int : -?\d+
-				# contructor : <type>(params)
-				# NOTE: currently there are no float or string
-				cons_type = 'int' if cons_val.lstrip('-').isdigit() \
-					else cons_val.split('(')[0]
-				data.constants[cons_name] = cons_type
-		
-		if 'signals' in klass:
-			for signal in klass.signals.signal:
-				signalName = signal['name']
-				data.members[signalName] = toSignalType(signalName)
-	
-	# adding builtin that aren't in doc
+				#print(meth_name)
+				if 'return_value' in meth:
+					classd.methods[meth_name] = meth['return_value'].get('type')
+
+		if signals := klass.get('signals'):
+			for signal in signals:
+				signal_name = signal['name']
+				#print(signal_name)
+				classd.members[signal_name] = toSignalType(signal_name)
+
+		if properties := klass.get('properties'):
+			for prop in properties:
+				prop_name = prop['name']
+				#print(prop_name)
+				classd.members[prop_name] = prop['type']
+
+		if constants := klass.get('constants'):
+			for const in constants:
+				const_name = const['name']
+				const_val = const['value']
+				#print(const_name, const_val)
+				const_type = 'int' if isinstance(const_val, int) \
+					else const_val.split('(')[0]
+				#print(const_name, const_type)
+				classd.constants[const_name] = const_type
+
+		if enums := klass.get('enums'):
+			for enum in enums:
+				enum_name = enum['name']
+				#print(enum_name)
+				classd.enums.append(enum_name)
+
+	for klass in data['builtin_class_member_offsets'][0]['classes']:
+		klass_name = klass['name']
+		#print('*', klass_name)
+
+		classd = ClassData()
+		godot_types[klass_name] = classd
+
+		for member in klass['members']:
+			member_name = member['member']
+			member_type = 'int' if (meta := member['meta']).startswith('int') \
+				else meta
+			classd.members[member_name] = member_type
+
+
+	globals = ClassData()
+	godot_types['@GlobalScope'] = globals
+
+	for function in data['utility_functions']:
+		func_name = function['name']
+		func_type = function.get('return_type')
+		# NOTE: might be useful if we can handle the whole Math/Mathf thing in C#
+		#func_cat = function.get('category')
+		globals.methods[func_name] = func_type
+
+
+	for enum in data['global_enums']:
+		enum_name = enum['name']
+		globals.enums.append(enum_name)
+
+		# mainly for keeping variant_types
+		for enum_value in enum['values']:
+			globals.constants[enum_value['name']] = 'int'
+
+	## adding Variant for convenience
+	godot_types['Variant'] = ClassData()
+
+	## adding builtin that aren't in doc
 	add_function('range', 'int[]')
 	add_function('load', 'Resource')
-	add_function('preload', 'Resource')
+	add_function('preload', 'Resource')	
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)

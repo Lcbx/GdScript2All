@@ -39,7 +39,7 @@ void test::async_function()
 	// lambdas are not perfectly translated
 	connect("jump", myLambda);
 
-	emit_signal("movement", Vector3::UP, 0.1);
+	emit_signal("movement", Vector3::get_singleton()->UP, 0.1);
 }
 
 void test::_ready()
