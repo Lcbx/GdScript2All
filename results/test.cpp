@@ -3,7 +3,7 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-float test::method(float param)
+double test::method(double param)
 {
 	int val = 2;
 	for(string k : string_array)
@@ -13,14 +13,14 @@ float test::method(float param)
 	return val * param;
 }
 
-void test::set_getset_sprite(Sprite2D* value)
+void test::set_getset_sprite(Ref<Sprite2D> value)
 {
 	getset_sprite = value;
-	getset_sprite->set_position(Vector2(1, 2));
-	getset_sprite->set_position( /* position += */ + Vector2(1, 2));// cpp will need help here
+	getset_sprite.position = Vector2(1, 2);
+	getset_sprite.position += Vector2(1, 2);// cpp will need help here
 }
 
-Sprite2D* test::get_getset_sprite()
+Ref<Sprite2D> test::get_getset_sprite()
 {
 	return getset_sprite;
 }
@@ -28,9 +28,9 @@ Sprite2D* test::get_getset_sprite()
 void test::async_function()
 {
 	/* await this->jump; */ // no equivalent to await in c++ !
-	/* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+	/* await get_tree()->process_frame; */ // no equivalent to await in c++ !
 
-	get_tree()->emit_signal("process_frame", 0.7);
+	get_tree().emit_signal("process_frame", 0.7);
 
 	Callable myLambda = []() 
 	{	print("look ma i'm jumping");

@@ -3,16 +3,16 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-float script_level::get_get_var3()
+double script_level::get_get_var3()
 {return get_var3;
 }
 
- void script_level::set_DEF(float value)
+ void script_level::set_DEF(double value)
 {
 	set_sprite_offset(value);
 }
 
-float script_level::get_DEF()
+double script_level::get_DEF()
 {
 	return sprite_offset;
 }

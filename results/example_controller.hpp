@@ -28,8 +28,8 @@ speed and acceleration is based on movementState which is a Ressource (see Movem
 /* movement physics */
 
 protected:
-	const float MIN_JUMP_VELOCITY = 3.5;
-	const float MAX_Y_SPEED = 10.0;
+	const double MIN_JUMP_VELOCITY = 3.5;
+	const double MAX_Y_SPEED = 10.0;
 
 	const Vector3 XZ = Vector3(1.0, 0.0, 1.0);
 	const Vector3 YZ = Vector3(0.0, 1.0, 1.0);
@@ -43,11 +43,11 @@ protected:
 /* movement state / animations */
 
 public:
-	void _process(float delta) override;
-	/* signal changedState(MovementEnum* state) */
-	/* signal collision(KinematicCollision3D* collision) */
-	/* signal movement(Vector3 dir, float speed) */
-	/* signal jump(float speed) */
+	void _process(double delta) override;
+	/* signal changedState(Ref<MovementEnum> state) */
+	/* signal collision(Ref<KinematicCollision3D> collision) */
+	/* signal movement(Vector3 dir, double speed) */
+	/* signal jump(double speed) */
 
 	enum MovementEnum {crouch,walk,run,fall};
 
@@ -84,7 +84,7 @@ public:
 
 /* view */
 
-	float calculate_ground_speed();
+	double calculate_ground_speed();
 	/* signal viewDirChanged(Vector3 euler) */
 
 protected:
@@ -96,7 +96,7 @@ public:
 	Array<MovementState> get_movements();
 
 	static void _bind_methods();
-}
+};
 
 }
 

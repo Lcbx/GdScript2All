@@ -15,22 +15,22 @@ public:
 //# acceleration apllied towward chosen direction
 
 protected:
-	float acceleration;
+	double acceleration;
 //# redirects a % current velocity toward chosen direction
-	float nimbleness;
+	double nimbleness;
 //# maximum achievable velocity 
-	float top_speed;
+	double top_speed;
 
 public:
-	void set_acceleration(float value);
-	float get_acceleration();
-	void set_nimbleness(float value);
-	float get_nimbleness();
-	void set_top_speed(float value);
-	float get_top_speed();
+	void set_acceleration(double value);
+	double get_acceleration();
+	void set_nimbleness(double value);
+	double get_nimbleness();
+	void set_top_speed(double value);
+	double get_top_speed();
 
 	static void _bind_methods();
-}
+};
 
 }
 

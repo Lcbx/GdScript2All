@@ -12,25 +12,25 @@ class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
 
-}
+};
 
 class Nested2 : public Object {
 	GDCLASS(Nested2, Object);
 public:
 
-}
+};
 
 class Nested3 : public Object {
 	GDCLASS(Nested3, Object);
 public:
 
-}
+};
 
 class Nested4 : public Object {
 	GDCLASS(Nested4, Object);
 public:
 
-}
+};
 
 class script_level : public Node {
 	GDCLASS(script_level, Node);
@@ -45,22 +45,22 @@ protected:
 
 	Variant export_flags;
 
-	float get_var3;
+	double get_var3;
 
 public:
-	float get_get_var3();
+	double get_get_var3();
 
 protected:
-	float getset_var;
+	double getset_var;
 
-	float DEF =  - 0.1;// comment
+	double DEF =  - 0.1;// comment
 
 public:
-	void set_DEF(float value);
+	void set_DEF(double value);
 
-	float get_DEF();
+	double get_DEF();
 	/* signal a() */
-	/* signal b(int c, Type* d) */
+	/* signal b(int c, Ref<Type> d) */
 
 	void _ready() override;
 	void set_export(Variant value);
@@ -71,7 +71,7 @@ public:
 	Variant get_export_flags();
 
 	static void _bind_methods();
-}
+};
 
 }
 

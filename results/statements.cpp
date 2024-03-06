@@ -66,10 +66,10 @@ Array statements::method()
 	i += 3 / 3 + 2 * 0.5;
 
 	/* await this->jump; */ // no equivalent to await in c++ !
-	/* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+	/* await get_tree()->process_frame; */ // no equivalent to await in c++ !
 
-	get_tree()->emit_signal("process_frame", 0.7);
-	get_tree()->connect("process_frame", something);
+	get_tree().emit_signal("process_frame", 0.7);
+	get_tree().connect("process_frame", something);
 
 	return new Array{};
 }

@@ -17,14 +17,14 @@ void methods::assign()
 	assign = 2;
 }
 
-float methods::init(float v)
+double methods::init(double v)
 {//test2
 	//test3
 	returning(7.0);
 	//test4
 }
 
-float methods::returning(float v)
+double methods::returning(double v)
 {
 	empty();
 	return 1.0;
@@ -35,7 +35,7 @@ void methods::declare()
 	int declare = 2;
 }
 
-float methods::return_inference(float param)
+double methods::return_inference(double param)
 {
 	int val = 2;
 	return val * param;

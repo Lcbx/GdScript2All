@@ -417,7 +417,7 @@ class Transpiler:
 		
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
-		self.hpp += '}\n\n'
+		self.hpp += '};\n\n'
 	
 	def end_script(self):
 		self.end_class(self.class_name)
@@ -532,9 +532,11 @@ def toGet(name): return f'get_{name}'
 def translate_type(type):
 	if type == None: return 'void'
 	if type == 'Variant': return type
+	if type == 'float': return 'double'
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
 	if toVariantEnumType(type): return type
-	return type + '*'
+	# TODO : add type to a list of classes to be included
+	return f'Ref<{type}>'
 
 def is_pointer(type): return translate_type(type)[-1] == '*'
 

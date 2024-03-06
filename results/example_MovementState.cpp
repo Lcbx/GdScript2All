@@ -3,27 +3,27 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-void MovementState::set_acceleration(float value) {
+void MovementState::set_acceleration(double value) {
 	acceleration = value;
 }
 
-float MovementState::get_acceleration() {
+double MovementState::get_acceleration() {
 	return acceleration;
 }
 
-void MovementState::set_nimbleness(float value) {
+void MovementState::set_nimbleness(double value) {
 	nimbleness = value;
 }
 
-float MovementState::get_nimbleness() {
+double MovementState::get_nimbleness() {
 	return nimbleness;
 }
 
-void MovementState::set_top_speed(float value) {
+void MovementState::set_top_speed(double value) {
 	top_speed = value;
 }
 
-float MovementState::get_top_speed() {
+double MovementState::get_top_speed() {
 	return top_speed;
 }
 

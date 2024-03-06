@@ -7,12 +7,9 @@
 - [x] await ex: "await" => "await ToSignal(....)
 - [x] add onready assignments to ready method
 - [x] c++ : generate bindings for methods and exported properties
-- [ ] c++ : use double instead of float
-- [ ] c++ : use Ref<> instead of *
 - [ ] c++ : add missing get when there is a set (not sure about the inverse) 
 - [ ] c++ : typed array needs special binding (see https://forum.godotengine.org/t/how-to-set-up-a-typedarray-with-a-custom-type-in-gdextension/37652/3)
-- [ ] c++ : add ; after class
-- [ ] c++ : bind overloaded methods
+- [ ] c++ : add bindings for overloaded methods
 - [ ] c++ : automatic includes based on member types
 - [ ] c++ : move static member initilisation into cpp
 - [ ] c++ : better enum support (enum.value => class::enum::value)
@@ -21,6 +18,7 @@
 - [ ] <del>use gdextension dump json ('godot --dump-extension-api') instead of parsing docs</del>  
       has some problems, see switchToExtensionDump branch
 - [ ] support user-defined classes in type inference
+- [ ] add a setting for double or float as default floating point data type
 - [ ] special literals :
   * floating exponents : 58e-10
   * base16 int : 0x8E

@@ -19,16 +19,16 @@ public:
 //test1
 	void assign();
 
-	float init(float v = 1.0);
+	double init(double v = 1.0);
 
-	float returning(float v);
+	double returning(double v);
 
 	void declare();
 
-	float return_inference(float param = 5.0);
+	double return_inference(double param = 5.0);
 
 	static void _bind_methods();
-}
+};
 
 }
 

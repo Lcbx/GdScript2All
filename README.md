@@ -274,7 +274,7 @@ class Nested1 : public test {
     GDCLASS(Nested1, test);
 public:
 
-}
+};
 
 class test : public Node {
     GDCLASS(test, Node);
@@ -311,38 +311,38 @@ protected:
 // type inference on members
 
 public:
-    float method(float param = 5.0);
+    double method(double param = 5.0);
 
 protected:
     int j = this->i;
     string k = string_array[0];
 
 // determine type based on godot doc
-    Node* x = this->get_parent();
-    float x = Vector3().x;
+    Ref<Node> x = this->get_parent();
+    double x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const int flag = RenderingServer::NO_INDEX_ARRAY;
-    float global_function = angle_difference(0.1, 0.2);
+    double global_function = angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
-    Node* get_node = get_node("node");
-    Node* get_node2 = get_node("../node");
-    Node* get_unique_node = get_node("%unique_node");
-    Resource* preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
-    Resource* load_resource = load("res://path");
+    Ref<Node> get_node = get_node("node");
+    Ref<Node> get_node2 = get_node("../node");
+    Ref<Node> get_unique_node = get_node("%unique_node");
+    Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
+    Ref<Resource> load_resource = load("res://path");
 
 // getters and setters
-    float getset_var = 0.1;
+    double getset_var = 0.1;
 
-    Sprite2D* getset_sprite;
+    Ref<Sprite2D> getset_sprite;
 
 public:
-    void set_getset_sprite(Sprite2D* value);
+    void set_getset_sprite(Ref<Sprite2D> value);
 
 // signals
-    Sprite2D* get_getset_sprite();
+    Ref<Sprite2D> get_getset_sprite();
     /* signal jump() */
-    /* signal movement(Vector3 dir, float speed) */
+    /* signal movement(Vector3 dir, double speed) */
 
 // _ready generation when @onready is used
     void async_function();
@@ -360,7 +360,7 @@ public:
     int get_export_flags();
 
     static void _bind_methods();
-}
+};
 
 }
 
@@ -374,7 +374,7 @@ c++ output (implementation) :
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-float test::method(float param)
+double test::method(double param)
 {
     int val = 2;
     for(string k : string_array)
@@ -384,14 +384,14 @@ float test::method(float param)
     return val * param;
 }
 
-void test::set_getset_sprite(Sprite2D* value)
+void test::set_getset_sprite(Ref<Sprite2D> value)
 {
     getset_sprite = value;
-    getset_sprite->set_position(Vector2(1, 2));
-    getset_sprite->set_position( /* position += */ + Vector2(1, 2));// cpp will need help here
+    getset_sprite.position = Vector2(1, 2);
+    getset_sprite.position += Vector2(1, 2);// cpp will need help here
 }
 
-Sprite2D* test::get_getset_sprite()
+Ref<Sprite2D> test::get_getset_sprite()
 {
     return getset_sprite;
 }
@@ -399,9 +399,9 @@ Sprite2D* test::get_getset_sprite()
 void test::async_function()
 {
     /* await this->jump; */ // no equivalent to await in c++ !
-    /* await this->get_tree()->process_frame; */ // no equivalent to await in c++ !
+    /* await get_tree()->process_frame; */ // no equivalent to await in c++ !
 
-    get_tree()->emit_signal("process_frame", 0.7);
+    get_tree().emit_signal("process_frame", 0.7);
 
     Callable myLambda = []() 
     {    print("look ma i'm jumping");

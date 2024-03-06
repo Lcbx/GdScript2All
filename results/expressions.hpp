@@ -26,15 +26,15 @@ protected:
 	Array<string> string_array = new Array{"0", "1", };
 	int parenthesis = (42);
 	int delayed_expression = 1;
-	float asKeyword = 3;
+	double asKeyword = 3;
 
 // multi-part expressions
-	float arithmetic =  - j * 0.5;
+	double arithmetic =  - j * 0.5;
 	bool comparison = arithmetic >= 0.5 && arithmetic == 6.0;
 	Variant ternary = ( true ? cond_true : cond_false );
 	int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | 4 : cond12_false && 0 ) );
 
-}
+};
 
 }
 

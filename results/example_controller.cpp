@@ -3,7 +3,7 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-void Character::_process(float delta)
+void Character::_process(double delta)
 {
 	// in air
 	if(!is_on_floor())
@@ -91,7 +91,7 @@ void Character::set_local_dir(Vector3 value)
 	_global_mov_dir =  - value.x * basis.x + value.y * Vector3::UP + value.z * basis.z;
 }
 
-float Character::calculate_ground_speed()
+double Character::calculate_ground_speed()
 {
 	return sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
 }
