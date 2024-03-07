@@ -6,7 +6,9 @@ from godot_types import *
 # contains the code being generated for a class
 # as we need to reorder it a lot
 class ClassDefinition:
-	def __init__(self):
+	def __init__(self, name):
+		self.name = name
+
 		self.class_hpp = StringBuilder()
 		
 		# remember if currently is declaring protected or public members
@@ -76,16 +78,21 @@ class Transpiler:
 		self.klass = klass
 	
 	def define_class(self, name, base_class, is_tool):
-		self.class_definitions[name] = ClassDefinition()
+		self.class_definitions[name] = ClassDefinition(name)
 		self.getClass().class_hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});\npublic:\n'
 	
 	def getClass(self):
 		return self.class_definitions[self.class_name]
 	
-	# NOTE: enums have similar syntax in gdscript, C# and cpp
-	# lazily passing the enum definition as-is for now
-	def enum(self, name, definition):
-		public = self.getClass().public(); public += f'\tenum {name} {definition};'
+	def enum(self, name, params, params_init):
+		def_ = ''
+		for i, (pName, pType) in enumerate(params.items()):
+				if i != 0: def_ += ', '
+				def_ += pName
+				if pName in params_init:
+					self.addLayer(); get(params_init[pName])
+					def_ += ' = ' + self.popLayer()
+		public = self.getClass().public(); public += f'\tenum {name} {{{def_}}};'
 	
 	# NOTE: endline is the following space, for prettier output
 	def annotation(self, name, params, memberName, endline):
@@ -405,6 +412,9 @@ class Transpiler:
 					params = ', '.join(map(lambda s: f'"{s}"', self.getClass().method_args[meth]))
 					params = ', ' + params if params else params
 					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
+
+			# enums
+			bindings += '\n'.join( f'\tBIND_ENUM_CONSTANT({enum_name})' for enum_name in self.klass.enums.keys() )
 			
 			bindings += '\n'
 			
@@ -420,6 +430,10 @@ class Transpiler:
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
 		self.hpp += '};\n\n'
+
+		# add enum binding after class binding (if any)
+		if self.klass.enums:
+			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{enum_name})' for enum_name in set(map(lambda s: translate_type(s), self.klass.enums.values()) ))
 	
 	def end_script(self):
 		self.end_class(self.class_name)

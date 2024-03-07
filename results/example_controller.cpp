@@ -121,7 +121,10 @@ static void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_view_dir", "value"), &Character::set_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);
 	ClassDB::bind_method(D_METHOD("get_movements"), &Character::get_movements);
-
+	BIND_ENUM_CONSTANT(crouch)
+	BIND_ENUM_CONSTANT(walk)
+	BIND_ENUM_CONSTANT(run)
+	BIND_ENUM_CONSTANT(fall)
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "movements"), "set_movements", "get_movements");
 	ADD_SIGNAL(MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
 	ADD_SIGNAL(MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));

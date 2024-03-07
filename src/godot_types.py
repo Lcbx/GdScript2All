@@ -18,6 +18,7 @@ DOC_FOLDER = 'classData'
 # the data people we import in this script
 # { 'class': ClassData }
 godot_types = {}
+GLOBALS = '@GlobalScope'
 
 # variant types (names)
 variant_types = []
@@ -149,7 +150,7 @@ def _update_type_definitions_():
 	print('updated godot type definitions')
 
 def add_function(name, return_type):
-	godot_types['@GlobalScope'].methods[name] = return_type
+	godot_types[GLOBALS].methods[name] = return_type
 
 def toSignalType(signal_name): return f'{signal_name}signal'
 def toEnumType(signal_name): return f'{signal_name}enum'

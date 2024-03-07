@@ -40,12 +40,17 @@ class Transpiler:
 		self.UpScope()
 		self += '\n'
 	
-	# NOTE: enums have similar syntax in gdscript, C# and cpp
-	# lazily passing the enum definition as-is for now
-	def enum(self, name, definition):
+	def enum(self, name, params, params_init):
+		def_ = ''
+		for i, (pName, pType) in enumerate(params.items()):
+				if i != 0: def_ += ', '
+				def_ += pName
+				if pName in params_init:
+					self.addLayer(); get(params_init[pName])
+					def_ += ' = ' + self.popLayer()
 		# unnamed enums not supported in C#
 		if not name: name  = f'Enum{self.unnamed_enums}'; self.unnamed_enums += 1
-		self += f'public enum {name} {definition}'
+		self += f'public enum {name} {{{def_}}}'
 	
 	# NOTE: endline is the following space, for prettier output
 	def annotation(self, name, params, memberName, endline):

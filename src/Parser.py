@@ -8,7 +8,7 @@ from Tokenizer import Tokenizer
 
 # NOTE: we add locally defined classes to godot_types
 # to avoid having to join definitions
-from godot_types import godot_types, toSignalType, toEnumType
+from godot_types import godot_types, GLOBALS, toSignalType, toEnumType
 
 
 # recursive descent parser
@@ -131,17 +131,13 @@ class Parser:
 	
 	
 	def enum(self):
-		# NOTE: enums have similar syntax in gdscript, C# and cpp
 		name = self.consume() if self.match_type('TEXT') else ''
-		definition = self.consumeUntil('}')
-		definition += self.consume() # get the remaining '}'
+		self.expect('{')
+		# recycling method param definition parsing
+		params, params_init = self.parseParamDefinition('}')
 
-		enum_values = definition.split(',')
-		for e_val in enum_values:
-			self.getClass().enums[ e_val.split('=')[0].strip() ] = toEnumType(name)
-		#print(self.getClass().enums)
-
-		self.out.enum(name, definition)
+		for e_val in params.keys():	self.getClass().enums[ e_val ] = toEnumType(name)
+		self.out.enum(name, params, params_init)
 	
 	
 	DECL_FLAGS = Flags('DECL_FLAGS', ('none', 'static', 'constant', 'property', 'onready')) 
@@ -698,7 +694,7 @@ class Parser:
 				# a local
 				# a singleton or constructor (ex: RenderingServer, Vector3)
 				# a global constant (ex: KEY_ESCAPE)
-				singleton = name in godot_types['@GlobalScope'].members
+				singleton = name in godot_types[GLOBALS].members
 				property = name in self.getClass().members or name in self.getClassParent().members
 				enum = name in self.getClass().enums
 				constant = name in self.getClass().constants
@@ -707,7 +703,7 @@ class Parser:
 					or self.locals.get(name) \
 					or self.getClass().enums.get(name) \
 					or self.getClass().constants.get(name) \
-					or godot_types['@GlobalScope'].constants.get(name) \
+					or godot_types[GLOBALS].constants.get(name) \
 					or (name if singleton or name in godot_types else None)
 				if singleton: type += 'singleton'
 
@@ -733,12 +729,12 @@ class Parser:
 		# another class's method
 		constructor = name in godot_types
 		godot_method = calling_type and calling_type in godot_types
-		global_function = not calling_type and name in godot_types['@GlobalScope'].methods
+		global_function = not calling_type and name in godot_types[GLOBALS].methods
 		type = (name if constructor else None ) \
 			or self.getClass().methods.get(name) \
 			or self.getClassParent().methods.get(name) \
 			or (godot_types[calling_type].methods.get(name) if godot_method \
-			else godot_types['@GlobalScope'].methods.get(name) if global_function \
+			else godot_types[GLOBALS].methods.get(name) if global_function \
 			else None)
 		
 		params = ( *self.parseCallParams() ,)
@@ -964,12 +960,12 @@ class Parser:
 		return separator.join(result)
 	
 	# parse params definition (call, signal, lambda)
-	def parseParamDefinition(self):
+	def parseParamDefinition(self, closing_char = ')'):
 		params = {}
 		params_init = {}
 		
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
-		for _ in self.doWhile(lambda: not self.expect(')')):
+		for _ in self.doWhile(lambda: not self.expect(closing_char)):
 			pName = self.consume()
 			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 			

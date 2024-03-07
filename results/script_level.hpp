@@ -35,8 +35,8 @@ public:
 class script_level : public Node {
 	GDCLASS(script_level, Node);
 public:
-	enum  {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY};
-	enum Named {THING_1,THING_2,ANOTHER_THING=-1};
+	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
+	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
 
 protected:
 	Variant export;
@@ -72,6 +72,9 @@ public:
 
 	static void _bind_methods();
 };
+
+VARIANT_ENUM_CAST(script_level::)
+VARIANT_ENUM_CAST(script_level::Named)
 
 }
 

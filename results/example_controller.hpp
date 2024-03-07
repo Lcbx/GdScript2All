@@ -49,7 +49,7 @@ public:
 	/* signal movement(Vector3 dir, double speed) */
 	/* signal jump(double speed) */
 
-	enum MovementEnum {crouch,walk,run,fall};
+	enum MovementEnum {crouch, walk, run, fall};
 
 protected:
 	Array movements;
@@ -97,6 +97,8 @@ public:
 
 	static void _bind_methods();
 };
+
+VARIANT_ENUM_CAST(Character::MovementEnum)
 
 }
 

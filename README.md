@@ -136,8 +136,8 @@ public partial class test : Godot.Node
 
     }
 
-    public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
-    public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
+    public enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
+    public enum Named {THING_1, THING_2, ANOTHER_THING =  - 1}
 
     [Export]
     public Godot.Variant Export;
@@ -285,8 +285,8 @@ public:
 class test : public Node {
     GDCLASS(test, Node);
 public:
-    enum  {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY};
-    enum Named {THING_1,THING_2,ANOTHER_THING=-1};
+    enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
+    enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
 
 protected:
     Variant export;
@@ -369,6 +369,9 @@ public:
 
     static void _bind_methods();
 };
+
+VARIANT_ENUM_CAST(test::)
+VARIANT_ENUM_CAST(test::Named)
 
 }
 
@@ -466,7 +469,12 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
     ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
     ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
-
+    BIND_ENUM_CONSTANT(UNIT_NEUTRAL)
+    BIND_ENUM_CONSTANT(UNIT_ENEMY)
+    BIND_ENUM_CONSTANT(UNIT_ALLY)
+    BIND_ENUM_CONSTANT(THING_1)
+    BIND_ENUM_CONSTANT(THING_2)
+    BIND_ENUM_CONSTANT(ANOTHER_THING)
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
     ADD_GROUP("group","");

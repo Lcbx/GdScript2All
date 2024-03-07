@@ -26,8 +26,8 @@ public partial class script_level : Godot.Node
 	}
 
 
-	public enum Enum0 {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY}
-	public enum Named {THING_1,THING_2,ANOTHER_THING=-1}
+	public enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
+	public enum Named {THING_1, THING_2, ANOTHER_THING =  - 1}
 
 	[Export]
 	public Godot.Variant Export;

@@ -23,8 +23,8 @@ public:
 class test : public Node {
 	GDCLASS(test, Node);
 public:
-	enum  {UNIT_NEUTRAL,UNIT_ENEMY,UNIT_ALLY};
-	enum Named {THING_1,THING_2,ANOTHER_THING=-1};
+	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
+	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
 
 protected:
 	Variant export;
@@ -107,6 +107,9 @@ public:
 
 	static void _bind_methods();
 };
+
+VARIANT_ENUM_CAST(test::)
+VARIANT_ENUM_CAST(test::Named)
 
 }
 
