@@ -216,8 +216,10 @@ class Transpiler:
 		
 		self.write(str(value))
 	
-	def constant(self, name):
-		self += '::' + name
+	def constant(self, value_name, enum_name = None, local = False):
+		if not local: self += '::'
+		if enum_name: self += translate_type(enum_name) + '::'
+		self += value_name
 	
 	def this(self):
 		self += 'this->'
@@ -532,8 +534,9 @@ def toGet(name): return f'get_{name}'
 def translate_type(type):
 	if type == None: return 'void'
 	if type == 'Variant': return type
-	if type == 'float': return 'double'
-	if type.endswith('[]'): return f'Array<{type[:-2]}>'
+	if type.endswith('[]'): return f'Array'
+	if type.endswith('enum'): return type[:-len('enum')]
+	if type == 'float' and not use_floats: return 'double'
 	if toVariantEnumType(type): return type
 	# TODO : add type to a list of classes to be included
 	return f'Ref<{type}>'

@@ -42,7 +42,7 @@ protected:
 ";
 	Array array = new Array{0, 1, 2, };
 	Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-	Array<string> string_array = new Array{"0", "1", };
+	Array string_array = new Array{"0", "1", };
 	Variant complex = new Dictionary{
 		{"t", 100},
 		{"rafg", "asfgh"},
@@ -65,7 +65,7 @@ protected:
 	Ref<Node> x = this->get_parent();
 	double x = Vector3().x;
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
-	const int flag = RenderingServer::NO_INDEX_ARRAY;
+	const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 	double global_function = angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
@@ -83,8 +83,10 @@ protected:
 public:
 	void set_getset_sprite(Ref<Sprite2D> value);
 
-// signals
 	Ref<Sprite2D> get_getset_sprite();
+
+// signals
+	Named enumReturn();
 	/* signal jump() */
 	/* signal movement(Vector3 dir, double speed) */
 

@@ -15,7 +15,7 @@ using Array = Godot.Collections.Array;
 public partial class test : Godot.Node
 {
 	[Tool]
-	public partial class Nested1 : test
+	public partial class Nested1 : Godot.test
 	{
 
 	}
@@ -70,7 +70,7 @@ public partial class test : Godot.Node
 	public Godot.Node X = this.GetParent();
 	public double X = new Vector3().X;
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-	public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
+	public const ShaderMode enum = Godot.RenderingServer.SHADER_SPATIAL;
 	public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
 	// Gdscript special syntax
@@ -105,6 +105,10 @@ public partial class test : Godot.Node
 	private Godot.Sprite2D _GetsetSprite;
 
 
+	public Named EnumReturn()
+	{return THING_2;
+	}
+
 	// signals
 	[Signal]
 	public delegate void JumpHandler();
@@ -125,7 +129,7 @@ public partial class test : Godot.Node
 		// lambdas are not perfectly translated
 		jump += myLambda;
 
-		EmitSignal("movement", Godot.Vector3.UP, 0.1);
+		EmitSignal("movement", Vector3.UP, 0.1);
 	}
 
 	// _ready generation when @onready is used

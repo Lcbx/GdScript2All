@@ -103,11 +103,11 @@ void Character::set_view_dir(Vector3 value)
 	emit_signal("viewDirChanged", view_dir);
 }
 
-void Character::set_movements(Array<MovementState> value) {
+void Character::set_movements(Array value) {
 	movements = value;
 }
 
-Array<MovementState> Character::get_movements() {
+Array Character::get_movements() {
 	return movements;
 }
 

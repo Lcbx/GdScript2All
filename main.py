@@ -14,6 +14,7 @@ commandLineArgs.add_argument('input', nargs = '?',  help='path to GDscript code 
 commandLineArgs.add_argument('-o', '--output', nargs = '?', default = './results', help='where to output transpiled code ')
 commandLineArgs.add_argument('-t', '--transpiler', nargs = '?', default = 'CSharp', help='which transpiler script to use')
 commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='print additional execution logs' )
+commandLineArgs.add_argument('--use_floats', action='store_true', default = False, help='leave floating point types as floats' )
 commandLineArgs.add_argument('--verboseP', action='store_true', default = False, help='print additional parser execution logs' )
 commandLineArgs.add_argument('--verboseT', action='store_true', default = False, help='print additional transpiler execution logs' )
 commandLineArgs.add_argument('--tokens', action='store_true', default = False, help='if set will print the tokenizer output' )
@@ -47,6 +48,7 @@ def transpile(filename, outname):
 	# script name without extension
 	script_name = os.path.basename(filename).split('.')[0]
 	
+	Transpiler.use_floats = args.use_floats
 	transpiler = Transpiler.Transpiler(script_name, outname, getPrinter(args.verbose or args.verboseT) )
 	
 	parser = Parser.Parser(script_name, text, transpiler, getPrinter(args.verbose or args.verboseP) )

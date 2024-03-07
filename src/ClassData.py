@@ -5,3 +5,4 @@ class ClassData:
 		self.members = {} 	# {name:type}
 		self.methods = {}	# {name:return_type}
 		self.constants = {}	# {name:type}
+		self.enums = {}		# {constant_name:enum_name}

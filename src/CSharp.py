@@ -211,9 +211,9 @@ class Transpiler:
 		
 		self.write(str(value))
 	
-	def constant(self, name):
-		# Note: in c++ this would be ::<name>
-		self += '.' + name
+	def constant(self, value_name, enum_name = None, local = False):
+		if not local: self += '.'
+		self += value_name
 	
 	def this(self):
 		self += 'this.'
@@ -407,6 +407,15 @@ class Transpiler:
 		self.layers.pop()
 		return scope
 
+def translate_type(type):
+	if type == None: return 'void'
+	if type in ('Array', 'Dictionary'): return type
+	if type in godot_types: return f'Godot.{type}'
+	if type.endswith('[]'): return f'Array<{type[:-2]}>'
+	if type.endswith('enum'): return type[:-len('enum')]
+	if type == 'float' and not use_floats: return 'double'
+	return type
+
 def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
 
 def replaceClosingBrace(string, replacement):
@@ -437,14 +446,6 @@ def toPascal(text):
 	
 	capitalize = lambda s: s[0].upper() + s[1:] if s else s
 	return  '_' * nStart_ + ''.join( map(capitalize, split_ ) )
-
-def translate_type(type):
-	if type == None: return 'void'
-	if type in ['Array', 'Dictionary']: return type
-	if type in godot_types: return f'Godot.{type}'
-	if type.endswith('[]'): return f'Array<{type[:-2]}>'
-	if type == 'float': return 'double' # C# uses doubles
-	return type
 
 # for prettier output
 def prettify(value):

@@ -151,7 +151,7 @@ public partial class Character : Godot.CharacterBody3D
 		set
 		{
 			_LocalDir = value;
-			_GlobalMovDir =  - value.X * Basis.X + value.Y * Godot.Vector3.UP + value.Z * Basis.Z;
+			_GlobalMovDir =  - value.X * Basis.X + value.Y * Vector3.UP + value.Z * Basis.Z;
 		}
 	}
 

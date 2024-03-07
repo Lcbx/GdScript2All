@@ -23,7 +23,7 @@ protected:
 	bool _protected_bool = true;
 	Array array = new Array{0, 1, 2, };
 	Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-	Array<string> string_array = new Array{"0", "1", };
+	Array string_array = new Array{"0", "1", };
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;

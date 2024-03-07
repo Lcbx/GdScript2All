@@ -31,8 +31,9 @@ def _import_type_definitions_():
 		godot_types = load(f)
 	
 	# get variant type enum Ex: TYPE_FLOAT, TYPE_VECTOR2, etc
-	variant_types = [ cst for cst in godot_types['@GlobalScope'].constants.keys() if cst.startswith('TYPE_') and not cst.endswith('MAX')]
-	
+	variant_types = [ cst for cst in godot_types['Variant'].enums.keys() if cst.startswith('TYPE_') and not cst.endswith('MAX')]
+	#print(variant_types)
+
 	# decompression/flattening :
 	# add base class members to child class
 	
@@ -60,14 +61,15 @@ def _import_type_definitions_():
 			assert parentIndex < childIndex , 'parent after the child while processing type infos'
 	
 	# add the data from parent to child
-	from copy import copy
 	for type, data in type_items:
 		if data.base:
 			#print(type, data.base)
 			parent = godot_types[data.base]
-			for method in parent.methods: data.methods[method] = parent.methods[method]
-			for member in parent.members: data.members[member] = parent.members[member]
-			for const in parent.constants: data.constants[const] = parent.constants[const]
+			data.methods.update(parent.methods)
+			data.members.update(parent.members)
+			# do constants and enums really need to be passed down ?
+			data.constants.update(parent.constants)
+			data.enums.update(parent.enums)
 
 def _update_type_definitions_():
 	
@@ -91,7 +93,8 @@ def _update_type_definitions_():
 		# skip native types
 		if klass_name in ['float', 'int', 'bool']: continue 
 		
-		data = ClassData()
+		# enum definitions can initialize a class before we encounter it
+		data = godot_types.get(klass_name, ClassData())
 		godot_types[klass_name] = data
 		
 		data.base = klass['inherits']
@@ -119,6 +122,16 @@ def _update_type_definitions_():
 				cons_type = 'int' if cons_val.lstrip('-').isdigit() \
 					else cons_val.split('(')[0]
 				data.constants[cons_name] = cons_type
+
+				# enums are defined in the constant list
+				if enum := cons['enum']:
+					if '.' in enum:
+						origin, enum_name = enum.split('.')
+					else:
+						origin, enum_name = (klass_name, enum)
+
+					godot_types.setdefault(origin, ClassData()) \
+						.enums[cons_name] = toEnumType(enum_name)
 		
 		if 'signals' in klass:
 			for signal in klass.signals.signal:
@@ -139,6 +152,7 @@ def add_function(name, return_type):
 	godot_types['@GlobalScope'].methods[name] = return_type
 
 def toSignalType(signal_name): return f'{signal_name}signal'
+def toEnumType(signal_name): return f'{signal_name}enum'
 
 # if import then load types
 if __name__ != "__main__":

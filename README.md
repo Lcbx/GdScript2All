@@ -67,7 +67,7 @@ var k = string_array[0]
 var x = self.get_parent()
 var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
-const flag = RenderingServer.NO_INDEX_ARRAY
+const enum = RenderingServer.SHADER_SPATIAL
 var global_function = angle_difference(.1,.2)
 
 # Gdscript special syntax
@@ -87,6 +87,8 @@ var getset_sprite : Sprite2D :
         getset_sprite.position += Vector2(1,2) # cpp will need help here
     get:
         return getset_sprite
+
+func enumReturn(): return THING_2
 
 # signals
 signal jump
@@ -129,7 +131,7 @@ using Array = Godot.Collections.Array;
 public partial class test : Godot.Node
 {
     [Tool]
-    public partial class Nested1 : test
+    public partial class Nested1 : Godot.test
     {
 
     }
@@ -184,7 +186,7 @@ public partial class test : Godot.Node
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const int flag = Godot.RenderingServer.NO_INDEX_ARRAY;
+    public const ShaderMode enum = Godot.RenderingServer.SHADER_SPATIAL;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
     // Gdscript special syntax
@@ -219,6 +221,10 @@ public partial class test : Godot.Node
     private Godot.Sprite2D _GetsetSprite;
 
 
+    public Named EnumReturn()
+    {return THING_2;
+    }
+
     // signals
     [Signal]
     public delegate void JumpHandler();
@@ -239,7 +245,7 @@ public partial class test : Godot.Node
         // lambdas are not perfectly translated
         jump += myLambda;
 
-        EmitSignal("movement", Godot.Vector3.UP, 0.1);
+        EmitSignal("movement", Vector3.UP, 0.1);
     }
 
     // _ready generation when @onready is used
@@ -298,7 +304,7 @@ protected:
 ";
     Array array = new Array{0, 1, 2, };
     Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-    Array<string> string_array = new Array{"0", "1", };
+    Array string_array = new Array{"0", "1", };
     Variant complex = new Dictionary{
         {"t", 100},
         {"rafg", "asfgh"},
@@ -321,7 +327,7 @@ protected:
     Ref<Node> x = this->get_parent();
     double x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
-    const int flag = RenderingServer::NO_INDEX_ARRAY;
+    const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
     double global_function = angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
@@ -339,8 +345,10 @@ protected:
 public:
     void set_getset_sprite(Ref<Sprite2D> value);
 
-// signals
     Ref<Sprite2D> get_getset_sprite();
+
+// signals
+    Named enumReturn();
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
 
@@ -396,6 +404,10 @@ Ref<Sprite2D> test::get_getset_sprite()
     return getset_sprite;
 }
 
+Named test::enumReturn()
+{return Named::THING_2;
+}
+
 void test::async_function()
 {
     /* await this->jump; */ // no equivalent to await in c++ !
@@ -446,6 +458,7 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
     ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
     ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
+    ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);

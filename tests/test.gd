@@ -55,7 +55,7 @@ var k = string_array[0]
 var x = self.get_parent()
 var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
-const flag = RenderingServer.NO_INDEX_ARRAY
+const enum = RenderingServer.SHADER_SPATIAL
 var global_function = angle_difference(.1,.2)
 
 # Gdscript special syntax
@@ -75,6 +75,8 @@ var getset_sprite : Sprite2D :
 		getset_sprite.position += Vector2(1,2) # cpp will need help here
 	get:
 		return getset_sprite
+
+func enumReturn(): return THING_2
 
 # signals
 signal jump

@@ -52,7 +52,7 @@ public:
 	enum MovementEnum {crouch,walk,run,fall};
 
 protected:
-	Array<MovementState> movements;
+	Array movements;
 
 	Variant movementState = MovementEnum.walk;
 
@@ -92,8 +92,8 @@ protected:
 
 public:
 	void set_view_dir(Vector3 value);
-	void set_movements(Array<MovementState> value);
-	Array<MovementState> get_movements();
+	void set_movements(Array value);
+	Array get_movements();
 
 	static void _bind_methods();
 };
