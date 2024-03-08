@@ -246,7 +246,7 @@ class Transpiler:
 
 	def reassignment(self, name, obj_type, member_type, is_singleton, op, val):
 		use_set = self._dereference(name, obj_type, member_type, is_singleton)
-		op_comment = f' /* {name} {op} */ ' + op.replace('=', '') + ' ' if op != '=' else '' 
+		op_comment = f' /* {toGet(name)}() */ ' + op.replace('=', '') + ' ' if op != '=' else '' 
 		if use_set: self += f'{toSet(name)}(' + op_comment; get(val); self += f')'
 		else:  self += f'{name} {op} '; get(val)
 
@@ -555,7 +555,7 @@ def translate_type(type):
 	# TODO : add type to a list of classes to be included
 	return f'Ref<{type}>'
 
-def is_pointer(type): return translate_type(type)[-1] == '*'
+def is_pointer(type): return type and not toVariantEnumType(type)
 
 def toVariantEnumType(type):
 	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())

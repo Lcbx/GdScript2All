@@ -7,7 +7,6 @@
 - [x] await ex: "await" => "await ToSignal(....)
 - [x] add onready assignments to ready method
 - [x] c++ : generate bindings for methods and exported properties
-- [ ] c++ : restore reassignment functionality (```this.a=1 => this->set_a(1);```) 
 - [ ] c++ : add missing get when there is a set (not sure about the inverse) 
 - [ ] c++ : typed array needs special binding (see https://forum.godotengine.org/t/how-to-set-up-a-typedarray-with-a-custom-type-in-gdextension/37652/3)
 - [ ] c++ : add bindings for overloaded methods
