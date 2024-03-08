@@ -1,7 +1,9 @@
 
 #include "statements.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 Array statements::method()
 {
@@ -14,15 +16,15 @@ Array statements::method()
 	}
 	else if(false)
 	{
-		print("Hello" + " " + "World");
+		UtilityFunctions::print("Hello" + " " + "World");
 	}
 	else if(true)
 	{
-		print("Goodbye ", "World");
+		UtilityFunctions::print("Goodbye ", "World");
 	}
 	else
 	{
-		print(i);
+		UtilityFunctions::print(i);
 	}
 
 	while(false)
@@ -41,15 +43,15 @@ Array statements::method()
 	{
 		case "1":
 		{
-			print(i);
+			UtilityFunctions::print(i);
 			break; }
 		case 1:
 		{
-			print(i);
+			UtilityFunctions::print(i);
 			break; }
 		case 0: if(true)
 		{
-			print("zero!");
+			UtilityFunctions::print("zero!");
 			break; }
 		//var x when false:
 		//	print("unreachable")
@@ -59,7 +61,7 @@ Array statements::method()
 		//	print("dictionary pattern")
 		default:
 		{
-			print("unknown");
+			UtilityFunctions::print("unknown");
 			break; }
 	}
 

@@ -1,6 +1,6 @@
 from StringBuilder import StringBuilder
 from godot_types import *
-
+import re
 
 # ClassDefinition
 # contains the code being generated for a class
@@ -62,6 +62,9 @@ class Transpiler:
 		# while self.class_definitions are the code we are currently generating
 		self.class_definitions = {}
 		
+		# to generate includes
+		self.used_types = set()
+
 		# allows to parse code and rearrange it
 		self.layers = [StringBuilder()]
 		
@@ -101,7 +104,7 @@ class Transpiler:
 	def declare_property(self, type, name, assignment, constant, static, onready):
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		protected = self.getClass().protected()
-		protected += f'\t{const_decl}{translate_type(type)} {name}'
+		protected += f'\t{const_decl}{self.translate_type(type)} {name}'
 		if assignment:
 			self.addLayer()
 			if onready:
@@ -151,7 +154,7 @@ class Transpiler:
 			def_ = ''
 			for i, (pName, pType) in enumerate(params.items()):
 				if i != 0: def_ += ', '
-				def_ += f'{translate_type(pType)} {pName}'
+				def_ += f'{self.translate_type(pType)} {pName}'
 				if with_init and pName in params_init:
 					self.addLayer(); get(params_init[pName])
 					def_ += ' = ' + self.popLayer()
@@ -160,8 +163,8 @@ class Transpiler:
 		static_str = 'static ' if static else ''
 		override_str = ' override' if override else ''
 		public = self.getClass().public()
-		public += f'\t{static_str}{translate_type(return_type)} {name}({paramStr(True)}){override_str};\n' # hpp
-		self += f'{static_str}{translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})' # cpp
+		public += f'\t{static_str}{self.translate_type(return_type)} {name}({paramStr(True)}){override_str};\n' # hpp
+		self += f'{static_str}{self.translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})' # cpp
 		
 		# add onready assignments if method is _ready
 		if name == '_ready' and self.getClass().onready_assigns:
@@ -175,7 +178,7 @@ class Transpiler:
 	
 	def define_signal(self, name, params):
 		self.getClass().signals[name] = params
-		paramStr = ', '.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
+		paramStr = ', '.join( ( f'{self.translate_type(pType)} {pName}' for pName, pType in params.items()))
 		hpp = self.getClass().class_hpp
 		hpp += f'\t/* signal {name}({paramStr}) */'
 	
@@ -205,7 +208,7 @@ class Transpiler:
 		self += '[]('
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
-			self += f'{translate_type(pType)} {pName}'
+			self += f'{self.translate_type(pType)} {pName}'
 		self += ') '
 		# cleanup
 		code = code.replace('{', '{\t', 1)
@@ -225,7 +228,7 @@ class Transpiler:
 	
 	def constant(self, value_name, enum_name = None, local = False):
 		if not local: self += '::'
-		if enum_name: self += translate_type(enum_name) + '::'
+		if enum_name: self += self.translate_type(enum_name) + '::'
 		self += value_name
 	
 	def this(self):
@@ -433,7 +436,7 @@ class Transpiler:
 
 		# add enum binding after class binding (if any)
 		if self.klass.enums:
-			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{enum_name})' for enum_name in set(map(lambda s: translate_type(s), self.klass.enums.values()) ))
+			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{enum_name})' for enum_name in set(map(lambda s: self.translate_type(s), self.klass.enums.values()) ))
 	
 	def end_script(self):
 		self.end_class(self.class_name)
@@ -441,16 +444,38 @@ class Transpiler:
 		# close remaining scopes (notably script-level class)
 		while len(self.layers) > 1: self.write(self.popLayer())
 		while self.level > 0: self.DownScope()
-		
-		self.cpp = prettify( \
-			cpp_template.replace('__header__', self.script_name) \
+
+		# generate includes
+		to_camel_case = lambda s: re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+		to_include = lambda s: '#include <godot_cpp/classes/' \
+			+ to_camel_case(s) \
+			.replace('2_d', '_2d') \
+			.replace('3_d', '_3d') \
+			+ '.hpp>'
+		includes =  '\n'.join(map(to_include, self.used_types)) + '\n'
+
+		self.cpp = prettify( cpp_template \
+			.replace('__HEADER__', self.script_name) \
 			+ str(self.getLayer()).replace('\n}', '\n}\n\n') \
 			)
 		self.hpp = prettify( hpp_template \
 			.replace('__CLASS__', self.script_name.upper()) \
-			.replace('__IMPLEMENTATION__', \
-				str(self.hpp)) \
+			.replace('__INCLUDES__', includes) \
+			.replace('__IMPLEMENTATION__', str(self.hpp)) \
 			)
+
+	def translate_type(self, type):
+		if type == None: return 'void'
+		if type == 'Variant': return type
+		if type.endswith('enum'): return type[:-len('enum')]
+		if type.endswith('[]'): return 'Array'
+		if type == 'float' and not use_floats: return 'double'
+		if toVariantEnumType(type): return type
+
+		# to generate includes
+		if type in godot_types: self.used_types.add(type)
+
+		return f'Ref<{type}>'
 	
 	def comment(self, content):
 		handler = self.getWhitespaceHandler()
@@ -545,16 +570,6 @@ def replaceClosingBrace(string, replacement):
 def toSet(name): return f'set_{name}'
 def toGet(name): return f'get_{name}'
 
-def translate_type(type):
-	if type == None: return 'void'
-	if type == 'Variant': return type
-	if type.endswith('[]'): return f'Array'
-	if type.endswith('enum'): return type[:-len('enum')]
-	if type == 'float' and not use_floats: return 'double'
-	if toVariantEnumType(type): return type
-	# TODO : add type to a list of classes to be included
-	return f'Ref<{type}>'
-
 def is_pointer(type): return type and not toVariantEnumType(type)
 
 def toVariantEnumType(type):
@@ -589,6 +604,9 @@ hpp_template = """
 #define __CLASS___H
 
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+__INCLUDES__
 
 using namespace godot;
 
@@ -602,9 +620,11 @@ __IMPLEMENTATION__
 """
 
 cpp_template = """
-#include "__header__.hpp"
+#include "__HEADER__.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 
 """
@@ -651,8 +671,114 @@ export_replacements = {
 
 function_replacements = {
 	'preload': "/* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */",
-	'weakref': 'Object::weak_ref(obj)',
-	'instance_from_id' : 'Object::instance_from_id',
-	'is_instance_id_valid' : 'Object::is_instance_id_valid',
-	'is_instance_valid' : 'Object::is_instance_valid',
+	'weakref': 'UtilityFunctions::weakref(obj)',
+	'instance_from_id' : 'UtilityFunctions::instance_from_id',
+	'is_instance_id_valid' : 'UtilityFunctions::is_instance_id_valid',
+	'is_instance_valid' : 'UtilityFunctions::is_instance_valid',
+	'abs' : 'Math::abs',
+	'absf' : 'Math::abs',
+	'absi' : 'Math::abs',
+	'acos' : 'Math::acos',
+	'acosh' : 'Math::acosh',
+	'angle_difference' : 'Math::angle_difference',
+	'asin' : 'Math::asin',
+	'asinh' : 'Math::asinh',
+	'atan' : 'Math::atan',
+	'atan2' : 'Math::atan2',
+	'atanh' : 'Math::atanh',
+	'bezier_derivative' : 'Math::bezier_derivative',
+	'bezier_interpolate' : 'Math::bezier_interpolate',
+	'bytes_to_var' : 'UtilityFunctions::bytes_to_var',
+	'bytes_to_var_with_objects' : 'UtilityFunctions::bytes_to_var_with_objects',
+	'ceil' : 'Math::ceil',
+	'ceilf' : 'Math::ceil',
+	'ceili' : 'Math::ceil_to_int',
+	'clamp' : 'Math::clamp',
+	'clampf' : 'Math::clamp',
+	'clampi' : 'Math::clamp',
+	'cos' : 'Math::cos',
+	'cosh' : 'Math::cosh',
+	'cubic_interpolate' : 'Math::cubic_interpolate',
+	'cubic_interpolate_angle' : 'Math::cubic_interpolate_angle',
+	'cubic_interpolate_angle_in_time' : 'Math::cubic_interpolate_in_time',
+	'cubic_interpolate_in_time' : 'Math::cubic_interpolate_angle_in_time',
+	'db_to_linear' : 'Math::db_to_linear',
+	'deg_to_rad' : 'Math::deg_to_rad',
+	'ease' : 'Math::ease',
+	'error_string' : 'Error::to_string',
+	'exp' : 'Math::exp',
+	'floor' : 'Math::floor',
+	'floorf' : 'Math::floor',
+	'floori' : 'Math::floor_to_int',
+	'fmod' : 'Math::mod',
+	'fposmod' : 'Math::pos_mod',
+	'hash' : 'UtilityFunctions::hash',
+	'inverse_lerp' : 'Math::inverse_lerp',
+	'is_equal_approx' : 'Math::is_equal_approx',
+	'is_finite' : 'Math::is_finite',
+	'is_inf' : 'Math::is_inf',
+	'is_nan' : 'double::is_na_n',
+	'is_same' : 'ReferenceEquals::reference_equals',
+	'is_zero_approx' : 'Math::is_zero_approx',
+	'lerp' : 'Math::lerp',
+	'lerp_angle' : 'Math::lerp_angle',
+	'lerpf' : 'Math::lerp',
+	'linear_to_db' : 'Math::linear_to_db',
+	'log' : 'Math::log',
+	'max' : 'Math::max',
+	'maxf' : 'Math::max',
+	'maxi' : 'Math::max',
+	'min' : 'Math::min',
+	'minf' : 'Math::min',
+	'mini' : 'Math::min',
+	'move_toward' : 'Math::move_toward',
+	'nearest_po2' : 'Math::nearest_po2',
+	'pingpong' : 'Math::ping_pong',
+	'posmod' : 'Math::pos_mod',
+	'pow' : 'Math::pow',
+	'print' : 'UtilityFunctions::print',
+	'print_rich' : 'UtilityFunctions::print_rich',
+	'printerr' : 'UtilityFunctions::print_err',
+	'printraw' : 'UtilityFunctions::print_raw',
+	'prints' : 'UtilityFunctions::print_s',
+	'printt' : 'UtilityFunctions::print_t',
+	'push_error' : 'UtilityFunctions::push_error',
+	'push_warning' : 'UtilityFunctions::push_warning',
+	'rad_to_deg' : 'Math::rad_to_deg',
+	'rand_from_seed' : 'UtilityFunctions::rand_from_seed',
+	'randf' : 'UtilityFunctions::randf',
+	'randf_range' : 'UtilityFunctions::rand_range',
+	'randfn' : 'UtilityFunctions::randfn',
+	'randi' : 'UtilityFunctions::randi',
+	'randi_range' : 'UtilityFunctions::rand_range',
+	'randomize' : 'UtilityFunctions::randomize',
+	'remap' : 'Math::remap',
+	'rotate_toward' : 'Math::rotate_toward',
+	'round' : 'Math::round',
+	'roundf' : 'Math::round',
+	'roundi' : 'Math::round_to_int',
+	'seed' : 'UtilityFunctions::seed',
+	'sign' : 'Math::sign',
+	'signf' : 'Math::sign',
+	'signi' : 'Math::sign',
+	'sin' : 'Math::sin',
+	'sinh' : 'Math::sinh',
+	'smoothstep' : 'Math::smooth_step',
+	'snapped' : 'Math::snapped',
+	'snappedf' : 'Math::snapped',
+	'snappedi' : 'Math::snapped',
+	'sqrt' : 'Math::sqrt',
+	'step_decimals' : 'Math::step_decimals',
+	'str_to_var' : 'UtilityFunctions::str_to_var',
+	'tan' : 'Math::tan',
+	'tanh' : 'Math::tanh',
+	'type_convert' : 'UtilityFunctions::convert',
+	'type_string' : 'Variant::to_string',
+	'typeof' : 'Variant::variant_type',
+	'var_to_bytes' : 'UtilityFunctions::var_to_bytes',
+	'var_to_bytes_with_objects' : 'UtilityFunctions::var_to_bytes_with_objects',
+	'var_to_str' : 'UtilityFunctions::var_to_str',
+	'wrap' : 'Math::wrap',
+	'wrapf' : 'Math::wrap',
+	'wrapi' : 'Math::wrap',
 }

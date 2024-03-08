@@ -10,7 +10,7 @@
 - [ ] c++ : add missing get when there is a set (not sure about the inverse) 
 - [ ] c++ : typed array needs special binding (see https://forum.godotengine.org/t/how-to-set-up-a-typedarray-with-a-custom-type-in-gdextension/37652/3)
 - [ ] c++ : add bindings for overloaded methods
-- [ ] c++ : automatic includes based on member types
+- [x] c++ : automatic includes based on member types
 - [ ] c++ : move static member initilisation into cpp
 - [x] c++ : better enum support (enum.value => class::enum::value)
 - [x] c++ : bind enums

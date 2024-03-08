@@ -1,14 +1,16 @@
 
 #include "example_controller.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 void Character::_process(double delta)
 {
 	// in air
 	if(!is_on_floor())
 	{
-		velocity.y = clampf(velocity.y - gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
+		velocity.y = Math::clamp(velocity.y - gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
 		movementState = MovementEnum.fall;
 	}
 	else
@@ -31,7 +33,7 @@ void Character::_process(double delta)
 	// TODO?: maybe add a special function to jump called on just_pressed
 	if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
 	{
-		velocity.y += maxf(MIN_JUMP_VELOCITY, ground_speed);
+		velocity.y += Math::max(MIN_JUMP_VELOCITY, ground_speed);
 		coyoteTime.stop();
 		jump.emit(ground_speed);
 	}
@@ -43,11 +45,11 @@ void Character::_process(double delta)
 	Variant nimbleness = movements[movementState].nimbleness;
 	Variant acceleration = movements[movementState].acceleration + ground_speed * nimbleness;
 
-	float redirect = clampf(1.0 - nimbleness * delta, 0.0, 1.0);
+	float redirect = Math::clamp(1.0 - nimbleness * delta, 0.0, 1.0);
 	float vel_delta = acceleration * delta;
 
-	velocity.x = move_toward(velocity.x * redirect, direction.x * top_speed, vel_delta);
-	velocity.z = move_toward(velocity.z * redirect, direction.z * top_speed, vel_delta);
+	velocity.x = Math::move_toward(velocity.x * redirect, direction.x * top_speed, vel_delta);
+	velocity.z = Math::move_toward(velocity.z * redirect, direction.z * top_speed, vel_delta);
 
 	Variant new_ground_speed = calculate_ground_speed();
 
@@ -93,13 +95,13 @@ void Character::set_local_dir(Vector3 value)
 
 double Character::calculate_ground_speed()
 {
-	return sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+	return Math::sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
 }
 
 void Character::set_view_dir(Vector3 value)
 {
 	view_dir = value;
-	view_dir.x = clampf(view_dir.x,  - Globals.view_pitch_limit, Globals.view_pitch_limit);
+	view_dir.x = Math::clamp(view_dir.x,  - Globals.view_pitch_limit, Globals.view_pitch_limit);
 	emit_signal("viewDirChanged", view_dir);
 }
 

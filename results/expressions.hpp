@@ -3,6 +3,8 @@
 #define EXPRESSIONS_H
 
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 
 using namespace godot;
 

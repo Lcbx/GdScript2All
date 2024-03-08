@@ -265,6 +265,11 @@ c++ output (header) :
 #define TEST_H
 
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/sprite_2d.hpp>
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/resource.hpp>
 
 using namespace godot;
 
@@ -328,7 +333,7 @@ protected:
     double x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
-    double global_function = angle_difference(0.1, 0.2);
+    double global_function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
     Ref<Node> get_node = get_node("node");
@@ -382,15 +387,17 @@ c++ output (implementation) :
 ```c++
 
 #include "test.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 double test::method(double param)
 {
     int val = 2;
     for(string k : string_array)
     {
-        print(k);
+        UtilityFunctions::print(k);
     }
     return val * param;
 }
@@ -419,7 +426,7 @@ void test::async_function()
     get_tree()->emit_signal("process_frame", 0.7);
 
     Callable myLambda = []() 
-    {    print("look ma i'm jumping");
+    {    UtilityFunctions::print("look ma i'm jumping");
     };
 
     // lambdas are not perfectly translated

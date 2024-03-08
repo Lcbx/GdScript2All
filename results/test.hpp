@@ -3,6 +3,11 @@
 #define TEST_H
 
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/sprite_2d.hpp>
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/resource.hpp>
 
 using namespace godot;
 
@@ -66,7 +71,7 @@ protected:
 	double x = Vector3().x;
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
 	const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
-	double global_function = angle_difference(0.1, 0.2);
+	double global_function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
 	Ref<Node> get_node = get_node("node");

@@ -1,14 +1,16 @@
 
 #include "test.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 double test::method(double param)
 {
 	int val = 2;
 	for(string k : string_array)
 	{
-		print(k);
+		UtilityFunctions::print(k);
 	}
 	return val * param;
 }
@@ -37,7 +39,7 @@ void test::async_function()
 	get_tree()->emit_signal("process_frame", 0.7);
 
 	Callable myLambda = []() 
-	{	print("look ma i'm jumping");
+	{	UtilityFunctions::print("look ma i'm jumping");
 	};
 
 	// lambdas are not perfectly translated

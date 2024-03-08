@@ -1,7 +1,9 @@
 
 #include "script_level.hpp"
+
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 double script_level::get_get_var3()
 {return get_var3;
