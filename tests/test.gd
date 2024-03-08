@@ -10,7 +10,7 @@ extends Node
 class Nested1 extends test:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
-enum Named {THING_1, THING_2, ANOTHER_THING = -1}
+enum NamedEnum {THING_1, THING_2, ANOTHER_THING = -1}
 
 @export
 var export
@@ -66,15 +66,15 @@ var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
 # getters and setters
-var getset_var := .1 : set = _set, get = _get
+var getset := .1 : set = _set, get = _get
 
-var getset_sprite : Sprite2D :
+var sprite : Sprite2D :
 	set (value):
-		getset_sprite = value
-		getset_sprite.position = Vector2(1,2)
-		getset_sprite.position += Vector2(1,2) # cpp will need help here
+		sprite = value
+		sprite.position = Vector2(1,2)
+		sprite.position += Vector2(1,2) # cpp will need help here
 	get:
-		return getset_sprite
+		return sprite
 
 func enumReturn(): return THING_2
 

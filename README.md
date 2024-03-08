@@ -22,7 +22,7 @@ extends Node
 class Nested1 extends test:
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
-enum Named {THING_1, THING_2, ANOTHER_THING = -1}
+enum NamedEnum {THING_1, THING_2, ANOTHER_THING = -1}
 
 @export
 var export
@@ -78,15 +78,15 @@ var preload_resource = preload("res://path")
 var load_resource = load("res://path")
 
 # getters and setters
-var getset_var := .1 : set = _set, get = _get
+var getset := .1 : set = _set, get = _get
 
-var getset_sprite : Sprite2D :
+var sprite : Sprite2D :
     set (value):
-        getset_sprite = value
-        getset_sprite.position = Vector2(1,2)
-        getset_sprite.position += Vector2(1,2) # cpp will need help here
+        sprite = value
+        sprite.position = Vector2(1,2)
+        sprite.position += Vector2(1,2) # cpp will need help here
     get:
-        return getset_sprite
+        return sprite
 
 func enumReturn(): return THING_2
 
@@ -137,7 +137,7 @@ public partial class test : Godot.Node
     }
 
     public enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
-    public enum Named {THING_1, THING_2, ANOTHER_THING =  - 1}
+    public enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1}
 
     [Export]
     public Godot.Variant Export;
@@ -197,31 +197,31 @@ public partial class test : Godot.Node
     public Godot.Resource LoadResource = Load("res://path");
 
     // getters and setters
-    public double GetsetVar = 0.1
+    public double Getset = 0.1
     {
         set => _Set(value);
         get => _Get();
     }
-    private double _GetsetVar;
+    private double _Getset;
 
 
-    public Godot.Sprite2D GetsetSprite
+    public Godot.Sprite2D Sprite
     {
         set
         {
-            _GetsetSprite = value;
-            _GetsetSprite.Position = new Vector2(1, 2);
-            _GetsetSprite.Position += new Vector2(1, 2);// cpp will need help here
+            _Sprite = value;
+            _Sprite.Position = new Vector2(1, 2);
+            _Sprite.Position += new Vector2(1, 2);// cpp will need help here
         }
         get
         {
-            return _GetsetSprite;
+            return _Sprite;
         }
     }
-    private Godot.Sprite2D _GetsetSprite;
+    private Godot.Sprite2D _Sprite;
 
 
-    public Named EnumReturn()
+    public NamedEnum EnumReturn()
     {return THING_2;
     }
 
@@ -291,7 +291,7 @@ class test : public Node {
     GDCLASS(test, Node);
 public:
     enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
-    enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
+    enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1};
 
 protected:
     Variant export;
@@ -343,17 +343,17 @@ protected:
     Ref<Resource> load_resource = load("res://path");
 
 // getters and setters
-    double getset_var = 0.1;
+    double getset = 0.1;
 
-    Ref<Sprite2D> getset_sprite;
+    Ref<Sprite2D> sprite;
 
 public:
-    void set_getset_sprite(Ref<Sprite2D> value);
+    void set_sprite(Ref<Sprite2D> value);
 
-    Ref<Sprite2D> get_getset_sprite();
+    Ref<Sprite2D> get_sprite();
 
 // signals
-    Named enumReturn();
+    NamedEnum enumReturn();
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
 
@@ -376,7 +376,7 @@ public:
 };
 
 int test::i = 0;
-VARIANT_ENUM_CAST(test::Named)
+VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
 
 }
@@ -403,19 +403,19 @@ double test::method(double param)
     return val * param;
 }
 
-void test::set_getset_sprite(Ref<Sprite2D> value)
+void test::set_sprite(Ref<Sprite2D> value)
 {
-    getset_sprite = value;
-    getset_sprite->set_position(Vector2(1, 2));
-    getset_sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
+    sprite = value;
+    sprite->set_position(Vector2(1, 2));
+    sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
 }
 
-Ref<Sprite2D> test::get_getset_sprite()
+Ref<Sprite2D> test::get_sprite()
 {
-    return getset_sprite;
+    return sprite;
 }
 
-Named test::enumReturn()
+NamedEnum test::enumReturn()
 {return THING_2;
 }
 
@@ -469,8 +469,8 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
     ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
-    ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
-    ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
+    ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
+    ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
     ClassDB::bind_method(D_METHOD("_ready"), &test::_ready);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
@@ -504,8 +504,8 @@ py main.py -t Cpp <file_or_folder_path>
 
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
-- type inference does not currently support user-defined classes
-- generated C++ does not add necessary includes nor does it handle pointers well
+- this tool parses and emits code and will ignore it and try again at the next line if it encounters something unexpected (panic mode)
+- generated C++ does a best guess on what should be a pointer/reference, and code might need corrections
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:

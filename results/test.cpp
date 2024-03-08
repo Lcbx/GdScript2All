@@ -15,19 +15,19 @@ double test::method(double param)
 	return val * param;
 }
 
-void test::set_getset_sprite(Ref<Sprite2D> value)
+void test::set_sprite(Ref<Sprite2D> value)
 {
-	getset_sprite = value;
-	getset_sprite->set_position(Vector2(1, 2));
-	getset_sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
+	sprite = value;
+	sprite->set_position(Vector2(1, 2));
+	sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
 }
 
-Ref<Sprite2D> test::get_getset_sprite()
+Ref<Sprite2D> test::get_sprite()
 {
-	return getset_sprite;
+	return sprite;
 }
 
-Named test::enumReturn()
+NamedEnum test::enumReturn()
 {return THING_2;
 }
 
@@ -81,8 +81,8 @@ static void test::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
 	ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
 	ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
-	ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
-	ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
+	ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
+	ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
 	ClassDB::bind_method(D_METHOD("_ready"), &test::_ready);
 	ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
 	ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);

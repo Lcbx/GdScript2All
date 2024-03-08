@@ -21,7 +21,7 @@ public partial class test : Godot.Node
 	}
 
 	public enum Enum0 {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
-	public enum Named {THING_1, THING_2, ANOTHER_THING =  - 1}
+	public enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1}
 
 	[Export]
 	public Godot.Variant Export;
@@ -81,31 +81,31 @@ public partial class test : Godot.Node
 	public Godot.Resource LoadResource = Load("res://path");
 
 	// getters and setters
-	public double GetsetVar = 0.1
+	public double Getset = 0.1
 	{
 		set => _Set(value);
 		get => _Get();
 	}
-	private double _GetsetVar;
+	private double _Getset;
 
 
-	public Godot.Sprite2D GetsetSprite
+	public Godot.Sprite2D Sprite
 	{
 		set
 		{
-			_GetsetSprite = value;
-			_GetsetSprite.Position = new Vector2(1, 2);
-			_GetsetSprite.Position += new Vector2(1, 2);// cpp will need help here
+			_Sprite = value;
+			_Sprite.Position = new Vector2(1, 2);
+			_Sprite.Position += new Vector2(1, 2);// cpp will need help here
 		}
 		get
 		{
-			return _GetsetSprite;
+			return _Sprite;
 		}
 	}
-	private Godot.Sprite2D _GetsetSprite;
+	private Godot.Sprite2D _Sprite;
 
 
-	public Named EnumReturn()
+	public NamedEnum EnumReturn()
 	{return THING_2;
 	}
 

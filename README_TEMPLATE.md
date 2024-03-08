@@ -34,8 +34,8 @@ py main.py -t Cpp <file_or_folder_path>
 
 ### Limitations
 - read [TODO.md](TODO.md) for WIP features
-- type inference does not currently support user-defined classes
-- generated C++ does not add necessary includes nor does it handle pointers well
+- this tool parses and emits code and will ignore it and try again at the next line if it encounters something unexpected (panic mode)
+- generated C++ does a best guess on what should be a pointer/reference, and code might need corrections
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:

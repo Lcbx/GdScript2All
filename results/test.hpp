@@ -29,7 +29,7 @@ class test : public Node {
 	GDCLASS(test, Node);
 public:
 	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
-	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
+	enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1};
 
 protected:
 	Variant export;
@@ -81,17 +81,17 @@ protected:
 	Ref<Resource> load_resource = load("res://path");
 
 // getters and setters
-	double getset_var = 0.1;
+	double getset = 0.1;
 
-	Ref<Sprite2D> getset_sprite;
+	Ref<Sprite2D> sprite;
 
 public:
-	void set_getset_sprite(Ref<Sprite2D> value);
+	void set_sprite(Ref<Sprite2D> value);
 
-	Ref<Sprite2D> get_getset_sprite();
+	Ref<Sprite2D> get_sprite();
 
 // signals
-	Named enumReturn();
+	NamedEnum enumReturn();
 	/* signal jump() */
 	/* signal movement(Vector3 dir, double speed) */
 
@@ -114,7 +114,7 @@ public:
 };
 
 int test::i = 0;
-VARIANT_ENUM_CAST(test::Named)
+VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
 
 }
