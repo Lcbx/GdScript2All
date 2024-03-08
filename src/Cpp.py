@@ -460,7 +460,7 @@ class Transpiler:
 			.replace('2_d', '_2d') \
 			.replace('3_d', '_3d') \
 			+ '.hpp>'
-		includes =  '\n'.join(map(to_include, self.used_types)) + '\n'
+		includes =  '\n'.join(map(to_include, sorted(self.used_types))) + '\n'
 
 		self.cpp = prettify( cpp_template \
 			.replace('__HEADER__', self.script_name) \
