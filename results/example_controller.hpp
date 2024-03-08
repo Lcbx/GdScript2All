@@ -38,7 +38,7 @@ protected:
 	const Vector3 YZ = Vector3(0.0, 1.0, 1.0);
 	const Vector3 XY = Vector3(1.0, 1.0, 0.0);
 
-	static Variant gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
+	static Variant gravity;
 
 	Variant coyoteTime = Utils.createTimer(self, 0.15);
 	Variant jumpCoolDown = Utils.createTimer(self, 0.15);
@@ -103,6 +103,7 @@ public:
 	static void _bind_methods();
 };
 
+Variant Character::gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
 VARIANT_ENUM_CAST(Character::MovementEnum)
 
 }

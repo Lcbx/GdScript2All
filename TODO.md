@@ -9,9 +9,9 @@
 - [x] c++ : generate bindings for methods and exported properties
 - [x] c++ : add missing get/set when there is one defined 
 - [ ] c++ : typed array needs special binding (see https://forum.godotengine.org/t/how-to-set-up-a-typedarray-with-a-custom-type-in-gdextension/37652/3)
-- [ ] c++ : add bindings for overloaded methods
+- [x] c++ : add bindings for overloaded methods
 - [x] c++ : automatic includes based on member types
-- [ ] c++ : move static member initilisation into cpp
+- [x] c++ : move static member initilisation into cpp
 - [x] c++ : better enum support (enum.value => class::enum::value)
 - [x] c++ : bind enums
 - [ ] c++ : fix unamed enums having empty binding call (```VARIANT_ENUM_CAST()```)

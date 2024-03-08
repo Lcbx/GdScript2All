@@ -122,6 +122,7 @@ Array Character::get_movements() {
 }
 
 static void Character::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_process", "delta"), &Character::_process);
 	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
 	ClassDB::bind_method(D_METHOD("get_movementState"), &Character::get_movementState);

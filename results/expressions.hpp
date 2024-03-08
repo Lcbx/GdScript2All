@@ -17,7 +17,7 @@ public:
 
 protected:
 	Variant foo;
-	static int i = 0;
+	static int i;
 	const string str = "the fox said \"get off my lawn\"";
 	string big_str = "\
 	this is a multiline string\
@@ -37,6 +37,8 @@ protected:
 	int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | 4 : cond12_false && 0 ) );
 
 };
+
+int expressions::i = 0;
 
 }
 

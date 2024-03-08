@@ -21,12 +21,17 @@ class ClassDefinition:
 		# signal arguments for bindings (signal_name:args{arg_name:type})
 		self.signals = {}
 		
-		# onready assignments
-		# they are moved moved to the ready function of the corresponding class
+		# onready assignments, moved to the ready function 
 		self.onready_assigns = []
+
+		# static assignments, moved to the end of hpp
+		self.static_assigns = []
 		
 		# annotations (tuple<property_name,annotation_name,params> )
 		self.annotations = []
+
+		# overriden methods, added to bindings
+		self.overriden_methods = set()
 		
 		# accesors (member_name:accessors_name)
 		self.accessors_get = {}
@@ -110,7 +115,11 @@ class Transpiler:
 			if onready:
 				self += name; self.assignment(assignment)
 				self.getClass().onready_assigns.append(self.popLayer())
-			else: self.assignment(assignment); protected += self.popLayer()
+			elif static:
+				self += f'{type} {self.class_name}::{name}'; self.assignment(assignment)
+				self.getClass().static_assigns.append(self.popLayer())
+			else:
+				self.assignment(assignment); protected += self.popLayer()
 		protected += ';'
 	
 	def setget(self, member, accessors):
@@ -146,7 +155,8 @@ class Transpiler:
 		if assignment: self.assignment(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
-		
+		self.getClass().overriden_methods.add(name)
+
 		# for method bindings
 		self.getClass().method_args[name] = params.keys()
 		# some methods (notably accesors) need to be registered here for bindings to be generated
@@ -417,7 +427,7 @@ class Transpiler:
 			
 			# methods
 			for meth, type in self.klass.methods.items():
-				if not meth.startswith('_'): # _method => not exported
+				if not meth.startswith('_') or meth in self.getClass().overriden_methods: # _method => not exported
 					params = ', '.join(map(lambda s: f'"{s}"', self.getClass().method_args[meth]))
 					params = ', ' + params if params else params
 					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
@@ -439,6 +449,10 @@ class Transpiler:
 		# add class definition + close it
 		self.hpp += self.getClass().class_hpp
 		self.hpp += '};\n\n'
+
+		# add static assignment
+		for sass in self.getClass().static_assigns:
+			self.hpp += f'{sass};\n'
 
 		# add enum binding after class binding (if any)
 		if self.klass.enums:

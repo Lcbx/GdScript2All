@@ -302,7 +302,7 @@ protected:
 
 // basic property definitions / expressions
     Variant foo;
-    static int i = 0;
+    static int i;
     const string str = "the fox said \"get off my lawn\"";
     string big_str = "\
     this is a multiline string\
@@ -375,6 +375,7 @@ public:
     static void _bind_methods();
 };
 
+int test::i = 0;
 VARIANT_ENUM_CAST(test::Named)
 VARIANT_ENUM_CAST(test::)
 
@@ -470,6 +471,7 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
     ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
+    ClassDB::bind_method(D_METHOD("_ready"), &test::_ready);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
     ClassDB::bind_method(D_METHOD("set_export_param", "value"), &test::set_export_param);

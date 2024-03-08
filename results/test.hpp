@@ -40,7 +40,7 @@ protected:
 
 // basic property definitions / expressions
 	Variant foo;
-	static int i = 0;
+	static int i;
 	const string str = "the fox said \"get off my lawn\"";
 	string big_str = "\
 	this is a multiline string\
@@ -113,6 +113,7 @@ public:
 	static void _bind_methods();
 };
 
+int test::i = 0;
 VARIANT_ENUM_CAST(test::Named)
 VARIANT_ENUM_CAST(test::)
 
