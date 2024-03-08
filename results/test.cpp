@@ -79,10 +79,10 @@ int test::get_export_flags() {
 
 static void test::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-	ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
-	ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
 	ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
 	ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
+	ClassDB::bind_method(D_METHOD("set_getset_sprite", "value"), &test::set_getset_sprite);
+	ClassDB::bind_method(D_METHOD("get_getset_sprite"), &test::get_getset_sprite);
 	ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
 	ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
 	ClassDB::bind_method(D_METHOD("set_export_param", "value"), &test::set_export_param);

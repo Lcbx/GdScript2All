@@ -57,7 +57,7 @@ public partial class test : Godot.Node
 		var val = 2;
 		foreach(string k in StringArray)
 		{
-			GD.Print(k);
+			GD.Print(K);
 		}
 		return val * param;
 	}

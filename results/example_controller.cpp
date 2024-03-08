@@ -11,12 +11,12 @@ void Character::_process(double delta)
 	if(!is_on_floor())
 	{
 		velocity.y = Math::clamp(velocity.y - gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
-		movementState = MovementEnum.fall;
+		movementState = MovementEnum::MovementEnum::fall;
 	}
 	else
 	{
 		// landing
-		if(movementState == MovementEnum.fall)
+		if(movementState == MovementEnum::MovementEnum::fall)
 		{
 			jumpCoolDown.start();
 			// TODO: apply fall damage + play landing animation
@@ -27,7 +27,7 @@ void Character::_process(double delta)
 		coyoteTime.start();
 	}
 
-	Variant ground_speed = calculate_ground_speed();
+	float ground_speed = calculate_ground_speed();
 
 	// jump
 	// TODO?: maybe add a special function to jump called on just_pressed
@@ -35,15 +35,15 @@ void Character::_process(double delta)
 	{
 		velocity.y += Math::max(MIN_JUMP_VELOCITY, ground_speed);
 		coyoteTime.stop();
-		jump.emit(ground_speed);
+		emit_signal("jump", ground_speed);
 	}
 
 	// when running, always go forward 
-	Variant direction = ( movementState != MovementEnum.run ? global_mov_dir : basis.z );
+	Vector3 direction = ( movementState != MovementEnum::MovementEnum::run ? global_mov_dir : basis.z );
 
-	Variant top_speed = movements[movementState].top_speed;
-	Variant nimbleness = movements[movementState].nimbleness;
-	Variant acceleration = movements[movementState].acceleration + ground_speed * nimbleness;
+	float top_speed = movements[movementState]->get_top_speed();
+	float nimbleness = movements[movementState]->get_nimbleness();
+	float acceleration = movements[movementState]->get_acceleration() + ground_speed * nimbleness;
 
 	float redirect = Math::clamp(1.0 - nimbleness * delta, 0.0, 1.0);
 	float vel_delta = acceleration * delta;
@@ -51,15 +51,15 @@ void Character::_process(double delta)
 	velocity.x = Math::move_toward(velocity.x * redirect, direction.x * top_speed, vel_delta);
 	velocity.z = Math::move_toward(velocity.z * redirect, direction.z * top_speed, vel_delta);
 
-	Variant new_ground_speed = calculate_ground_speed();
+	float new_ground_speed = calculate_ground_speed();
 
-	movement.emit(local_dir, new_ground_speed);
+	emit_signal("movement", local_dir, new_ground_speed);
 
 	move_and_slide();
 
 	for(int i : range(get_slide_collision_count()))
 	{
-		collision.emit(get_slide_collision(i));
+		emit_signal("collision", get_slide_collision(i));
 	}
 }
 
@@ -122,13 +122,13 @@ Array Character::get_movements() {
 }
 
 static void Character::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
 	ClassDB::bind_method(D_METHOD("get_movementState"), &Character::get_movementState);
 	ClassDB::bind_method(D_METHOD("get_global_mov_dir"), &Character::get_global_mov_dir);
 	ClassDB::bind_method(D_METHOD("set_global_mov_dir", "value"), &Character::set_global_mov_dir);
 	ClassDB::bind_method(D_METHOD("get_local_dir"), &Character::get_local_dir);
 	ClassDB::bind_method(D_METHOD("set_local_dir", "value"), &Character::set_local_dir);
-	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_view_dir", "value"), &Character::set_view_dir);
 	ClassDB::bind_method(D_METHOD("get_view_dir"), &Character::get_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);

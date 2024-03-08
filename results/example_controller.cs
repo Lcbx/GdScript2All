@@ -41,19 +41,19 @@ public partial class Character : Godot.CharacterBody3D
 		if(!IsOnFloor())
 		{
 			Velocity.Y = Mathf.Clamp(Velocity.Y - Gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
-			movementState = MovementEnum.Fall;
+			MovementState = MovementEnum.MovementEnum.fall;
 		}
 		else
 		{
 			// landing
-			if(movementState == MovementEnum.Fall)
+			if(MovementState == MovementEnum.MovementEnum.fall)
 			{
 				JumpCoolDown.Start();
 				// TODO: apply fall damage + play landing animation
 			}
 
 			// on ground
-			movementState = wantedMovement;
+			MovementState = WantedMovement;
 			CoyoteTime.Start();
 		}
 
@@ -61,19 +61,19 @@ public partial class Character : Godot.CharacterBody3D
 
 		// jump
 		// TODO?: maybe add a special function to jump called on just_pressed
-		if(global_mov_dir.Y > 0.0 && !CoyoteTime.IsStopped() && JumpCoolDown.IsStopped())
+		if(GlobalMovDir.Y > 0.0 && !CoyoteTime.IsStopped() && JumpCoolDown.IsStopped())
 		{
 			Velocity.Y += Mathf.Max(MIN_JUMP_VELOCITY, ground_speed);
 			CoyoteTime.Stop();
-			jump.Emit(ground_speed);
+			EmitSignal("jump", ground_speed);
 		}
 
 		// when running, always go forward 
-		var direction = ( movementState != MovementEnum.Run ? global_mov_dir : Basis.Z );
+		var direction = ( MovementState != MovementEnum.MovementEnum.run ? GlobalMovDir : Basis.Z );
 
-		var top_speed = movements[movementState].TopSpeed;
-		var nimbleness = movements[movementState].Nimbleness;
-		var acceleration = movements[movementState].Acceleration + ground_speed * nimbleness;
+		var top_speed = Movements[MovementState].TopSpeed;
+		var nimbleness = Movements[MovementState].Nimbleness;
+		var acceleration = Movements[MovementState].Acceleration + ground_speed * nimbleness;
 
 		var redirect = Mathf.Clamp(1.0 - nimbleness * delta, 0.0, 1.0);
 		var vel_delta = acceleration * delta;
@@ -83,13 +83,13 @@ public partial class Character : Godot.CharacterBody3D
 
 		var new_ground_speed = CalculateGroundSpeed();
 
-		movement.Emit(local_dir, new_ground_speed);
+		EmitSignal("movement", LocalDir, new_ground_speed);
 
 		MoveAndSlide();
 
 		foreach(int i in Range(GetSlideCollisionCount()))
 		{
-			collision.Emit(GetSlideCollision(i));
+			EmitSignal("collision", GetSlideCollision(i));
 		}
 	}
 
@@ -137,7 +137,7 @@ public partial class Character : Godot.CharacterBody3D
 		{
 			_GlobalMovDir = value;
 			// TODO: verify up (y) is not inversed
-			_local_dir =  - value * Basis.Inverse();
+			_LocalDir =  - value * Basis.Inverse();
 		}
 	}
 

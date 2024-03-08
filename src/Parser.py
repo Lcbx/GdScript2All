@@ -867,9 +867,10 @@ class Parser:
 	# using a stack to keep track of class being defined
 	def add_class(self, class_name, base_class, is_tool = False):
 		self.classes.append(class_name)
-		classData = ClassData()
-		classData.base = base_class
-		godot_types[class_name] = classData
+		if class_name not in godot_types:
+			classData = ClassData()
+			classData.base = base_class
+			godot_types[class_name] = classData
 		
 		self.emit_class_change()
 		self.out.define_class(class_name, base_class, self.is_tool)

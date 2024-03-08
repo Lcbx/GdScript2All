@@ -6,7 +6,7 @@ using Array = Godot.Collections.Array;
 
 public partial class script_level : Godot.Node
 {
-	public partial class Nested1 : test
+	public partial class Nested1 : Godot.test
 	{
 
 	}
