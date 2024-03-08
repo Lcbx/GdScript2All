@@ -186,7 +186,7 @@ public partial class test : Godot.Node
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const ShaderMode enum = Godot.RenderingServer.SHADER_SPATIAL;
+    public const ShaderMode enum = Godot.RenderingServer.ShaderMode.SHADER_SPATIAL;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
     // Gdscript special syntax
@@ -375,8 +375,8 @@ public:
     static void _bind_methods();
 };
 
-VARIANT_ENUM_CAST(test::)
 VARIANT_ENUM_CAST(test::Named)
+VARIANT_ENUM_CAST(test::)
 
 }
 
@@ -415,7 +415,7 @@ Ref<Sprite2D> test::get_getset_sprite()
 }
 
 Named test::enumReturn()
-{return Named::THING_2;
+{return THING_2;
 }
 
 void test::async_function()

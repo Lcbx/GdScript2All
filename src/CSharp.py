@@ -216,9 +216,8 @@ class Transpiler:
 		
 		self.write(str(value))
 	
-	def constant(self, value_name, enum_name = None, local = False):
-		if not local: self += '.'
-		self += value_name
+	def constant(self, name):
+		self += '.' + name
 	
 	def this(self):
 		self += 'this.'

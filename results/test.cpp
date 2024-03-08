@@ -28,7 +28,7 @@ Ref<Sprite2D> test::get_getset_sprite()
 }
 
 Named test::enumReturn()
-{return Named::THING_2;
+{return THING_2;
 }
 
 void test::async_function()

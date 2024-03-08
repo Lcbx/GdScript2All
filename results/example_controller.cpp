@@ -63,7 +63,7 @@ void Character::_process(double delta)
 	}
 }
 
-void Character::set_movementState(Variant value)
+void Character::set_movementState(MovementEnum value)
 {
 	if(movementState != value)
 	{
@@ -72,7 +72,7 @@ void Character::set_movementState(Variant value)
 	}
 }
 
-Variant Character::get_movementState() {
+MovementEnum Character::get_movementState() {
 	return movementState;
 }
 

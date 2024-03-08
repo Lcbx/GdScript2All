@@ -76,8 +76,8 @@ public:
 	static void _bind_methods();
 };
 
-VARIANT_ENUM_CAST(script_level::)
 VARIANT_ENUM_CAST(script_level::Named)
+VARIANT_ENUM_CAST(script_level::)
 
 }
 

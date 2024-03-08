@@ -108,7 +108,7 @@ public partial class Character : Godot.CharacterBody3D
 	public enum MovementEnum {crouch, walk, run, fall}
 	[Export] public Array<MovementState> Movements;
 
-	public Godot.Variant MovementState = MovementEnum.Walk
+	public MovementEnum MovementState = MovementEnum.MovementEnum.walk
 	{
 		set
 		{
@@ -119,10 +119,10 @@ public partial class Character : Godot.CharacterBody3D
 			}
 		}
 	}
-	private Godot.Variant _MovementState;
+	private MovementEnum _MovementState;
 
 
-	public Godot.Variant WantedMovement = MovementEnum.Walk;
+	public MovementEnum WantedMovement = MovementEnum.MovementEnum.walk;
 
 
 	/* steering variables */

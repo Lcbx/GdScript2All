@@ -17,6 +17,7 @@ commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = F
 commandLineArgs.add_argument('--use_floats', action='store_true', default = False, help='leave floating point types as floats' )
 commandLineArgs.add_argument('--verboseP', action='store_true', default = False, help='print additional parser execution logs' )
 commandLineArgs.add_argument('--verboseT', action='store_true', default = False, help='print additional transpiler execution logs' )
+commandLineArgs.add_argument('--no_save', action='store_true', default = False, help='do not save output code as a file' )
 commandLineArgs.add_argument('--tokens', action='store_true', default = False, help='if set will print the tokenizer output' )
 args = commandLineArgs.parse_args()
 
@@ -87,7 +88,8 @@ def transpile(filename, outname):
 		
 		printException()
 		
-		transpiler.save_result()
+		if not args.no_save:
+			transpiler.save_result()
 
 
 if args.verbose:

@@ -546,9 +546,9 @@ class Parser:
 	
 
 	def dereference(self):
-		current_tkn = self.current.value
 		val = self.value()
 		type = next(val)
+
 		signal = type and type.endswith('signal')
 		singleton = type and type.endswith('singleton')
 		if singleton: type = type[:-len('singleton')]
@@ -696,15 +696,15 @@ class Parser:
 				# a global constant (ex: KEY_ESCAPE)
 				singleton = name in godot_types[GLOBALS].members
 				property = name in self.getClass().members or name in self.getClassParent().members
-				enum = name in self.getClass().enums
-				constant = name in self.getClass().constants
 				type = self.getClass().members.get(name) \
 					or self.getClassParent().members.get(name) \
 					or self.locals.get(name) \
-					or self.getClass().enums.get(name) \
 					or self.getClass().constants.get(name) \
 					or godot_types[GLOBALS].constants.get(name) \
+					or self.getClass().enums.get(name) \
+					or (self.getClassName() if name + 'enum' in self.getClass().enums.values() else None) \
 					or (name if singleton or name in godot_types else None)
+
 				if singleton: type += 'singleton'
 
 				yield type
@@ -712,8 +712,6 @@ class Parser:
 				if this: self.out.this()
 				if singleton:  self.out.singleton(name)
 				elif property: self.out.property(name)
-				elif enum:     self.out.constant(name, self.getClass().enums[name], True)
-				elif constant: self.out.constant(name, self.classes[-1], True)
 				else:          self.out.variable(name)
 
 		else: yield
@@ -778,9 +776,7 @@ class Parser:
 		signal = member_type and member_type.endswith('signal')
 
 		def emit(silent = False):
-			if enum: self.out.constant(name, member_type)
-			elif constant: self.out.constant(name)
-			elif signal or silent: self.out.reference('', type, member_type, singleton)
+			if signal or silent: self.out.reference('', type, member_type, singleton)
 			else: self.out.reference(name, type, member_type, singleton)
 		
 		# signal emission/connection
@@ -824,7 +820,10 @@ class Parser:
 		# end leaf
 		else:
 			yield member_type
-			if enum: self.out.constant(name, member_type)
+			if enum:
+				if member_type != self.getClassName():
+					self.out.constant(member_type[:-len('enum')])
+				self.out.constant(name)
 			elif constant: self.out.constant(name)
 			else: self.out.reference(name, type, member_type, singleton)
 		yield
@@ -876,19 +875,20 @@ class Parser:
 		self.out.define_class(class_name, base_class, self.is_tool)
 	
 	def end_class(self):
-		self.out.end_class(self.classes[-1])
+		self.out.end_class(self.getClassName())
 		if len(self.classes) > 1: self.classes.pop()
 		self.emit_class_change()
 	
+	def getClassName(self): return  self.classes[-1]
+
 	def emit_class_change(self):
-		self.out.current_class(self.classes[-1], self.getClass())
+		self.out.current_class(self.getClassName(), self.getClass())
 	
 	def getClass(self):
-		return godot_types[self.classes[-1]]
+		return godot_types[self.getClassName()]
 		
 	def getClassParent(self):
-		class_name = self.classes[-1]
-		parent_name = godot_types[class_name].base
+		parent_name = godot_types[self.getClassName()].base
 		parent = godot_types.get(parent_name) \
 			or godot_types.get('Object')
 		return parent

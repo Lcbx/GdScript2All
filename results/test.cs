@@ -70,7 +70,7 @@ public partial class test : Godot.Node
 	public Godot.Node X = this.GetParent();
 	public double X = new Vector3().X;
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-	public const ShaderMode enum = Godot.RenderingServer.SHADER_SPATIAL;
+	public const ShaderMode enum = Godot.RenderingServer.ShaderMode.SHADER_SPATIAL;
 	public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
 	// Gdscript special syntax

@@ -57,14 +57,14 @@ public:
 protected:
 	Array movements;
 
-	Variant movementState = MovementEnum.walk;
+	MovementEnum movementState = MovementEnum::MovementEnum::walk;
 
 public:
-	void set_movementState(Variant value);
-	Variant get_movementState();
+	void set_movementState(MovementEnum value);
+	MovementEnum get_movementState();
 
 protected:
-	Variant wantedMovement = MovementEnum.walk;
+	MovementEnum wantedMovement = MovementEnum::MovementEnum::walk;
 
 /* steering variables */
 

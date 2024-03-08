@@ -113,8 +113,8 @@ public:
 	static void _bind_methods();
 };
 
-VARIANT_ENUM_CAST(test::)
 VARIANT_ENUM_CAST(test::Named)
+VARIANT_ENUM_CAST(test::)
 
 }
 

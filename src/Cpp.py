@@ -232,10 +232,8 @@ class Transpiler:
 		
 		self.write(str(value))
 	
-	def constant(self, value_name, enum_name = None, local = False):
-		if not local: self += '::'
-		if enum_name: self += self.translate_type(enum_name) + '::'
-		self += value_name
+	def constant(self, name):
+		self +=  '::' + name
 	
 	def this(self):
 		self += 'this->'
@@ -390,7 +388,7 @@ class Transpiler:
 					if not type.startswith('signal'):
 						an_name = export_replacements.get(an_name) or an_name.upper()
 						
-						property_bindings += f'\tADD_PROPERTY(PropertyInfo({type_enum(type)}, "{prop}"'
+						property_bindings += f'\tADD_PROPERTY(PropertyInfo({toVariantTypeEnum(type)}, "{prop}"'
 						
 						# PROPERTY_HINT_*****, "args"
 						if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
@@ -413,7 +411,7 @@ class Transpiler:
 			
 			# signals
 			for signal, args in self.getClass().signals.items():
-				params = ', '.join(map(lambda item: f'PropertyInfo({type_enum(item[1])}, "{item[0]}")', args.items()))
+				params = ', '.join(map(lambda item: f'PropertyInfo({toVariantTypeEnum(item[1])}, "{item[0]}")', args.items()))
 				params = ', ' +params if params else params 
 				property_bindings += f'\tADD_SIGNAL(MethodInfo("{signal}"{params}));\n'
 			
@@ -425,7 +423,7 @@ class Transpiler:
 					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
 
 			# enums
-			bindings += '\n'.join( f'\tBIND_ENUM_CONSTANT({enum_name})' for enum_name in self.klass.enums.keys() )
+			bindings += '\n'.join( f'\tBIND_ENUM_CONSTANT({enum_value_name})' for enum_value_name in self.klass.enums.keys() )
 			
 			bindings += '\n'
 			
@@ -444,7 +442,8 @@ class Transpiler:
 
 		# add enum binding after class binding (if any)
 		if self.klass.enums:
-			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{enum_name})' for enum_name in set(map(lambda s: self.translate_type(s), self.klass.enums.values()) ))
+			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{self.translate_type(enum_name)})'  \
+				for enum_name in sorted(set(self.klass.enums.values())) )
 	
 	def end_script(self):
 		self.end_class(self.class_name)
@@ -482,10 +481,10 @@ class Transpiler:
 	def translate_type(self, type):
 		if type == None: return 'void'
 		if type == 'Variant': return type
-		if type.endswith('enum'): return type[:-len('enum')]
 		if type.endswith('[]'): return 'Array'
+		if type.endswith('enum'): return type[:-len('enum')]
 		if type == 'float' and not use_floats: return 'double'
-		if toVariantEnumType(type): return type
+		if toVariantTypeConstant(type): return type
 
 		# to generate includes
 		if type in godot_types: self.used_types.add(type)
@@ -585,14 +584,14 @@ def replaceClosingBrace(string, replacement):
 def toSet(name): return f'set_{name}'
 def toGet(name): return f'get_{name}'
 
-def is_pointer(type): return type and not toVariantEnumType(type)
+def is_pointer(type): return type and not toVariantTypeConstant(type)
 
-def toVariantEnumType(type):
+def toVariantTypeConstant(type):
 	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())
 	return 'OBJECT' if type=='Variant' else next( match, None)
 
-def type_enum(type):
-	translated = toVariantEnumType(type)
+def toVariantTypeEnum(type):
+	translated = toVariantTypeConstant(type)
 	return 'Variant::' + (translated.replace('TYPE_', '', 1) if translated else 'OBJECT')
 
 # for prettier output
