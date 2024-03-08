@@ -115,11 +115,17 @@ class Transpiler:
 	
 	def setget(self, member, accessors):
 		# call the appropriate Transpiler method (defined afterward)
+		set_defined = False
+		get_defined = False
 		for accessor in accessors:
 			method_name = accessor[0]
+			set_defined = set_defined or method_name.startswith('set')
+			get_defined = get_defined or method_name.startswith('get')
 			method = getattr(self,method_name)
 			params = accessor[1:]
 			method(member, *params)
+		if set_defined and not get_defined: self.addDefaultGet(member)
+		if get_defined and not set_defined: self.addDefaultSet(member)
 		
 	def getter_method(self, member, getterName):
 		self.getClass().accessors_get[member] = getterName
@@ -389,6 +395,8 @@ class Transpiler:
 						# PROPERTY_HINT_*****, "args"
 						if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
 						
+						# NOTE: the way setget are handled, if one is missing both are
+						# doing it this way to avoid problems if this changes
 						accessor_get = self.getClass().accessors_get.get(prop)
 						accessor_set = self.getClass().accessors_set.get(prop)
 						
@@ -396,8 +404,8 @@ class Transpiler:
 						property_bindings += f'), "{accessor_set or toSet(prop)}", "{accessor_get or toGet(prop)}");\n'
 						
 						# define accessors if missing
-						if not accessor_get: self.setter(prop, 'value', f' {{\n\t{prop} = value;\n}}\n')
-						if not accessor_get: self.getter(prop, f' {{\n\treturn {prop};\n}}\n')
+						if not accessor_set: self.addDefaultSet(prop)
+						if not accessor_get: self.addDefaultGet(prop)
 				
 				else: # @export_group, subgroup, category
 					an_name = an_name.replace('export_','').upper()
@@ -463,6 +471,13 @@ class Transpiler:
 			.replace('__INCLUDES__', includes) \
 			.replace('__IMPLEMENTATION__', str(self.hpp)) \
 			)
+
+	def addDefaultSet(self, prop_name):
+		self.getClass().accessors_set[prop_name] = toSet(prop_name)
+		self.setter(prop_name, 'value', f' {{\n\t{prop_name} = value;\n}}\n')
+	def addDefaultGet(self, prop_name):
+		self.getClass().accessors_get[prop_name] = toGet(prop_name)
+		self.getter(prop_name, f' {{\n\treturn {prop_name};\n}}\n')
 
 	def translate_type(self, type):
 		if type == None: return 'void'

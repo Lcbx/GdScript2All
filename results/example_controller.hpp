@@ -61,6 +61,7 @@ protected:
 
 public:
 	void set_movementState(Variant value);
+	Variant get_movementState();
 
 protected:
 	Variant wantedMovement = MovementEnum.walk;
@@ -95,6 +96,7 @@ protected:
 
 public:
 	void set_view_dir(Vector3 value);
+	Vector3 get_view_dir();
 	void set_movements(Array value);
 	Array get_movements();
 

@@ -72,6 +72,10 @@ void Character::set_movementState(Variant value)
 	}
 }
 
+Variant Character::get_movementState() {
+	return movementState;
+}
+
 Vector3 Character::get_global_mov_dir()
 {return _global_mov_dir;
 }
@@ -105,6 +109,10 @@ void Character::set_view_dir(Vector3 value)
 	emit_signal("viewDirChanged", view_dir);
 }
 
+Vector3 Character::get_view_dir() {
+	return view_dir;
+}
+
 void Character::set_movements(Array value) {
 	movements = value;
 }
@@ -115,12 +123,14 @@ Array Character::get_movements() {
 
 static void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
+	ClassDB::bind_method(D_METHOD("get_movementState"), &Character::get_movementState);
 	ClassDB::bind_method(D_METHOD("get_global_mov_dir"), &Character::get_global_mov_dir);
 	ClassDB::bind_method(D_METHOD("set_global_mov_dir", "value"), &Character::set_global_mov_dir);
 	ClassDB::bind_method(D_METHOD("get_local_dir"), &Character::get_local_dir);
 	ClassDB::bind_method(D_METHOD("set_local_dir", "value"), &Character::set_local_dir);
 	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_view_dir", "value"), &Character::set_view_dir);
+	ClassDB::bind_method(D_METHOD("get_view_dir"), &Character::get_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);
 	ClassDB::bind_method(D_METHOD("get_movements"), &Character::get_movements);
 	BIND_ENUM_CONSTANT(crouch)

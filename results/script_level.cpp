@@ -9,6 +9,10 @@ double script_level::get_get_var3()
 {return get_var3;
 }
 
+void script_level::set_get_var3(double value) {
+	get_var3 = value;
+}
+
  void script_level::set_DEF(double value)
 {
 	set_sprite_offset(value);
@@ -50,6 +54,7 @@ Variant script_level::get_export_flags() {
 
 static void script_level::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_get_var3"), &script_level::get_get_var3);
+	ClassDB::bind_method(D_METHOD("set_get_var3", "value"), &script_level::set_get_var3);
 	ClassDB::bind_method(D_METHOD("set_DEF", "value"), &script_level::set_DEF);
 	ClassDB::bind_method(D_METHOD("get_DEF"), &script_level::get_DEF);
 	ClassDB::bind_method(D_METHOD("set_export", "value"), &script_level::set_export);

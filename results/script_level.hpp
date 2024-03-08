@@ -51,6 +51,7 @@ protected:
 
 public:
 	double get_get_var3();
+	void set_get_var3(double value);
 
 protected:
 	double getset_var;
