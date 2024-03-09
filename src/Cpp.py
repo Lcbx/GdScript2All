@@ -151,7 +151,7 @@ class Transpiler:
 		self.define_method(toSet(member), code = code, params = {valueName:self.klass.members[member]})
 	
 	def declare_variable(self, type, name, assignment):
-		self += f'{type} {name}'
+		self += f'{self.translate_type(type)} {name}'
 		if assignment: self.assignment(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
@@ -245,14 +245,11 @@ class Transpiler:
 	def constant(self, name):
 		self +=  '::' + name
 	
-	def this(self):
-		self += 'this->'
-	
 	def property(self, name):
 		self += name
 	
 	def variable(self, name):
-		self += name
+		self += variable_replacements.get(name) or name
 	
 	def singleton(self, name):
 		self += name
@@ -601,8 +598,13 @@ def toGet(name): return f'get_{name}'
 def is_pointer(type): return type and not toVariantTypeConstant(type)
 
 def toVariantTypeConstant(type):
+	# NOTE: binding enums as int ; that's the standards afaik
+	# see https://github.com/godotengine/godot/issues/15922
+	if   type.endswith('enum'): type = 'int'
+	elif type.endswith('[]'): type = 'Array'
+
 	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())
-	return 'OBJECT' if type=='Variant' else next( match, None)
+	return next(match, None)
 
 def toVariantTypeEnum(type):
 	translated = toVariantTypeConstant(type)
@@ -695,6 +697,14 @@ export_replacements = {
 	'export_node_type':'PROPERTY_HINT_NODE_TYPE',
 	'export_hide_quaternion_edit':'PROPERTY_HINT_HIDE_QUATERNION_EDIT',
 	'export_password':'PROPERTY_HINT_PASSWORD',
+}
+
+variable_replacements = {
+	"self":"this",
+	"PI":"Math::Pi",
+	"TAU":"Math::Tau",
+	"INF":"Math::Inf",
+	"NAN":"Math::NaN",
 }
 
 function_replacements = {

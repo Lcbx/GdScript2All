@@ -80,9 +80,6 @@ class Transpiler:
 	def constant(self, name):
 		pass
 	
-	def this(self):
-		pass
-	
 	def property(self, name):
 		pass
 

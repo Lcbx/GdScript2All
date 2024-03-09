@@ -677,14 +677,14 @@ class Parser:
 			name = self.consume()
 			
 			# self. is essentially just syntactic in most languages
-			this = name == 'self' and self.expect('.')
-			if this: name = self.consume()
+			#this = name == 'self' and self.expect('.')
+			#if this: name = self.consume()
 			
 			# call
 			if self.expect('('):
 				call = self.call(name)
 				yield next(call)
-				if this: self.out.this()
+				#if this: self.out.this()
 				next(call)
 			
 			# variable
@@ -695,21 +695,25 @@ class Parser:
 				# a singleton or constructor (ex: RenderingServer, Vector3)
 				# a global constant (ex: KEY_ESCAPE)
 				singleton = name in godot_types[GLOBALS].members
-				property = name in self.getClass().members or name in self.getClassParent().members
+				# NOTE: a case could be made to use getters on parent properties
+				# I personnaly think you should store the parent property value then set it later
+				# so leaving as-is
+				parent_property = name in self.getClassParent().members
+				property = name in self.getClass().members or parent_property
+
 				type = self.getClass().members.get(name) \
 					or self.getClassParent().members.get(name) \
 					or self.locals.get(name) \
 					or self.getClass().constants.get(name) \
 					or godot_types[GLOBALS].constants.get(name) \
 					or self.getClass().enums.get(name) \
-					or (self.getClassName() if name + 'enum' in self.getClass().enums.values() else None) \
+					or (self.getClassName() if name == 'self' or name + 'enum' in self.getClass().enums.values() else None) \
 					or (name if singleton or name in godot_types else None)
 
 				if singleton: type += 'singleton'
 
 				yield type
 
-				if this: self.out.this()
 				if singleton:  self.out.singleton(name)
 				elif property: self.out.property(name)
 				else:          self.out.variable(name)

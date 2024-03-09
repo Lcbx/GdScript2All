@@ -48,7 +48,7 @@ func method(param = 5.):
 	return val * param
 
 # type inference on members
-var j = self.i
+var j = i
 var k = string_array[0]
 
 # determine type based on godot doc

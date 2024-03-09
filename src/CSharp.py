@@ -219,9 +219,6 @@ class Transpiler:
 	def constant(self, name):
 		self += '.' + name
 	
-	def this(self):
-		self += 'this.'
-	
 	def property(self, name):
 		self += toPascal(name)
 	

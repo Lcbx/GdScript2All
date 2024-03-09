@@ -63,7 +63,7 @@ public:
 	double method(double param = 5.0);
 
 protected:
-	int j = this->i;
+	int j = i;
 	string k = string_array[0];
 
 // determine type based on godot doc

@@ -63,7 +63,7 @@ public partial class test : Godot.Node
 	}
 
 	// type inference on members
-	public int J = this.I;
+	public int J = I;
 	public string K = StringArray[0];
 
 	// determine type based on godot doc

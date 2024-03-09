@@ -18,40 +18,40 @@ void Character::_process(double delta)
 		// landing
 		if(movementState == MovementEnum::MovementEnum::fall)
 		{
-			jumpCoolDown.start();
+			jumpCoolDown->start();
 			// TODO: apply fall damage + play landing animation
 		}
 
 		// on ground
 		movementState = wantedMovement;
-		coyoteTime.start();
+		coyoteTime->start();
 	}
 
-	float ground_speed = calculate_ground_speed();
+	double ground_speed = calculate_ground_speed();
 
 	// jump
 	// TODO?: maybe add a special function to jump called on just_pressed
-	if(global_mov_dir.y > 0.0 && !coyoteTime.is_stopped() && jumpCoolDown.is_stopped())
+	if(global_mov_dir.y > 0.0 && !coyoteTime->is_stopped() && jumpCoolDown->is_stopped())
 	{
 		velocity.y += Math::max(MIN_JUMP_VELOCITY, ground_speed);
-		coyoteTime.stop();
+		coyoteTime->stop();
 		emit_signal("jump", ground_speed);
 	}
 
 	// when running, always go forward 
 	Vector3 direction = ( movementState != MovementEnum::MovementEnum::run ? global_mov_dir : basis.z );
 
-	float top_speed = movements[movementState]->get_top_speed();
-	float nimbleness = movements[movementState]->get_nimbleness();
-	float acceleration = movements[movementState]->get_acceleration() + ground_speed * nimbleness;
+	double top_speed = movements[movementState]->get_top_speed();
+	double nimbleness = movements[movementState]->get_nimbleness();
+	double acceleration = movements[movementState]->get_acceleration() + ground_speed * nimbleness;
 
-	float redirect = Math::clamp(1.0 - nimbleness * delta, 0.0, 1.0);
-	float vel_delta = acceleration * delta;
+	double redirect = Math::clamp(1.0 - nimbleness * delta, 0.0, 1.0);
+	double vel_delta = acceleration * delta;
 
 	velocity.x = Math::move_toward(velocity.x * redirect, direction.x * top_speed, vel_delta);
 	velocity.z = Math::move_toward(velocity.z * redirect, direction.z * top_speed, vel_delta);
 
-	float new_ground_speed = calculate_ground_speed();
+	double new_ground_speed = calculate_ground_speed();
 
 	emit_signal("movement", local_dir, new_ground_speed);
 
@@ -138,7 +138,7 @@ static void Character::_bind_methods() {
 	BIND_ENUM_CONSTANT(walk)
 	BIND_ENUM_CONSTANT(run)
 	BIND_ENUM_CONSTANT(fall)
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "movements"), "set_movements", "get_movements");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "movements"), "set_movements", "get_movements");
 	ADD_SIGNAL(MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
 	ADD_SIGNAL(MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
 	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));

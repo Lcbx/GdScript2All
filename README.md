@@ -60,7 +60,7 @@ func method(param = 5.):
     return val * param
 
 # type inference on members
-var j = self.i
+var j = i
 var k = string_array[0]
 
 # determine type based on godot doc
@@ -179,7 +179,7 @@ public partial class test : Godot.Node
     }
 
     // type inference on members
-    public int J = this.I;
+    public int J = I;
     public string K = StringArray[0];
 
     // determine type based on godot doc
@@ -325,7 +325,7 @@ public:
     double method(double param = 5.0);
 
 protected:
-    int j = this->i;
+    int j = i;
     string k = string_array[0];
 
 // determine type based on godot doc
@@ -503,9 +503,11 @@ py main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
-- read [TODO.md](TODO.md) for WIP features
+- generated code might need corrections ! (notably in c++ ; indentation might need a second pass too)
 - this tool parses and emits code and will ignore it and try again at the next line if it encounters something unexpected (panic mode)
-- generated C++ does a best guess on what should be a pointer/reference, and code might need corrections
+- generated C++ does a best guess on what should be a pointer/referenceand
+- in c++ accessing/modifying parent properties does not use the corresponding getters/setters (this is a conscious choice)
+- read [TODO.md](TODO.md) for WIP features
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:

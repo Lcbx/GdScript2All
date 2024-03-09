@@ -40,8 +40,8 @@ protected:
 
 	static Variant gravity;
 
-	Variant coyoteTime = Utils.createTimer(self, 0.15);
-	Variant jumpCoolDown = Utils.createTimer(self, 0.15);
+	Variant coyoteTime = Utils.createTimer(this, 0.15);
+	Variant jumpCoolDown = Utils.createTimer(this, 0.15);
 
 /* movement state / animations */
 

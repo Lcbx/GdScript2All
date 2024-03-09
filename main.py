@@ -55,6 +55,9 @@ def main():
 
 	script_classes = {}
 
+	# script name without extension
+	to_script_name = lambda s: os.path.basename(s).split('.')[0]
+
 	# type resolving step : useful for both calling user classes from another
 	# and for using method result type before it is defined  
 	if not args.no_type_resolving:
@@ -64,7 +67,7 @@ def main():
 				text = f.read()
 
 			# script name without extension
-			script_name = os.path.basename(filename).split('.')[0]
+			script_name = to_script_name(filename)
 
 			transpiler = TypeResolver()
 			parser = Parser.Parser(script_name, text, transpiler, lambda a,*b:None )
@@ -86,8 +89,7 @@ def main():
 		with open(filename,'r+') as f:
 			text = f.read()
 		
-		# script name without extension
-		script_name = os.path.basename(filename).split('.')[0]
+		script_name = to_script_name(filename)
 		
 		Transpiler.use_floats = args.use_floats
 		transpiler = Transpiler.Transpiler(script_name, outname, getPrinter(args.verbose or args.verboseT) )
