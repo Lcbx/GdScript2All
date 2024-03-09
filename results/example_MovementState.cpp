@@ -29,7 +29,7 @@ double MovementState::get_top_speed() {
 	return top_speed;
 }
 
-static void MovementState::_bind_methods() {
+void MovementState::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_acceleration", "value"), &MovementState::set_acceleration);
 	ClassDB::bind_method(D_METHOD("get_acceleration"), &MovementState::get_acceleration);
 	ClassDB::bind_method(D_METHOD("set_nimbleness", "value"), &MovementState::set_nimbleness);
@@ -37,8 +37,8 @@ static void MovementState::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_top_speed", "value"), &MovementState::set_top_speed);
 	ClassDB::bind_method(D_METHOD("get_top_speed"), &MovementState::get_top_speed);
 
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "acceleration"), "set_acceleration", "get_acceleration");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "nimbleness"), "set_nimbleness", "get_nimbleness");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "top_speed"), "set_top_speed", "get_top_speed");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::FLOAT, "acceleration"), "set_acceleration", "get_acceleration");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::FLOAT, "nimbleness"), "set_nimbleness", "get_nimbleness");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::FLOAT, "top_speed"), "set_top_speed", "get_top_speed");
 }
 

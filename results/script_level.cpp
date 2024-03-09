@@ -52,7 +52,7 @@ Variant script_level::get_export_flags() {
 	return export_flags;
 }
 
-static void script_level::_bind_methods() {
+void script_level::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_get_var3"), &script_level::get_get_var3);
 	ClassDB::bind_method(D_METHOD("set_get_var3", "value"), &script_level::set_get_var3);
 	ClassDB::bind_method(D_METHOD("set_DEF", "value"), &script_level::set_DEF);
@@ -64,21 +64,21 @@ static void script_level::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_export_param"), &script_level::get_export_param);
 	ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &script_level::set_export_flags);
 	ClassDB::bind_method(D_METHOD("get_export_flags"), &script_level::get_export_flags);
-	BIND_ENUM_CONSTANT(UNIT_NEUTRAL)
-	BIND_ENUM_CONSTANT(UNIT_ENEMY)
-	BIND_ENUM_CONSTANT(UNIT_ALLY)
-	BIND_ENUM_CONSTANT(THING_1)
-	BIND_ENUM_CONSTANT(THING_2)
-	BIND_ENUM_CONSTANT(ANOTHER_THING)
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
-	ADD_GROUP("with parameters","");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-	ADD_CATEGORY("category","");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
-	ADD_GROUP("group","");
-	ADD_SUBGROUP("subgroup","");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "get_var3"), "set_get_var3", "get_get_var3");
-	ADD_SIGNAL(MethodInfo("a"));
-	ADD_SIGNAL(MethodInfo("b", PropertyInfo(Variant::INT, "c"), PropertyInfo(Variant::OBJECT, "d")));
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_NEUTRAL, "UNIT_NEUTRAL"), "UNIT_NEUTRAL", UNIT_NEUTRAL);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_ENEMY, "UNIT_ENEMY"), "UNIT_ENEMY", UNIT_ENEMY);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_ALLY, "UNIT_ALLY"), "UNIT_ALLY", UNIT_ALLY);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(THING_1, "THING_1"), "THING_1", THING_1);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(THING_2, "THING_2"), "THING_2", THING_2);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(ANOTHER_THING, "ANOTHER_THING"), "ANOTHER_THING", ANOTHER_THING);
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
+	ClassDB::add_property_group(get_class_static(), "with parameters","");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
+	ClassDB::add_property_category(get_class_static(), "category","");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+	ClassDB::add_property_group(get_class_static(), "group","");
+	ClassDB::add_property_subgroup(get_class_static(), "subgroup","");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::FLOAT, "get_var3"), "set_get_var3", "get_get_var3");
+	ClassDB::add_signal(get_class_static(), MethodInfo("a"));
+	ClassDB::add_signal(get_class_static(), MethodInfo("b", PropertyInfo(Variant::INT, "c"), PropertyInfo(Variant::OBJECT, "d")));
 }
 

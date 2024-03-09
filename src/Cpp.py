@@ -156,10 +156,10 @@ class Transpiler:
 		if assignment: self.assignment(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
-		self.getClass().overriden_methods.add(name)
 
 		# for method bindings
 		self.getClass().method_args[name] = params.keys()
+		self.getClass().overriden_methods.add(name)
 		# some methods (notably accesors) need to be registered here for bindings to be generated
 		self.klass.methods[name] = return_type
 		
@@ -181,7 +181,7 @@ class Transpiler:
 		override_str = ' override' if override else ''
 		public = self.getClass().public()
 		public += f'\t{static_str}{self.translate_type(return_type)} {name}({paramStr(True)}){override_str};\n' # hpp
-		self += f'{static_str}{self.translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})' # cpp
+		self += f'{self.translate_type(return_type)} {self.class_name}::{name}({paramStr(False)})' # cpp
 		
 		# add onready assignments if method is _ready
 		if name == '_ready' and self.getClass().onready_assigns:
@@ -206,7 +206,7 @@ class Transpiler:
 		self += '('; get(expression); self += ')'
 	
 	def create_array(self, values):
-		self += 'new Array{'; self.level += 1
+		self += ' /* no array initializer in c++ ! */ {'; self.level += 1
 		self += values
 		self += '}'; self.level -= 1
 
@@ -214,7 +214,7 @@ class Transpiler:
 		get(item); self += ', '
 		
 	def create_dict(self, values):
-		self += 'new Dictionary{'; self.level += 1
+		self += ' /* no dictionary initializer in c++ ! */ {'; self.level += 1
 		self += values
 		self += '}'; self.level -= 1
 
@@ -409,7 +409,7 @@ class Transpiler:
 					if not type.startswith('signal'):
 						an_name = export_replacements.get(an_name) or an_name.upper()
 						
-						property_bindings += f'\tADD_PROPERTY(PropertyInfo({toVariantTypeEnum(type)}, "{prop}"'
+						property_bindings += f'\tClassDB::add_property(get_class_static(), PropertyInfo({toVariantTypeEnum(type)}, "{prop}"'
 						
 						# PROPERTY_HINT_*****, "args"
 						if an_name != 'EXPORT': property_bindings += f', {an_name}, "{an_args}"'
@@ -427,14 +427,14 @@ class Transpiler:
 						if not accessor_get: self.addDefaultGet(prop)
 				
 				else: # @export_group, subgroup, category
-					an_name = an_name.replace('export_','').upper()
-					property_bindings += f'\tADD_{an_name}("{an_args}","");\n'
+					an_name = an_name.replace('export_','')
+					property_bindings += f'\tClassDB::add_property_{an_name}(get_class_static(), "{an_args}","");\n'
 			
 			# signals
 			for signal, args in self.getClass().signals.items():
 				params = ', '.join(map(lambda item: f'PropertyInfo({toVariantTypeEnum(item[1])}, "{item[0]}")', args.items()))
 				params = ', ' +params if params else params 
-				property_bindings += f'\tADD_SIGNAL(MethodInfo("{signal}"{params}));\n'
+				property_bindings += f'\tClassDB::add_signal(get_class_static(), MethodInfo("{signal}"{params}));\n'
 			
 			# methods
 			for meth, type in self.klass.methods.items():
@@ -444,7 +444,8 @@ class Transpiler:
 					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
 
 			# enums
-			bindings += '\n'.join( f'\tBIND_ENUM_CONSTANT({enum_value_name})' for enum_value_name in self.klass.enums.keys() )
+			bindings += '\n'.join( f'\tClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name({name}, "{name}"), "{name}", {name});' \
+				for name in self.klass.enums.keys() )
 			
 			bindings += '\n'
 			
@@ -506,6 +507,7 @@ class Transpiler:
 	def translate_type(self, type):
 		if type == None: return 'void'
 		if type == 'Variant': return type
+		if type == 'string': return 'String'
 		if type.endswith('[]'): return 'Array'
 		if type.endswith('enum'): return type[:-len('enum')]
 		if type == 'float' and not use_floats: return 'double'
@@ -668,11 +670,7 @@ __INCLUDES__
 
 using namespace godot;
 
-namespace godot {
-
 __IMPLEMENTATION__
-
-}
 
 #endif // __CLASS___H
 """

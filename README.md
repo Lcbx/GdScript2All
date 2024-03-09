@@ -274,8 +274,6 @@ c++ output (header) :
 
 using namespace godot;
 
-namespace godot {
-
 // line comment
 
 /* multiline
@@ -304,18 +302,18 @@ protected:
 // basic property definitions / expressions
     Variant foo;
     static int i;
-    const string str = "the fox said \"get off my lawn\"";
-    string big_str = "\
+    const String str = "the fox said \"get off my lawn\"";
+    String big_str = "\
     this is a multiline string\
 ";
-    Array array = new Array{0, 1, 2, };
-    Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-    Array string_array = new Array{"0", "1", };
-    Variant complex = new Dictionary{
+    Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
+    Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
+    Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
+    Variant complex =  /* no dictionary initializer in c++ ! */ {
         {"t", 100},
         {"rafg", "asfgh"},
         {"u", false},// Example Comment
-        {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
+        {"t",  /* no dictionary initializer in c++ ! */ {{"e",  /* no dictionary initializer in c++ ! */ {{"g", 1},{"f", 2},}},}},
         }["rafg"];
 
 // method
@@ -327,7 +325,7 @@ public:
 
 protected:
     int j = i;
-    string k = string_array[0];
+    String k = string_array[0];
 
 // determine type based on godot doc
     Ref<Node> x = this->get_parent();
@@ -380,8 +378,6 @@ int test::i = 0;
 VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
 
-}
-
 #endif // TEST_H
 
 ```
@@ -397,7 +393,7 @@ c++ output (implementation) :
 double test::method(double param)
 {
     int val = 2;
-    for(string k : string_array)
+    for(String k : string_array)
     {
         UtilityFunctions::print(k);
     }
@@ -466,7 +462,7 @@ int test::get_export_flags() {
     return export_flags;
 }
 
-static void test::_bind_methods() {
+void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
     ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
@@ -479,18 +475,18 @@ static void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
     ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
     ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
-    BIND_ENUM_CONSTANT(UNIT_NEUTRAL)
-    BIND_ENUM_CONSTANT(UNIT_ENEMY)
-    BIND_ENUM_CONSTANT(UNIT_ALLY)
-    BIND_ENUM_CONSTANT(THING_1)
-    BIND_ENUM_CONSTANT(THING_2)
-    BIND_ENUM_CONSTANT(ANOTHER_THING)
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
-    ADD_GROUP("group","");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
-    ADD_SIGNAL(MethodInfo("jump"));
-    ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_NEUTRAL, "UNIT_NEUTRAL"), "UNIT_NEUTRAL", UNIT_NEUTRAL);
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_ENEMY, "UNIT_ENEMY"), "UNIT_ENEMY", UNIT_ENEMY);
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_ALLY, "UNIT_ALLY"), "UNIT_ALLY", UNIT_ALLY);
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(THING_1, "THING_1"), "THING_1", THING_1);
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(THING_2, "THING_2"), "THING_2", THING_2);
+    ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(ANOTHER_THING, "ANOTHER_THING"), "ANOTHER_THING", ANOTHER_THING);
+    ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
+    ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
+    ClassDB::add_property_group(get_class_static(), "group","");
+    ClassDB::add_property(get_class_static(), PropertyInfo(Variant::INT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
+    ClassDB::add_signal(get_class_static(), MethodInfo("jump"));
+    ClassDB::add_signal(get_class_static(), MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
 }
 
 

@@ -73,10 +73,10 @@ Array statements::method()
 	get_tree()->emit_signal("process_frame", 0.7);
 	get_tree()->connect("process_frame", something);
 
-	return new Array{};
+	return  /* no array initializer in c++ ! */ {};
 }
 
-static void statements::_bind_methods() {
+void statements::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method"), &statements::method);
 
 }

@@ -9,8 +9,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 // method to test statements
 class statements : public Node {
 	GDCLASS(statements, Node);
@@ -20,7 +18,5 @@ public:
 
 	static void _bind_methods();
 };
-
-}
 
 #endif // STATEMENTS_H

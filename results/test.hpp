@@ -12,8 +12,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 // line comment
 
 /* multiline
@@ -42,18 +40,18 @@ protected:
 // basic property definitions / expressions
 	Variant foo;
 	static int i;
-	const string str = "the fox said \"get off my lawn\"";
-	string big_str = "\
+	const String str = "the fox said \"get off my lawn\"";
+	String big_str = "\
 	this is a multiline string\
 ";
-	Array array = new Array{0, 1, 2, };
-	Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-	Array string_array = new Array{"0", "1", };
-	Variant complex = new Dictionary{
+	Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
+	Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
+	Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
+	Variant complex =  /* no dictionary initializer in c++ ! */ {
 		{"t", 100},
 		{"rafg", "asfgh"},
 		{"u", false},// Example Comment
-		{"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
+		{"t",  /* no dictionary initializer in c++ ! */ {{"e",  /* no dictionary initializer in c++ ! */ {{"g", 1},{"f", 2},}},}},
 		}["rafg"];
 
 // method
@@ -65,7 +63,7 @@ public:
 
 protected:
 	int j = i;
-	string k = string_array[0];
+	String k = string_array[0];
 
 // determine type based on godot doc
 	Ref<Node> x = this->get_parent();
@@ -117,7 +115,5 @@ public:
 int test::i = 0;
 VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
-
-}
 
 #endif // TEST_H

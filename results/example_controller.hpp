@@ -10,8 +10,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 class Character : public CharacterBody3D {
 	GDCLASS(Character, CharacterBody3D);
 public:
@@ -58,14 +56,14 @@ public:
 protected:
 	Array movements;
 
-	MovementEnum movementState = MovementEnum::MovementEnum::walk;
+	MovementEnum movementState = MovementEnum::walk;
 
 public:
 	void set_movementState(MovementEnum value);
 	MovementEnum get_movementState();
 
 protected:
-	MovementEnum wantedMovement = MovementEnum::MovementEnum::walk;
+	MovementEnum wantedMovement = MovementEnum::walk;
 
 /* steering variables */
 
@@ -106,7 +104,5 @@ public:
 
 Variant Character::gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
 VARIANT_ENUM_CAST(Character::MovementEnum)
-
-}
 
 #endif // EXAMPLE_CONTROLLER_H

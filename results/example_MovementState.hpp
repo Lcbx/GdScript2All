@@ -9,8 +9,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 class MovementState : public Resource {
 	GDCLASS(MovementState, Resource);
 public:
@@ -34,7 +32,5 @@ public:
 
 	static void _bind_methods();
 };
-
-}
 
 #endif // EXAMPLE_MOVEMENTSTATE_H

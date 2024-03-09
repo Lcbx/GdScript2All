@@ -700,6 +700,7 @@ class Parser:
 				# so leaving as-is
 				parent_property = name in self.getClassParent().members
 				property = name in self.getClass().members or parent_property
+				enum = name + 'enum' in self.getClass().enums.values()
 
 				type = self.getClass().members.get(name) \
 					or self.getClassParent().members.get(name) \
@@ -707,7 +708,7 @@ class Parser:
 					or self.getClass().constants.get(name) \
 					or godot_types[GLOBALS].constants.get(name) \
 					or self.getClass().enums.get(name) \
-					or (self.getClassName() if name == 'self' or name + 'enum' in self.getClass().enums.values() else None) \
+					or (self.getClassName() if name == 'self' or enum else None) \
 					or (name if singleton or name in godot_types else None)
 
 				if singleton: type += 'singleton'
@@ -825,8 +826,7 @@ class Parser:
 		else:
 			yield member_type
 			if enum:
-				if member_type != self.getClassName():
-					self.out.constant(member_type[:-len('enum')])
+				if type != self.getClassName(): self.out.constant(member_type[:-len('enum')])
 				self.out.constant(name)
 			elif constant: self.out.constant(name)
 			else: self.out.reference(name, type, member_type, singleton)

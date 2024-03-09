@@ -43,7 +43,7 @@ double methods::return_inference(double param)
 	return val * param;
 }
 
-static void methods::_bind_methods() {
+void methods::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("empty"), &methods::empty);
 	ClassDB::bind_method(D_METHOD("reassign"), &methods::reassign);
 	ClassDB::bind_method(D_METHOD("assign"), &methods::assign);

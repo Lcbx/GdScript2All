@@ -11,12 +11,12 @@ void Character::_process(double delta)
 	if(!is_on_floor())
 	{
 		velocity.y = Math::clamp(velocity.y - gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
-		movementState = MovementEnum::MovementEnum::fall;
+		movementState = MovementEnum::fall;
 	}
 	else
 	{
 		// landing
-		if(movementState == MovementEnum::MovementEnum::fall)
+		if(movementState == MovementEnum::fall)
 		{
 			jumpCoolDown->start();
 			// TODO: apply fall damage + play landing animation
@@ -39,7 +39,7 @@ void Character::_process(double delta)
 	}
 
 	// when running, always go forward 
-	Vector3 direction = ( movementState != MovementEnum::MovementEnum::run ? global_mov_dir : basis.z );
+	Vector3 direction = ( movementState != MovementEnum::run ? global_mov_dir : basis.z );
 
 	double top_speed = movements[movementState]->get_top_speed();
 	double nimbleness = movements[movementState]->get_nimbleness();
@@ -121,7 +121,7 @@ Array Character::get_movements() {
 	return movements;
 }
 
-static void Character::_bind_methods() {
+void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_process", "delta"), &Character::_process);
 	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
@@ -134,15 +134,15 @@ static void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_view_dir"), &Character::get_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);
 	ClassDB::bind_method(D_METHOD("get_movements"), &Character::get_movements);
-	BIND_ENUM_CONSTANT(crouch)
-	BIND_ENUM_CONSTANT(walk)
-	BIND_ENUM_CONSTANT(run)
-	BIND_ENUM_CONSTANT(fall)
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "movements"), "set_movements", "get_movements");
-	ADD_SIGNAL(MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
-	ADD_SIGNAL(MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
-	ADD_SIGNAL(MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
-	ADD_SIGNAL(MethodInfo("jump", PropertyInfo(Variant::FLOAT, "speed")));
-	ADD_SIGNAL(MethodInfo("viewDirChanged", PropertyInfo(Variant::VECTOR3, "euler")));
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(crouch, "crouch"), "crouch", crouch);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(walk, "walk"), "walk", walk);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(run, "run"), "run", run);
+	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(fall, "fall"), "fall", fall);
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::ARRAY, "movements"), "set_movements", "get_movements");
+	ClassDB::add_signal(get_class_static(), MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
+	ClassDB::add_signal(get_class_static(), MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
+	ClassDB::add_signal(get_class_static(), MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));
+	ClassDB::add_signal(get_class_static(), MethodInfo("jump", PropertyInfo(Variant::FLOAT, "speed")));
+	ClassDB::add_signal(get_class_static(), MethodInfo("viewDirChanged", PropertyInfo(Variant::VECTOR3, "euler")));
 }
 

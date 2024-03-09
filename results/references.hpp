@@ -9,8 +9,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 class references : public Node {
 	GDCLASS(references, Node);
 public:
@@ -26,7 +24,5 @@ protected:
 	Variant methodRef = foo.bar().baz;
 	Variant subscription = this->dict[0];
 };
-
-}
 
 #endif // REFERENCES_H

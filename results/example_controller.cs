@@ -41,12 +41,12 @@ public partial class Character : Godot.CharacterBody3D
 		if(!IsOnFloor())
 		{
 			Velocity.Y = Mathf.Clamp(Velocity.Y - Gravity * delta,  - MAX_Y_SPEED, MAX_Y_SPEED);
-			MovementState = MovementEnum.MovementEnum.fall;
+			MovementState = MovementEnum.fall;
 		}
 		else
 		{
 			// landing
-			if(MovementState == MovementEnum.MovementEnum.fall)
+			if(MovementState == MovementEnum.fall)
 			{
 				JumpCoolDown.Start();
 				// TODO: apply fall damage + play landing animation
@@ -69,7 +69,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 
 		// when running, always go forward 
-		var direction = ( MovementState != MovementEnum.MovementEnum.run ? GlobalMovDir : Basis.Z );
+		var direction = ( MovementState != MovementEnum.run ? GlobalMovDir : Basis.Z );
 
 		var top_speed = Movements[MovementState].TopSpeed;
 		var nimbleness = Movements[MovementState].Nimbleness;
@@ -108,7 +108,7 @@ public partial class Character : Godot.CharacterBody3D
 	public enum MovementEnum {crouch, walk, run, fall}
 	[Export] public Array<MovementState> Movements;
 
-	public MovementEnum MovementState = MovementEnum.MovementEnum.walk
+	public MovementEnum MovementState = MovementEnum.walk
 	{
 		set
 		{
@@ -122,7 +122,7 @@ public partial class Character : Godot.CharacterBody3D
 	private MovementEnum _MovementState;
 
 
-	public MovementEnum WantedMovement = MovementEnum.MovementEnum.walk;
+	public MovementEnum WantedMovement = MovementEnum.walk;
 
 
 	/* steering variables */

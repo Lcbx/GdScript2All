@@ -9,8 +9,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 // basic expressions
 class expressions : public Node {
 	GDCLASS(expressions, Node);
@@ -19,14 +17,14 @@ public:
 protected:
 	Variant foo;
 	static int i;
-	const string str = "the fox said \"get off my lawn\"";
-	string big_str = "\
+	const String str = "the fox said \"get off my lawn\"";
+	String big_str = "\
 	this is a multiline string\
 ";
 	bool _protected_bool = true;
-	Array array = new Array{0, 1, 2, };
-	Dictionary dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
-	Array string_array = new Array{"0", "1", };
+	Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
+	Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
+	Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;
@@ -40,7 +38,5 @@ protected:
 };
 
 int expressions::i = 0;
-
-}
 
 #endif // EXPRESSIONS_H

@@ -9,8 +9,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 class methods : public Node {
 	GDCLASS(methods, Node);
 public:
@@ -32,7 +30,5 @@ public:
 
 	static void _bind_methods();
 };
-
-}
 
 #endif // METHODS_H

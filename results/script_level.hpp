@@ -11,8 +11,6 @@
 
 using namespace godot;
 
-namespace godot {
-
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
@@ -81,7 +79,5 @@ public:
 
 VARIANT_ENUM_CAST(script_level::Named)
 VARIANT_ENUM_CAST(script_level::)
-
-}
 
 #endif // SCRIPT_LEVEL_H
