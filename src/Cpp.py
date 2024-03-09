@@ -468,8 +468,8 @@ class Transpiler:
 		to_camel_case = lambda s: re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 		to_include = lambda s: '#include <godot_cpp/classes/' \
 			+ to_camel_case(s) \
-			.replace('2_d', '_2d') \
-			.replace('3_d', '_3d') \
+			.replace('2_d', '2d') \
+			.replace('3_d', '3d') \
 			+ '.hpp>'
 		includes =  '\n'.join(map(to_include, sorted(self.used_types))) + '\n'
 

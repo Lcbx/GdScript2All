@@ -269,7 +269,7 @@ c++ output (header) :
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/classes/sprite_2d.hpp>
+#include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/test.hpp>
 
 using namespace godot;
