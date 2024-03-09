@@ -57,7 +57,7 @@ void Character::_process(double delta)
 
 	move_and_slide();
 
-	for(int i : range(get_slide_collision_count()))
+	for(int i=0; i<get_slide_collision_count(); i+=1)
 	{
 		emit_signal("collision", get_slide_collision(i));
 	}

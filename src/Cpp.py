@@ -317,7 +317,20 @@ class Transpiler:
 		self += 'while('; get(condition); self += ')'
 		
 	def forStmt(self, name, type, exp):
-		self += f'for({type} {name} : '; get(exp); self += ')'
+		# no custom range operator in c++ afaik
+		self.addLayer(); get(exp); iterator = self.popLayer()
+		if iterator.startswith('range'):
+			iterator = iterator.replace('range(', '', 1)[:-1]
+			# just splitting by ',' would allow some bugs
+			# ex: 'i in range(func(j,k))'' => 'for(int i=func(j; i<k); i+=1)''
+			params = splitArgs(iterator)
+			start = params[0].strip() if len(params)>1 else 0
+			end = params[0].strip() if len(params)==1 else params[1]
+			step = params[2].strip() if len(params)==3 else 1
+			# NOTE: will generate '+= -' for negative step ; acceptable to me
+			self += f'for({self.translate_type(type)} {name}={start}; {name}<{end}; {name}+={step})'
+		else:
+			self += f'for({self.translate_type(type)} {name} : {iterator})'
 	
 	def breakStmt(self): self += 'break;'
 	
@@ -592,6 +605,20 @@ def replaceClosingBrace(string, replacement):
 					continue
 			yield c
 	return ''.join(impl())
+
+def splitArgs(string):
+	def impl():
+		open_parenthesis = 0
+		start = 0
+		for i, c in enumerate(string):
+			if c == '(': open_parenthesis += 1
+			elif c == ')':
+				open_parenthesis -= 1
+			elif c == ',' and open_parenthesis == 0:
+				yield string[start:i]
+				start = i+1
+		yield string[start:]
+	return [ item for item in impl()]
 
 def toSet(name): return f'set_{name}'
 def toGet(name): return f'get_{name}'

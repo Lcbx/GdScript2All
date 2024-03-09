@@ -34,7 +34,7 @@ Array statements::method()
 		continue;
 	}
 
-	for(int j : range(i))
+	for(int j=0; j<i; j+=1)
 	{
 		i += j;
 	}
