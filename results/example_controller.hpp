@@ -5,6 +5,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/character_body_3d.hpp>
 #include <godot_cpp/classes/kinematic_collision_3d.hpp>
 
 using namespace godot;

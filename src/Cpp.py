@@ -86,6 +86,7 @@ class Transpiler:
 		self.klass = klass
 	
 	def define_class(self, name, base_class, is_tool):
+		self.used_types.add(base_class)
 		self.class_definitions[name] = ClassDefinition(name)
 		self.getClass().class_hpp += f'class {name} : public {base_class} {{\n\tGDCLASS({name}, {base_class});\npublic:\n'
 	
