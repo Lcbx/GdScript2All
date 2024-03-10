@@ -824,11 +824,15 @@ class Parser:
 		
 		# end leaf
 		else:
-			yield member_type
+			if enum and type:
+				yield f'{type}.{member_type}'
+			else: yield member_type
+
 			if enum:
-				if type != self.getClassName(): self.out.constant(member_type[:-len('enum')])
-				self.out.constant(name)
-			elif constant: self.out.constant(name)
+				if type and type != self.getClassName():
+					self.out.constant(member_type[:-len('enum')])
+
+			if enum or constant: self.out.constant(name)
 			else: self.out.reference(name, type, member_type, singleton)
 		yield
 	

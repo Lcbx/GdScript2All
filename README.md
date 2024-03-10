@@ -186,7 +186,7 @@ public partial class test : Godot.Node
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const ShaderMode enum = Godot.RenderingServer.ShaderMode.SHADER_SPATIAL;
+    public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.SHADER_SPATIAL;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
     // Gdscript special syntax
@@ -331,7 +331,7 @@ protected:
     Ref<Node> x = this->get_parent();
     double x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
-    const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
+    const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
     double global_function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
@@ -374,7 +374,6 @@ public:
     static void _bind_methods();
 };
 
-int test::i = 0;
 VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
 
@@ -468,7 +467,6 @@ void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
     ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
-    ClassDB::bind_method(D_METHOD("_ready"), &test::_ready);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
     ClassDB::bind_method(D_METHOD("set_export_param", "value"), &test::set_export_param);

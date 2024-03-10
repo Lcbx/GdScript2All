@@ -69,7 +69,7 @@ protected:
 	Ref<Node> x = this->get_parent();
 	double x = Vector3().x;
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
-	const ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
+	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 	double global_function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
@@ -112,7 +112,6 @@ public:
 	static void _bind_methods();
 };
 
-int test::i = 0;
 VARIANT_ENUM_CAST(test::NamedEnum)
 VARIANT_ENUM_CAST(test::)
 

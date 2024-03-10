@@ -29,7 +29,7 @@ public partial class Character : Godot.CharacterBody3D
 	public const Godot.Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
 	public const Godot.Vector3 XY = new Vector3(1.0, 1.0, 0.0);
 
-	public static Godot.Variant Gravity = Godot.ProjectSettings.GetSetting("physics/3d/default_gravity");
+	public static double Gravity = 10.0;
 
 	public Godot.Variant CoyoteTime = Utils.CreateTimer(this, 0.15);
 	public Godot.Variant JumpCoolDown = Utils.CreateTimer(this, 0.15);
@@ -108,7 +108,8 @@ public partial class Character : Godot.CharacterBody3D
 	public enum MovementEnum {crouch, walk, run, fall}
 	[Export] public Array<MovementState> Movements;
 
-	public MovementEnum MovementState = MovementEnum.walk
+	[Export]
+	public Character.MovementEnum MovementState = MovementEnum.walk
 	{
 		set
 		{
@@ -119,15 +120,17 @@ public partial class Character : Godot.CharacterBody3D
 			}
 		}
 	}
-	private MovementEnum _MovementState;
+	private Character.MovementEnum _MovementState;
 
 
-	public MovementEnum WantedMovement = MovementEnum.walk;
+	[Export]
+	public Character.MovementEnum WantedMovement = MovementEnum.walk;
 
 
 	/* steering variables */
 
 	protected Godot.Vector3 _GlobalMovDir = new Vector3();
+	[Export]
 	public Godot.Vector3 GlobalMovDir = new Vector3()
 	{
 		get
@@ -143,6 +146,7 @@ public partial class Character : Godot.CharacterBody3D
 
 	// NOTE: local_dir is normalized on the xz plane by Overlay
 	protected Godot.Vector3 _LocalDir;
+	[Export]
 	public Godot.Vector3 LocalDir
 	{
 		get
@@ -165,6 +169,7 @@ public partial class Character : Godot.CharacterBody3D
 	[Signal]
 	public delegate void ViewDirChangedHandler(Godot.Vector3 euler);
 
+	[Export]
 	public Godot.Vector3 ViewDir = new Vector3()
 	{
 		set

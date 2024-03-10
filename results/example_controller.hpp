@@ -37,7 +37,7 @@ protected:
 	const Vector3 YZ = Vector3(0.0, 1.0, 1.0);
 	const Vector3 XY = Vector3(1.0, 1.0, 0.0);
 
-	static Variant gravity;
+	static double gravity;
 
 	Variant coyoteTime = Utils.createTimer(this, 0.15);
 	Variant jumpCoolDown = Utils.createTimer(this, 0.15);
@@ -56,18 +56,19 @@ public:
 protected:
 	Array movements;
 
-	MovementEnum movementState = MovementEnum::walk;
+	Character::MovementEnum movementState = MovementEnum::walk;
 
 public:
-	void set_movementState(MovementEnum value);
-	MovementEnum get_movementState();
+	void set_movementState(Character::MovementEnum value);
+	Character::MovementEnum get_movementState();
 
 protected:
-	MovementEnum wantedMovement = MovementEnum::walk;
+	Character::MovementEnum wantedMovement = MovementEnum::walk;
 
 /* steering variables */
 
 	Vector3 _global_mov_dir = Vector3();
+
 	Vector3 global_mov_dir = Vector3();
 
 public:
@@ -78,6 +79,7 @@ public:
 
 protected:
 	Vector3 _local_dir;
+
 	Vector3 local_dir;
 
 public:
@@ -98,11 +100,12 @@ public:
 	Vector3 get_view_dir();
 	void set_movements(Array value);
 	Array get_movements();
+	void set_wantedMovement(Character::MovementEnum value);
+	Character::MovementEnum get_wantedMovement();
 
 	static void _bind_methods();
 };
 
-Variant Character::gravity = ProjectSettings::get_singleton()->get_setting("physics/3d/default_gravity");
 VARIANT_ENUM_CAST(Character::MovementEnum)
 
 #endif // EXAMPLE_CONTROLLER_H

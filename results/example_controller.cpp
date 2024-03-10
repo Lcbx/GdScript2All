@@ -63,7 +63,7 @@ void Character::_process(double delta)
 	}
 }
 
-void Character::set_movementState(MovementEnum value)
+void Character::set_movementState(Character::MovementEnum value)
 {
 	if(movementState != value)
 	{
@@ -72,7 +72,7 @@ void Character::set_movementState(MovementEnum value)
 	}
 }
 
-MovementEnum Character::get_movementState() {
+Character::MovementEnum Character::get_movementState() {
 	return movementState;
 }
 
@@ -121,8 +121,15 @@ Array Character::get_movements() {
 	return movements;
 }
 
+void Character::set_wantedMovement(Character::MovementEnum value) {
+	wantedMovement = value;
+}
+
+Character::MovementEnum Character::get_wantedMovement() {
+	return wantedMovement;
+}
+
 void Character::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("_process", "delta"), &Character::_process);
 	ClassDB::bind_method(D_METHOD("calculate_ground_speed"), &Character::calculate_ground_speed);
 	ClassDB::bind_method(D_METHOD("set_movementState", "value"), &Character::set_movementState);
 	ClassDB::bind_method(D_METHOD("get_movementState"), &Character::get_movementState);
@@ -134,11 +141,18 @@ void Character::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_view_dir"), &Character::get_view_dir);
 	ClassDB::bind_method(D_METHOD("set_movements", "value"), &Character::set_movements);
 	ClassDB::bind_method(D_METHOD("get_movements"), &Character::get_movements);
+	ClassDB::bind_method(D_METHOD("set_wantedMovement", "value"), &Character::set_wantedMovement);
+	ClassDB::bind_method(D_METHOD("get_wantedMovement"), &Character::get_wantedMovement);
 	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(crouch, "crouch"), "crouch", crouch);
 	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(walk, "walk"), "walk", walk);
 	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(run, "run"), "run", run);
 	ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(fall, "fall"), "fall", fall);
 	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::ARRAY, "movements"), "set_movements", "get_movements");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::INT, "movementState"), "set_movementState", "get_movementState");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::INT, "wantedMovement"), "set_wantedMovement", "get_wantedMovement");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::VECTOR3, "global_mov_dir"), "set_global_mov_dir", "get_global_mov_dir");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::VECTOR3, "local_dir"), "set_local_dir", "get_local_dir");
+	ClassDB::add_property(get_class_static(), PropertyInfo(Variant::VECTOR3, "view_dir"), "set_view_dir", "get_view_dir");
 	ClassDB::add_signal(get_class_static(), MethodInfo("changedState", PropertyInfo(Variant::OBJECT, "state")));
 	ClassDB::add_signal(get_class_static(), MethodInfo("collision", PropertyInfo(Variant::OBJECT, "collision")));
 	ClassDB::add_signal(get_class_static(), MethodInfo("movement", PropertyInfo(Variant::VECTOR3, "dir"), PropertyInfo(Variant::FLOAT, "speed")));

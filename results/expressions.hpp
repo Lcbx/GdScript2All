@@ -37,6 +37,4 @@ protected:
 
 };
 
-int expressions::i = 0;
-
 #endif // EXPRESSIONS_H

@@ -23,7 +23,7 @@ const XZ := Vector3(1.,0.,1.)
 const YZ := Vector3(0.,1.,1.) 
 const XY := Vector3(1.,1.,0.) 
 
-static var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+static var gravity = 10.
 
 var coyoteTime := Utils.createTimer(self, .15)
 var jumpCoolDown := Utils.createTimer(self, .15)
@@ -88,18 +88,21 @@ signal jump(speed:float)
 enum MovementEnum { crouch, walk, run, fall }
 @export var movements : Array[MovementState]
 
+@export
 var movementState := MovementEnum.walk :
 	set(value):
 		if movementState != value:
 			movementState = value
 			changedState.emit(movementState)
 
+@export
 var wantedMovement := MovementEnum.walk
 
 
 """ steering variables """
 
 var _global_mov_dir := Vector3()
+@export
 var global_mov_dir := Vector3() :
 	get: return _global_mov_dir
 	set(value):
@@ -109,6 +112,7 @@ var global_mov_dir := Vector3() :
 
 # NOTE: local_dir is normalized on the xz plane by Overlay
 var _local_dir : Vector3
+@export
 var local_dir : Vector3 :
 	get: return _local_dir
 	set(value):
@@ -125,6 +129,7 @@ func calculate_ground_speed() -> float :
 
 signal viewDirChanged(euler : Vector3)
 
+@export
 var view_dir := Vector3() :
 	set(value):
 		view_dir = value

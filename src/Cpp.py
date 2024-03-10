@@ -29,9 +29,6 @@ class ClassDefinition:
 		
 		# annotations (tuple<property_name,annotation_name,params> )
 		self.annotations = []
-
-		# overriden methods, added to bindings
-		self.overriden_methods = set()
 		
 		# accesors (member_name:accessors_name)
 		self.accessors_get = {}
@@ -159,7 +156,6 @@ class Transpiler:
 
 		# for method bindings
 		self.getClass().method_args[name] = params.keys()
-		self.getClass().overriden_methods.add(name)
 		# some methods (notably accesors) need to be registered here for bindings to be generated
 		self.klass.methods[name] = return_type
 		
@@ -438,7 +434,7 @@ class Transpiler:
 			
 			# methods
 			for meth, type in self.klass.methods.items():
-				if not meth.startswith('_') or meth in self.getClass().overriden_methods: # _method => not exported
+				if not meth.startswith('_'): # _method => not exported
 					params = ', '.join(map(lambda s: f'"{s}"', self.getClass().method_args[meth]))
 					params = ', ' + params if params else params
 					bindings += f'\tClassDB::bind_method(D_METHOD("{meth}"{params}), &{self.class_name}::{meth});\n'
@@ -464,7 +460,7 @@ class Transpiler:
 
 		# add static assignment
 		for sass in self.getClass().static_assigns:
-			self.hpp += f'{sass};\n'
+			self.cpp += f'{sass};\n'
 
 		# add enum binding after class binding (if any)
 		if self.klass.enums:
@@ -509,7 +505,7 @@ class Transpiler:
 		if type == 'Variant': return type
 		if type == 'string': return 'String'
 		if type.endswith('[]'): return 'Array'
-		if type.endswith('enum'): return type[:-len('enum')]
+		if type.endswith('enum'): return type[:-len('enum')].replace('.', '::')
 		if type == 'float' and not use_floats: return 'double'
 		if toVariantTypeConstant(type): return type
 

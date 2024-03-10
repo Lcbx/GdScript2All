@@ -57,7 +57,6 @@ void script_level::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_get_var3", "value"), &script_level::set_get_var3);
 	ClassDB::bind_method(D_METHOD("set_DEF", "value"), &script_level::set_DEF);
 	ClassDB::bind_method(D_METHOD("get_DEF"), &script_level::get_DEF);
-	ClassDB::bind_method(D_METHOD("_ready"), &script_level::_ready);
 	ClassDB::bind_method(D_METHOD("set_export", "value"), &script_level::set_export);
 	ClassDB::bind_method(D_METHOD("get_export"), &script_level::get_export);
 	ClassDB::bind_method(D_METHOD("set_export_param", "value"), &script_level::set_export_param);
