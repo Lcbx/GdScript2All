@@ -60,52 +60,70 @@ class Transpiler:
 		self += f'[{start}"{params}")]' if params else f'[{start}]'
 		self.write(endline if endline else ' ')
 	
-	def declare_property(self, type, name, assignment, constant, static, onready):
-		name = name if constant else toPascal(name)
+	def declare_property(self, type, name, assignment, accessors, constant, static, onready):
+		pascalName = name if constant else toPascal(name)
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
-		self += f'{exposed} {const_decl}{translate_type(type)} {name}'
+		self += f'{exposed} {const_decl}{translate_type(type)} {pascalName}'
 
+		assignment_str = ''
 		if assignment:
-			self.addLayer()
+			self.addLayer(); self.assignment(assignment)
+			assignment_str = self.popLayer() 
+
 			if onready:
-				self += name; self.assignment(assignment)
-				self.onready_assigns.setdefault(self.class_name, []).append(self.popLayer())
-			else: self.assignment(assignment); self += self.popLayer()
-	
-	def setget(self, member, accessors):
-		
-		self.addLayer()
-		self.UpScope()
-		self += '\n'
-		last_accessor = None
-		
-		# call the appropriate Transpiler method (defined afterward)
-		for accessor in accessors:
-			method_name = accessor[0]
-			method = getattr(self,method_name)
-			params = accessor[1:]
-			method(member, *params)
-			last_accessor = method_name
-		
-		# add mssing bracket when using a method as last accesor
-		if 'method' in last_accessor:
-			self.level -= 1;
-			self += '\n}'
-		# otherwise an extra downscope was done already
-		
-		code = self.popLayer()
-		
-		# add private property if missing)
-		private_version = toPrivate(member)
-		if not private_version in self.klass.members:
-			privateMember = '}\n' + '\t' * self.level + \
-				f'private {translate_type(self.klass.members[member])} {toPascal(private_version)};\n'
-			code = rReplace(code, '}', privateMember)
-		
-		# this is for prettiness
-		code = code.replace('\t' * (self.level+1) + '\n', '')
-		self.write(code)
+				self.onready_assigns.setdefault(self.class_name, []) \
+					.append(pascalName + assignment_str)
+			elif accessors: pass
+			else: self.write(assignment_str)
+
+		# setget
+		if accessors:
+			self.addLayer()
+
+			self.UpScope()
+			self += '\n'
+
+			set_defined = False
+			get_defined = False
+			last_accessor = None
+
+			for accessor in accessors:
+				method_name = accessor[0]
+				set_defined = set_defined or method_name.startswith('set')
+				get_defined = get_defined or method_name.startswith('get')
+				method = getattr(self,method_name)
+				params = accessor[1:]
+				method(name, *params)
+				last_accessor = method_name
+			
+			# add mssing bracket when using a method as last accesor
+			if 'method' in last_accessor:
+				self.level -= 1;
+				self += '\n}'
+			# otherwise an extra downscope was done already
+			
+			code = self.popLayer()
+			
+			# add private property if missing)
+			private_version = toPrivate(name)
+			if not private_version in self.klass.members:
+				privateMember = '}\n' + '\t' * self.level + \
+					f'private {translate_type(type)} {toPascal(private_version)}'
+				if assignment_str: privateMember += assignment_str
+				privateMember += ';\n'
+				code = replaceClosingBrace(code, privateMember)
+
+			# add missing getters / setters
+			if not set_defined or not get_defined:
+				self.addLayer()
+				if set_defined:
+					self.getter(name, f' {{ return {pascalName}; }}'); self += '\n'
+				else:
+					self.setter(name, 'value', f' {{ {pascalName} = value; }}'); self += '\n'
+				code = replaceClosingBrace(code, f'\t{self.popLayer()}}}')
+
+			self.write(code)
 		
 		
 	def getter_method(self, member, getterName):
@@ -168,7 +186,7 @@ class Transpiler:
 		name = toPascal(name)
 		paramStr = ', '.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
 		self += '[Signal]\n'
-		self += f'public delegate void {name}Handler({paramStr});'
+		self += f'public delegate void {name}EventHandler({paramStr});'
 	
 	def assignment(self, exp):
 		self += ' = '; get(exp)
@@ -200,7 +218,7 @@ class Transpiler:
 		self += ') =>'
 		# cleanup
 		code = code.replace('{', '{\t', 1)
-		code = rReplace(code, '}', '};')
+		code = replaceClosingBrace(code, '};')
 		self.write(code)
 	
 	def literal(self, value):
@@ -217,7 +235,7 @@ class Transpiler:
 		self.write(str(value))
 	
 	def constant(self, name):
-		self += '.' + name
+		self += '.' + (name if not name.isupper() else toPascal(name.lower()) )
 	
 	def property(self, name):
 		self += toPascal(name)
@@ -470,8 +488,7 @@ get = next
 # Default imports and aliases that almost every class needs.
 header = """using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 """;
 
 export_replacements = {
@@ -532,6 +549,7 @@ for missing_vt in (vt for vt in variant_types if vt not in variable_replacements
 	variable_replacements[missing_vt] = f'typeof(' + toPascal(missing_vt.replace('TYPE_', '').lower()) + ')'
 
 function_replacements = {
+	'range':'GD.Range',
 	'preload': "/* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */",
 	'weakref': 'GodotObject.WeakRef(obj)',
 	'instance_from_id' : 'GodotObject.InstanceFromId',

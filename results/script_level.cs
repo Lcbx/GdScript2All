@@ -1,7 +1,6 @@
 using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 
 
 public partial class script_level : Godot.Node
@@ -49,6 +48,7 @@ public partial class script_level : Godot.Node
 		get
 		{return _GetVar3;
 		}
+		set { _GetVar3 = value; }
 	}
 	private double _GetVar3;
 
@@ -57,11 +57,12 @@ public partial class script_level : Godot.Node
 	{
 		set => _Set(value);
 		get => _Get();
+
 	}
-	private double _GetsetVar;
+	private double _GetsetVar = 0.0;
 
 
-	public double DEF =  - 0.1 // comment
+	 // commentpublic double DEF
 	{
 		set
 		{
@@ -72,13 +73,13 @@ public partial class script_level : Godot.Node
 			return sprite_offset;
 		}
 	}
-	private double _DEF;
+	private double _DEF =  - 0.1;
 
 
 	[Signal]
-	public delegate void AHandler();
+	public delegate void AEventHandler();
 	[Signal]
-	public delegate void BHandler(int c, Type d);
+	public delegate void BEventHandler(int c, Type d);
 
 	protected override void _Ready()
 	{

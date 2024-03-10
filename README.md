@@ -116,8 +116,7 @@ C# output :
 ```cs
 using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 
 
 
@@ -155,17 +154,17 @@ public partial class test : Godot.Node
     public static int I = 0;
     public const string str = "the fox said \"get off my lawn\"";
     public string BigStr = @"
-        this is a multiline string
-    ";
+    this is a multiline string
+";
     public Array Array = new Array{0, 1, 2, };
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
     public Godot.Variant Complex = new Dictionary{
-                {"t", 100},
-                {"rafg", "asfgh"},
-                {"u", false},// Example Comment
-                {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
-                }["rafg"];
+            {"t", 100},
+            {"rafg", "asfgh"},
+            {"u", false},// Example Comment
+            {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
+            }["rafg"];
 
     // method
     public double Method(double param = 5.0)
@@ -186,7 +185,7 @@ public partial class test : Godot.Node
     public Godot.Node X = this.GetParent();
     public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.SHADER_SPATIAL;
+    public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
     public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
 
     // Gdscript special syntax
@@ -197,12 +196,13 @@ public partial class test : Godot.Node
     public Godot.Resource LoadResource = Load("res://path");
 
     // getters and setters
-    public double Getset = 0.1
+    public double Getset
     {
         set => _Set(value);
         get => _Get();
+
     }
-    private double _Getset;
+    private double _Getset = 0.1;
 
 
     public Godot.Sprite2D Sprite
@@ -227,9 +227,9 @@ public partial class test : Godot.Node
 
     // signals
     [Signal]
-    public delegate void JumpHandler();
+    public delegate void JumpEventHandler();
     [Signal]
-    public delegate void MovementHandler(Godot.Vector3 dir, double speed);
+    public delegate void MovementEventHandler(Godot.Vector3 dir, double speed);
 
     public void AsyncFunction()
     {
@@ -245,7 +245,7 @@ public partial class test : Godot.Node
         // lambdas are not perfectly translated
         jump += myLambda;
 
-        EmitSignal("movement", Vector3.UP, 0.1);
+        EmitSignal("movement", Vector3.Up, 0.1);
     }
 
     // _ready generation when @onready is used

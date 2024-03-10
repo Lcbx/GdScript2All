@@ -182,49 +182,7 @@ class Parser:
 				else self.DECL_FLAGS.onready if onready \
 				else self.DECL_FLAGS.none))
 			
-			if not (self.expect(':') or foundSetGet):
-				self.out.end_statement()
-				
-			# setget -> : [get [= <method_name>]|[ : Block ]]?, [set [= <method_name>]|[ : Block ]]?
-			else:
-				# although scope is used in C# to delimit getters and setters,
-				# c++ does not have that notion
-				# so we don't emit UpScope and DownScope here
-				if self.match_type('COMMENT'): self.out +=' '; self.out.comment(self.consume())
-				self.expect_type('LINE_END')
-				
-				oldLevel = self.level
-				self.level += 1
-				
-				def impl():
-					# allow defining setter and getter in any order
-					for i in range(2):
-						
-						if self.expect('get'):
-							if self.expect('='):
-								yield 'getter_method', self.consume()
-							
-							elif self.expect(':'):
-								self.out.addLayer()
-								self.Block()
-								code = self.out.popLayer()
-								yield 'getter', code
-						
-						elif self.expect('set'):
-							if self.expect('='):
-								yield 'setter_method', self.consume()
-							
-							elif self.expect('('):
-								valueName = self.consume(); self.expect(')', ':')
-								self.out.addLayer()
-								self.Block()
-								code = self.out.popLayer()
-								yield 'setter', valueName, code
-						
-						self.expect(',')
-				
-				self.out.setget(memberName, impl())
-				self.level = oldLevel
+			
 	
 	
 	# Method -> func <name>(*<params>) [-> <type>]? :[Block]
@@ -415,17 +373,64 @@ class Parser:
 		type = type or 'Variant'
 		
 		# emit code
-		if flags & self.DECL_FLAGS.property:
-			self.getClass().members[name] = type
-			self.out.declare_property(type, name, ass, \
-				flags & self.DECL_FLAGS.constant, \
-				flags & self.DECL_FLAGS.static,
-				flags & self.DECL_FLAGS.onready)
-		else:
+		if not flags & self.DECL_FLAGS.property:
 			self.locals[name] = type
 			self.out.declare_variable(type, name, ass)
-		
-		return foundSetGet
+
+		else:
+			self.getClass().members[name] = type
+
+			def emit(setget):
+				self.out.declare_property(type, name, ass, \
+					setget, \
+					flags & self.DECL_FLAGS.constant, \
+					flags & self.DECL_FLAGS.static, \
+					flags & self.DECL_FLAGS.onready)
+			
+			if not (self.expect(':') or foundSetGet):
+				emit(None)
+				self.out.end_statement()
+				
+			# setget -> : [get [= <method_name>]|[ : Block ]]?, [set [= <method_name>]|[ : Block ]]?
+			else:
+				# although scope is used in C# to delimit getters and setters,
+				# c++ does not have that notion
+				# so we don't emit UpScope and DownScope here
+				if self.match_type('COMMENT'): self.out +=' '; self.out.comment(self.consume())
+				self.expect_type('LINE_END')
+				
+				oldLevel = self.level
+				self.level += 1
+				
+				def impl():
+					# allow defining setter and getter in any order
+					for i in range(2):
+						
+						if self.expect('get'):
+							if self.expect('='):
+								yield 'getter_method', self.consume()
+							
+							elif self.expect(':'):
+								self.out.addLayer()
+								self.Block()
+								code = self.out.popLayer()
+								yield 'getter', code
+						
+						elif self.expect('set'):
+							if self.expect('='):
+								yield 'setter_method', self.consume()
+							
+							elif self.expect('('):
+								valueName = self.consume(); self.expect(')', ':')
+								self.out.addLayer()
+								self.Block()
+								code = self.out.popLayer()
+								yield 'setter', valueName, code
+						
+						self.expect(',')
+				
+				emit(impl())
+				self.level = oldLevel
 	
 	
 	# reassign : <expression> =|+=!*=!... <expression>

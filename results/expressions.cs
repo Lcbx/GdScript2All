@@ -1,7 +1,6 @@
 using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 
 
 // basic expressions
@@ -11,8 +10,8 @@ public partial class expressions : Godot.Node
 	public static int I = 0;
 	public const string str = "the fox said \"get off my lawn\"";
 	public string BigStr = @"
-		this is a multiline string
-	";
+	this is a multiline string
+";
 	protected bool _ProtectedBool = true;
 	public Array Array = new Array{0, 1, 2, };
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};

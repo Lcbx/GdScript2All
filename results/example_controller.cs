@@ -1,7 +1,6 @@
 using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 
 public partial class Character : Godot.CharacterBody3D
 {
@@ -87,7 +86,7 @@ public partial class Character : Godot.CharacterBody3D
 
 		MoveAndSlide();
 
-		foreach(int i in Range(GetSlideCollisionCount()))
+		foreach(int i in GD.Range(GetSlideCollisionCount()))
 		{
 			EmitSignal("collision", GetSlideCollision(i));
 		}
@@ -97,19 +96,19 @@ public partial class Character : Godot.CharacterBody3D
 	/* movement state / animations */
 
 	[Signal]
-	public delegate void ChangedStateHandler(MovementEnum state);
+	public delegate void ChangedStateEventHandler(MovementEnum state);
 	[Signal]
-	public delegate void CollisionHandler(Godot.KinematicCollision3D collision);
+	public delegate void CollisionEventHandler(Godot.KinematicCollision3D collision);
 	[Signal]
-	public delegate void MovementHandler(Godot.Vector3 dir, double speed);
+	public delegate void MovementEventHandler(Godot.Vector3 dir, double speed);
 	[Signal]
-	public delegate void JumpHandler(double speed);
+	public delegate void JumpEventHandler(double speed);
 
 	public enum MovementEnum {crouch, walk, run, fall}
 	[Export] public Array<MovementState> Movements;
 
 	[Export]
-	public Character.MovementEnum MovementState = MovementEnum.walk
+	public Character.MovementEnum MovementState
 	{
 		set
 		{
@@ -119,8 +118,9 @@ public partial class Character : Godot.CharacterBody3D
 				EmitSignal("changedState", _MovementState);
 			}
 		}
+		get { return _MovementState; }
 	}
-	private Character.MovementEnum _MovementState;
+	private Character.MovementEnum _MovementState = MovementEnum.walk;
 
 
 	[Export]
@@ -131,7 +131,7 @@ public partial class Character : Godot.CharacterBody3D
 
 	protected Godot.Vector3 _GlobalMovDir = new Vector3();
 	[Export]
-	public Godot.Vector3 GlobalMovDir = new Vector3()
+	public Godot.Vector3 GlobalMovDir
 	{
 		get
 		{return _GlobalMovDir;
@@ -155,7 +155,7 @@ public partial class Character : Godot.CharacterBody3D
 		set
 		{
 			_LocalDir = value;
-			_GlobalMovDir =  - value.X * Basis.X + value.Y * Vector3.UP + value.Z * Basis.Z;
+			_GlobalMovDir =  - value.X * Basis.X + value.Y * Vector3.Up + value.Z * Basis.Z;
 		}
 	}
 
@@ -167,10 +167,10 @@ public partial class Character : Godot.CharacterBody3D
 	/* view */
 
 	[Signal]
-	public delegate void ViewDirChangedHandler(Godot.Vector3 euler);
+	public delegate void ViewDirChangedEventHandler(Godot.Vector3 euler);
 
 	[Export]
-	public Godot.Vector3 ViewDir = new Vector3()
+	public Godot.Vector3 ViewDir
 	{
 		set
 		{
@@ -178,8 +178,9 @@ public partial class Character : Godot.CharacterBody3D
 			_ViewDir.X = Mathf.Clamp(_ViewDir.X,  - Globals.ViewPitchLimit, Globals.ViewPitchLimit);
 			EmitSignal("viewDirChanged", _ViewDir);
 		}
+		get { return _ViewDir; }
 	}
-	private Godot.Vector3 _ViewDir;
+	private Godot.Vector3 _ViewDir = new Vector3();
 
 
 }

@@ -21,11 +21,10 @@ class Transpiler:
 	def annotation(self, name, params, memberName, endline):
 		pass
 	
-	def declare_property(self, type, name, assignment, constant, static, onready):
+	def declare_property(self, type, name, assignment, accessors, constant, static, onready):
 		if assignment: get(assignment)
-	
-	def setget(self, member, accessors):
-		for accessor in accessors: pass
+		if accessors:
+			for accessor in accessors: pass
 		
 	def getter_method(self, member, getterName):
 		pass

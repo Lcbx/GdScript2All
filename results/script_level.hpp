@@ -57,7 +57,7 @@ public:
 protected:
 	double getset_var;
 
-	double DEF =  - 0.1;// comment
+// comment	double DEF =  - 0.1;
 
 public:
 	void set_DEF(double value);

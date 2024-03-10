@@ -104,7 +104,7 @@ class Transpiler:
 	def annotation(self, name, params, memberName, endline):
 		self.getClass().annotations.append( (memberName, name, params) )
 	
-	def declare_property(self, type, name, assignment, constant, static, onready):
+	def declare_property(self, type, name, assignment, accessors, constant, static, onready):
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		protected = self.getClass().protected()
 		protected += f'\t{const_decl}{self.translate_type(type)} {name}'
@@ -119,21 +119,22 @@ class Transpiler:
 			else:
 				self.assignment(assignment); protected += self.popLayer()
 		protected += ';'
+
+		# setget
+		if accessors:
+			# call the appropriate Transpiler method (defined afterward)
+			set_defined = False
+			get_defined = False
+			for accessor in accessors:
+				method_name = accessor[0]
+				set_defined = set_defined or method_name.startswith('set')
+				get_defined = get_defined or method_name.startswith('get')
+				method = getattr(self,method_name)
+				params = accessor[1:]
+				method(name, *params)
+			if set_defined and not get_defined: self.addDefaultGet(name)
+			if get_defined and not set_defined: self.addDefaultSet(name)
 	
-	def setget(self, member, accessors):
-		# call the appropriate Transpiler method (defined afterward)
-		set_defined = False
-		get_defined = False
-		for accessor in accessors:
-			method_name = accessor[0]
-			set_defined = set_defined or method_name.startswith('set')
-			get_defined = get_defined or method_name.startswith('get')
-			method = getattr(self,method_name)
-			params = accessor[1:]
-			method(member, *params)
-		if set_defined and not get_defined: self.addDefaultGet(member)
-		if get_defined and not set_defined: self.addDefaultSet(member)
-		
 	def getter_method(self, member, getterName):
 		self.getClass().accessors_get[member] = getterName
 	

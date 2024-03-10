@@ -1,7 +1,6 @@
 using System;
 using Godot;
-using Dictionary = Godot.Collections.Dictionary;
-using Array = Godot.Collections.Array;
+using Godot.Collections;
 
 
 // method to test statements
@@ -37,7 +36,7 @@ public partial class statements : Godot.Node
 			continue;
 		}
 
-		foreach(int j in Range(i))
+		foreach(int j in GD.Range(i))
 		{
 			i += j;
 		}
