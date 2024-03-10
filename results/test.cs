@@ -113,7 +113,7 @@ public partial class test : Godot.Node
 	[Signal]
 	public delegate void JumpEventHandler();
 	[Signal]
-	public delegate void MovementEventHandler(Godot.Vector3 dir, double speed);
+	public delegate void MovementEventHandler(Vector3 dir, double speed);
 
 	public void AsyncFunction()
 	{

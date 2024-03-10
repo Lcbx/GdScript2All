@@ -24,9 +24,9 @@ public partial class Character : Godot.CharacterBody3D
 	public const double MIN_JUMP_VELOCITY = 3.5;
 	public const double MAX_Y_SPEED = 10.0;
 
-	public const Godot.Vector3 XZ = new Vector3(1.0, 0.0, 1.0);
-	public const Godot.Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
-	public const Godot.Vector3 XY = new Vector3(1.0, 1.0, 0.0);
+	public const Vector3 XZ = new Vector3(1.0, 0.0, 1.0);
+	public const Vector3 YZ = new Vector3(0.0, 1.0, 1.0);
+	public const Vector3 XY = new Vector3(1.0, 1.0, 0.0);
 
 	public static double Gravity = 10.0;
 
@@ -100,7 +100,7 @@ public partial class Character : Godot.CharacterBody3D
 	[Signal]
 	public delegate void CollisionEventHandler(Godot.KinematicCollision3D collision);
 	[Signal]
-	public delegate void MovementEventHandler(Godot.Vector3 dir, double speed);
+	public delegate void MovementEventHandler(Vector3 dir, double speed);
 	[Signal]
 	public delegate void JumpEventHandler(double speed);
 
@@ -129,9 +129,9 @@ public partial class Character : Godot.CharacterBody3D
 
 	/* steering variables */
 
-	protected Godot.Vector3 _GlobalMovDir = new Vector3();
+	protected Vector3 _GlobalMovDir = new Vector3();
 	[Export]
-	public Godot.Vector3 GlobalMovDir
+	public Vector3 GlobalMovDir
 	{
 		get
 		{return _GlobalMovDir;
@@ -145,9 +145,9 @@ public partial class Character : Godot.CharacterBody3D
 	}
 
 	// NOTE: local_dir is normalized on the xz plane by Overlay
-	protected Godot.Vector3 _LocalDir;
+	protected Vector3 _LocalDir;
 	[Export]
-	public Godot.Vector3 LocalDir
+	public Vector3 LocalDir
 	{
 		get
 		{return _LocalDir;
@@ -167,10 +167,10 @@ public partial class Character : Godot.CharacterBody3D
 	/* view */
 
 	[Signal]
-	public delegate void ViewDirChangedEventHandler(Godot.Vector3 euler);
+	public delegate void ViewDirChangedEventHandler(Vector3 euler);
 
 	[Export]
-	public Godot.Vector3 ViewDir
+	public Vector3 ViewDir
 	{
 		set
 		{
@@ -180,7 +180,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 		get { return _ViewDir; }
 	}
-	private Godot.Vector3 _ViewDir = new Vector3();
+	private Vector3 _ViewDir = new Vector3();
 
 
 }

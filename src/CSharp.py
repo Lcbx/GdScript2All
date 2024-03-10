@@ -428,11 +428,11 @@ class Transpiler:
 
 def translate_type(type):
 	if type == None: return 'void'
-	if type in ('Array', 'Dictionary'): return type
-	if type in godot_types: return f'Godot.{type}'
 	if type.endswith('[]'): return f'Array<{type[:-2]}>'
 	if type.endswith('enum'): return type[:-len('enum')]
 	if type == 'float' and not use_floats: return 'double'
+	if isVariantType(type): return type
+	if type in godot_types: return f'Godot.{type}'
 	return type
 
 def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
@@ -465,6 +465,10 @@ def toPascal(text):
 	
 	capitalize = lambda s: s[0].upper() + s[1:] if s else s
 	return  '_' * nStart_ + ''.join( map(capitalize, split_ ) )
+
+def isVariantType(type):
+	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper() if type != 'Object')
+	return next(match, None) != None
 
 # for prettier output
 def prettify(value):
