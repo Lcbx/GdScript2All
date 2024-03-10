@@ -64,7 +64,7 @@ public partial class Character : Godot.CharacterBody3D
 		{
 			Velocity.Y += Mathf.Max(MIN_JUMP_VELOCITY, ground_speed);
 			CoyoteTime.Stop();
-			EmitSignal("jump", ground_speed);
+			EmitSignal("Jump", ground_speed);
 		}
 
 		// when running, always go forward 
@@ -82,13 +82,13 @@ public partial class Character : Godot.CharacterBody3D
 
 		var new_ground_speed = CalculateGroundSpeed();
 
-		EmitSignal("movement", LocalDir, new_ground_speed);
+		EmitSignal("Movement", LocalDir, new_ground_speed);
 
 		MoveAndSlide();
 
 		foreach(int i in GD.Range(GetSlideCollisionCount()))
 		{
-			EmitSignal("collision", GetSlideCollision(i));
+			EmitSignal("Collision", GetSlideCollision(i));
 		}
 	}
 
@@ -115,7 +115,7 @@ public partial class Character : Godot.CharacterBody3D
 			if(_MovementState != value)
 			{
 				_MovementState = value;
-				EmitSignal("changedState", _MovementState);
+				EmitSignal("ChangedState", _MovementState);
 			}
 		}
 		get { return _MovementState; }
@@ -176,7 +176,7 @@ public partial class Character : Godot.CharacterBody3D
 		{
 			_ViewDir = value;
 			_ViewDir.X = Mathf.Clamp(_ViewDir.X,  - Globals.ViewPitchLimit, Globals.ViewPitchLimit);
-			EmitSignal("viewDirChanged", _ViewDir);
+			EmitSignal("ViewDirChanged", _ViewDir);
 		}
 		get { return _ViewDir; }
 	}

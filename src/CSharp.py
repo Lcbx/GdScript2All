@@ -1,5 +1,6 @@
 from StringBuilder import StringBuilder
 from godot_types import *
+from re import sub as regex_replace
 
 
 class Transpiler:
@@ -145,9 +146,10 @@ class Transpiler:
 		self.write(code.replace(valueName, 'value'))
 	
 	def cleanGetSetCode(self, code, member):
-		# use private value
+		# use private value instead of property name
 		if not toPrivate(member) in self.klass.members:
-			code = code.replace(toPascal(member), toPrivate(toPascal(member)))
+			# using capture groups to keep non-word characters (that delimit name)
+			code = regex_replace(fr'(\W){toPascal(member)}(\W)', fr'\1{toPrivate(toPascal(member))}\2', code)
 		return code
 	
 	def declare_variable(self, type, name, assignment):
@@ -183,10 +185,9 @@ class Transpiler:
 		self.write(code)
 	
 	def define_signal(self, name, params):
-		name = toPascal(name)
 		paramStr = ', '.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
 		self += '[Signal]\n'
-		self += f'public delegate void {name}EventHandler({paramStr});'
+		self += f'public delegate void {toPascal(name)}EventHandler({paramStr});'
 	
 	def assignment(self, exp):
 		self += ' = '; get(exp)
@@ -305,17 +306,17 @@ class Transpiler:
 	
 	def awaitStmt(self, object, signalName):
 		object = 'this' if object == 'self' else object
-		self += f'await ToSignal({object}, "{signalName}");'
+		self += f'await ToSignal({object}, "{toPascal(signalName)}");'
 	
-	def emitSignal(self, name, params):
-		self += f'EmitSignal("{name}"'
+	def emitSignal(self, signalName, params):
+		self += f'EmitSignal("{toPascal(signalName)}"'
 		for i, p in enumerate(params):
 			self += ', '
 			get(p)
 		self += ')'
 	
-	def connectSignal(self, name, params):
-		self += f'{name} += '; get(params[0])
+	def connectSignal(self, signalName, params):
+		self += f'{toPascal(signalName)} += '; get(params[0])
 	
 	def matchStmt(self, evaluated, cases):
 		type = get(evaluated)

@@ -236,16 +236,16 @@ public partial class test : Godot.Node
         await ToSignal(this, "Jump");
         await ToSignal(GetTree(), "ProcessFrame");
 
-        GetTree().EmitSignal("process_frame", 0.7);
+        GetTree().EmitSignal("ProcessFrame", 0.7);
 
         var myLambda = () =>
         {    GD.Print("look ma i'm jumping");
         };
 
         // lambdas are not perfectly translated
-        jump += myLambda;
+        Jump += myLambda;
 
-        EmitSignal("movement", Vector3.Up, 0.1);
+        EmitSignal("Movement", Vector3.Up, 0.1);
     }
 
     // _ready generation when @onready is used
