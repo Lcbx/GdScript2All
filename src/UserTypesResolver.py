@@ -10,7 +10,7 @@ class Transpiler:
 	def current_class(self, class_name, klass):
 		pass
 	
-	def define_class(self, name, base_class, is_tool):
+	def define_class(self, name, base_class, is_tool, is_main):
 		pass
 	
 	def enum(self, name, params, params_init):

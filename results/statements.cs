@@ -4,6 +4,7 @@ using Godot.Collections;
 
 
 // method to test statements
+[GlobalClass]
 public partial class statements : Godot.Node
 {
 	public Array Method()

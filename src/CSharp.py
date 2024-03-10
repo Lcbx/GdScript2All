@@ -35,8 +35,14 @@ class Transpiler:
 		self.class_name = class_name
 		self.klass = klass
 	
-	def define_class(self, name, base_class, is_tool):
+	def define_class(self, name, base_class, is_tool, is_main):
 		if is_tool: self += '[Tool]\n'
+
+		# automatically registers Resource-derived classes
+		# allows interop with Gdscript
+		# I think this should be standard behaviour tbh
+		if is_main: self += '[GlobalClass]\n'
+		
 		self += f'public partial class {name} : {translate_type(base_class)}'
 		self.UpScope()
 		self += '\n'

@@ -2,6 +2,7 @@ using System;
 using Godot;
 using Godot.Collections;
 
+[GlobalClass]
 public partial class Character : Godot.CharacterBody3D
 {
 

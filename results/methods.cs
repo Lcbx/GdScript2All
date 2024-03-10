@@ -3,6 +3,7 @@ using Godot;
 using Godot.Collections;
 
 
+[GlobalClass]
 public partial class methods : Godot.Node
 {
 	public void Empty()

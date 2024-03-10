@@ -83,7 +83,7 @@ class Parser:
 		# NOTE: no endline after class name since we declare the class before that
 		
 		# initialize script class data
-		self.add_class(class_name, base_class, self.is_tool); self.endline()
+		self.add_class(class_name, base_class, is_main = True); self.endline()
 		
 		# script-level loop
 		for i in range(2):
@@ -878,7 +878,7 @@ class Parser:
 	""" utils """
 	
 	# using a stack to keep track of class being defined
-	def add_class(self, class_name, base_class, is_tool = False):
+	def add_class(self, class_name, base_class, is_main = False):
 		self.classes.append(class_name)
 		if class_name not in godot_types:
 			classData = ClassData()
@@ -886,7 +886,7 @@ class Parser:
 			godot_types[class_name] = classData
 		
 		self.emit_class_change()
-		self.out.define_class(class_name, base_class, self.is_tool)
+		self.out.define_class(class_name, base_class, self.is_tool, is_main)
 	
 	def end_class(self):
 		self.out.end_class(self.getClassName())

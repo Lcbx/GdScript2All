@@ -4,6 +4,7 @@ using Godot.Collections;
 
 
 // basic expressions
+[GlobalClass]
 public partial class expressions : Godot.Node
 {
 	public Godot.Variant Foo;

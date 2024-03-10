@@ -11,6 +11,7 @@ using Godot.Collections;
 */
 
 [Tool]
+[GlobalClass]
 public partial class test : Godot.Node
 {
 	[Tool]

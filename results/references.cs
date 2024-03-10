@@ -3,6 +3,7 @@ using Godot;
 using Godot.Collections;
 
 
+[GlobalClass]
 public partial class references : Godot.Node
 {
 	public Godot.Variant Variable = foo;
