@@ -33,11 +33,11 @@ py main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
-- generated code might need corrections ! (notably in c++ ; indentation might need a second pass too)
-- this tool parses and emits code and will ignore it and try again at the next line if it encounters something unexpected (panic mode)
-- generated C++ does a best guess on what should be a pointer/referenceand
-- in c++ accessing/modifying parent properties does not use the corresponding getters/setters (this is a conscious choice)
-- read [TODO.md](TODO.md) for WIP features
+- generated code might need corrections ! (indentation might need a second pass too)
+- this tool parses and emits code ; if it encounters something unexpected it will drop the current line and try to resume at the next (panic mode)
+- generated C++ does a best guess on what should be a pointer/reference
+- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
+- read [TODO.md](TODO.md) for current/missing features
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
@@ -57,8 +57,8 @@ will probably not be supported (too complicated to generate an equivalent)
 
 ### Explaining the GPL-3.0 license
 The code this tool generates from your GDScipt is yours.
-However, any modifications made to this tool's source has to be available to the open-source community.
-I think that is a fair deal.
+However, any improvment made to this tool's source has to be contributed back.
+I think that's fair.
   
 <a href="https://www.buymeacoffee.com/Lcbx" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
