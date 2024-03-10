@@ -134,7 +134,7 @@ class Transpiler:
 				method(name, *params)
 			if set_defined and not get_defined: self.addDefaultGet(name)
 			if get_defined and not set_defined: self.addDefaultSet(name)
-	
+
 	def getter_method(self, member, getterName):
 		self.getClass().accessors_get[member] = getterName
 	
@@ -466,7 +466,7 @@ class Transpiler:
 		# add enum binding after class binding (if any)
 		if self.klass.enums:
 			self.hpp += '\n'.join( f'VARIANT_ENUM_CAST({self.getClass().name}::{self.translate_type(enum_name)})'  \
-				for enum_name in sorted(set(self.klass.enums.values())) )
+				for enum_name in sorted(set(self.klass.enums.values())) if self.translate_type(enum_name))
 	
 	def end_script(self):
 		self.end_class(self.class_name)

@@ -78,6 +78,5 @@ public:
 };
 
 VARIANT_ENUM_CAST(script_level::Named)
-VARIANT_ENUM_CAST(script_level::)
 
 #endif // SCRIPT_LEVEL_H

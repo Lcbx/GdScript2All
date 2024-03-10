@@ -113,6 +113,5 @@ public:
 };
 
 VARIANT_ENUM_CAST(test::NamedEnum)
-VARIANT_ENUM_CAST(test::)
 
 #endif // TEST_H
