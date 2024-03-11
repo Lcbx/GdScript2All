@@ -63,7 +63,9 @@ class Transpiler:
 	def annotation(self, name, params, memberName, endline):
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_exports.html
 		# https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_exports.html
-		start = export_replacements.get(name) or ( toPascal(name) + (params and '(') )
+		replaced = name in export_replacements
+		start = export_replacements[name] if replaced else toPascal(name) + (params and '(')
+		if replaced and params: start += ', '
 		self += f'[{start}"{params}")]' if params else f'[{start}]'
 		self.write(endline if endline else ' ')
 	

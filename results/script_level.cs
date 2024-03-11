@@ -39,7 +39,7 @@ public partial class script_level : Godot.Node
 
 	[ExportCategory("category")]
 
-	[Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
+	[Export(PropertyHint.Flags, "Self:4,Allies:8,Foes:16")]
 	public Godot.Variant ExportFlags;
 
 	[ExportGroup("group")]

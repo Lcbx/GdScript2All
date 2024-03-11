@@ -127,7 +127,7 @@ public partial class test : Godot.Node
 
     [ExportGroup("group")]
 
-    [Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
+    [Export(PropertyHint.Flags, "Self:4,Allies:8,Foes:16")]
     public int ExportFlags;
 
     // basic property definitions / expressions
