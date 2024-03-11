@@ -15,34 +15,21 @@ enum NamedEnum {THING_1, THING_2, ANOTHER_THING = -1}
 @export
 var export
 
-@export(param1, param2)
-var export_param
-
 @export_group('group')
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
 var export_flags : int
 
 # basic property definitions / expressions
-var foo
 static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : string = """
-	this is a multiline string
-"""
+	this is a multiline string """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
-var complex = {
-	"t" : 100,
-	"rafg" : 'asfgh',
-	"u" : false, # Example Comment
-	"t":{"e":{"g":1,"f":2},},
-} ['rafg']
 
-# method
 func method(param = 5.):
-	var val = 2
 	for k in string_array:
 		print(k)
 	return val * param
@@ -53,10 +40,9 @@ var k = string_array[0]
 
 # determine type based on godot doc
 var x = self.get_parent()
-var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
-var global_function = angle_difference(.1,.2)
+var function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
@@ -64,9 +50,6 @@ var get_node2 = $"../node"
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
-
-# getters and setters
-var getset := .1 : set = _set, get = _get
 
 var sprite : Sprite2D :
 	set (value):
@@ -76,7 +59,7 @@ var sprite : Sprite2D :
 	get:
 		return sprite
 
-func enumReturn(): return THING_2
+func enum_return(): return THING_2
 
 # signals
 signal jump

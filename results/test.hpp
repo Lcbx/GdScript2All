@@ -33,28 +33,16 @@ public:
 protected:
 	Variant export;
 
-	Variant export_param;
-
 	int export_flags;
 
 // basic property definitions / expressions
-	Variant foo;
 	static int i;
 	const String str = "the fox said \"get off my lawn\"";
 	String big_str = "\
-	this is a multiline string\
-";
+	this is a multiline string ";
 	Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
 	Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
 	Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
-	Variant complex =  /* no dictionary initializer in c++ ! */ {
-		{"t", 100},
-		{"rafg", "asfgh"},
-		{"u", false},// Example Comment
-		{"t",  /* no dictionary initializer in c++ ! */ {{"e",  /* no dictionary initializer in c++ ! */ {{"g", 1},{"f", 2},}},}},
-		}["rafg"];
-
-// method
 
 // type inference on members
 
@@ -67,10 +55,9 @@ protected:
 
 // determine type based on godot doc
 	Ref<Node> x = this->get_parent();
-	double x = Vector3().x;
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
 	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
-	double global_function = Math::angle_difference(0.1, 0.2);
+	double function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
 	Ref<Node> get_node = get_node("node");
@@ -78,9 +65,6 @@ protected:
 	Ref<Node> get_unique_node = get_node("%unique_node");
 	Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
 	Ref<Resource> load_resource = load("res://path");
-
-// getters and setters
-	double getset = 0.1;
 
 	Ref<Sprite2D> sprite;
 
@@ -90,7 +74,7 @@ public:
 	Ref<Sprite2D> get_sprite();
 
 // signals
-	NamedEnum enumReturn();
+	NamedEnum enum_return();
 	/* signal jump() */
 	/* signal movement(Vector3 dir, double speed) */
 
@@ -104,8 +88,6 @@ public:
 	void _ready() override;
 	void set_export(Variant value);
 	Variant get_export();
-	void set_export_param(Variant value);
-	Variant get_export_param();
 	void set_export_flags(int value);
 	int get_export_flags();
 

@@ -27,34 +27,21 @@ enum NamedEnum {THING_1, THING_2, ANOTHER_THING = -1}
 @export
 var export
 
-@export(param1, param2)
-var export_param
-
 @export_group('group')
 
 @export_flags("Self:4", "Allies:8", "Foes:16")
 var export_flags : int
 
 # basic property definitions / expressions
-var foo
 static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : string = """
-    this is a multiline string
-"""
+    this is a multiline string """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
-var complex = {
-    "t" : 100,
-    "rafg" : 'asfgh',
-    "u" : false, # Example Comment
-    "t":{"e":{"g":1,"f":2},},
-} ['rafg']
 
-# method
 func method(param = 5.):
-    var val = 2
     for k in string_array:
         print(k)
     return val * param
@@ -65,10 +52,9 @@ var k = string_array[0]
 
 # determine type based on godot doc
 var x = self.get_parent()
-var x = Vector3().x
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
-var global_function = angle_difference(.1,.2)
+var function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
@@ -76,9 +62,6 @@ var get_node2 = $"../node"
 var get_unique_node = %unique_node
 var preload_resource = preload("res://path")
 var load_resource = load("res://path")
-
-# getters and setters
-var getset := .1 : set = _set, get = _get
 
 var sprite : Sprite2D :
     set (value):
@@ -88,7 +71,7 @@ var sprite : Sprite2D :
     get:
         return sprite
 
-func enumReturn(): return THING_2
+func enum_return(): return THING_2
 
 # signals
 signal jump
@@ -142,35 +125,22 @@ public partial class test : Godot.Node
     [Export]
     public Godot.Variant Export;
 
-    [Export("param1,param2")]
-    public Godot.Variant ExportParam;
-
     [ExportGroup("group")]
 
     [Export(PropertyHint.Flags"Self:4,Allies:8,Foes:16")]
     public int ExportFlags;
 
     // basic property definitions / expressions
-    public Godot.Variant Foo;
     public static int I = 0;
     public const string str = "the fox said \"get off my lawn\"";
     public string BigStr = @"
-    this is a multiline string
-";
+    this is a multiline string ";
     public Array Array = new Array{0, 1, 2, };
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
-    public Godot.Variant Complex = new Dictionary{
-            {"t", 100},
-            {"rafg", "asfgh"},
-            {"u", false},// Example Comment
-            {"t", new Dictionary{{"e", new Dictionary{{"g", 1},{"f", 2},}},}},
-            }["rafg"];
 
-    // method
     public double Method(double param = 5.0)
     {
-        var val = 2;
         foreach(string k in StringArray)
         {
             GD.Print(K);
@@ -184,10 +154,9 @@ public partial class test : Godot.Node
 
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
-    public double X = new Vector3().X;
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
-    public double GlobalFunction = Mathf.AngleDifference(0.1, 0.2);
+    public double Function = Mathf.AngleDifference(0.1, 0.2);
 
     // Gdscript special syntax
     public Godot.Node GetNode = GetNode("node");
@@ -195,16 +164,6 @@ public partial class test : Godot.Node
     public Godot.Node GetUniqueNode = GetNode("%unique_node");
     public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     public Godot.Resource LoadResource = Load("res://path");
-
-    // getters and setters
-    public double Getset
-    {
-        set => _Set(value);
-        get => _Get();
-
-    }
-    private double _Getset = 0.1;
-
 
     public Godot.Sprite2D Sprite
     {
@@ -296,28 +255,16 @@ public:
 protected:
     Variant export;
 
-    Variant export_param;
-
     int export_flags;
 
 // basic property definitions / expressions
-    Variant foo;
     static int i;
     const String str = "the fox said \"get off my lawn\"";
     String big_str = "\
-    this is a multiline string\
-";
+    this is a multiline string ";
     Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
     Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
     Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
-    Variant complex =  /* no dictionary initializer in c++ ! */ {
-        {"t", 100},
-        {"rafg", "asfgh"},
-        {"u", false},// Example Comment
-        {"t",  /* no dictionary initializer in c++ ! */ {{"e",  /* no dictionary initializer in c++ ! */ {{"g", 1},{"f", 2},}},}},
-        }["rafg"];
-
-// method
 
 // type inference on members
 
@@ -330,10 +277,9 @@ protected:
 
 // determine type based on godot doc
     Ref<Node> x = this->get_parent();
-    double x = Vector3().x;
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
-    double global_function = Math::angle_difference(0.1, 0.2);
+    double function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
     Ref<Node> get_node = get_node("node");
@@ -341,9 +287,6 @@ protected:
     Ref<Node> get_unique_node = get_node("%unique_node");
     Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     Ref<Resource> load_resource = load("res://path");
-
-// getters and setters
-    double getset = 0.1;
 
     Ref<Sprite2D> sprite;
 
@@ -353,7 +296,7 @@ public:
     Ref<Sprite2D> get_sprite();
 
 // signals
-    NamedEnum enumReturn();
+    NamedEnum enum_return();
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
 
@@ -367,8 +310,6 @@ public:
     void _ready() override;
     void set_export(Variant value);
     Variant get_export();
-    void set_export_param(Variant value);
-    Variant get_export_param();
     void set_export_flags(int value);
     int get_export_flags();
 
@@ -391,7 +332,6 @@ c++ output (implementation) :
 
 double test::method(double param)
 {
-    int val = 2;
     for(String k : string_array)
     {
         UtilityFunctions::print(k);
@@ -411,7 +351,7 @@ Ref<Sprite2D> test::get_sprite()
     return sprite;
 }
 
-NamedEnum test::enumReturn()
+NamedEnum test::enum_return()
 {return THING_2;
 }
 
@@ -445,14 +385,6 @@ Variant test::get_export() {
     return export;
 }
 
-void test::set_export_param(Variant value) {
-    export_param = value;
-}
-
-Variant test::get_export_param() {
-    return export_param;
-}
-
 void test::set_export_flags(int value) {
     export_flags = value;
 }
@@ -463,14 +395,12 @@ int test::get_export_flags() {
 
 void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-    ClassDB::bind_method(D_METHOD("enumReturn"), &test::enumReturn);
+    ClassDB::bind_method(D_METHOD("enum_return"), &test::enum_return);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
     ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
     ClassDB::bind_method(D_METHOD("set_export", "value"), &test::set_export);
     ClassDB::bind_method(D_METHOD("get_export"), &test::get_export);
-    ClassDB::bind_method(D_METHOD("set_export_param", "value"), &test::set_export_param);
-    ClassDB::bind_method(D_METHOD("get_export_param"), &test::get_export_param);
     ClassDB::bind_method(D_METHOD("set_export_flags", "value"), &test::set_export_flags);
     ClassDB::bind_method(D_METHOD("get_export_flags"), &test::get_export_flags);
     ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(UNIT_NEUTRAL, "UNIT_NEUTRAL"), "UNIT_NEUTRAL", UNIT_NEUTRAL);
@@ -480,7 +410,6 @@ void test::_bind_methods() {
     ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(THING_2, "THING_2"), "THING_2", THING_2);
     ClassDB::bind_integer_constant(get_class_static(), _gde_constant_get_enum_name(ANOTHER_THING, "ANOTHER_THING"), "ANOTHER_THING", ANOTHER_THING);
     ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export"), "set_export", "get_export");
-    ClassDB::add_property(get_class_static(), PropertyInfo(Variant::OBJECT, "export_param"), "set_export_param", "get_export_param");
     ClassDB::add_property_group(get_class_static(), "group","");
     ClassDB::add_property(get_class_static(), PropertyInfo(Variant::INT, "export_flags", PROPERTY_HINT_FLAGS, "Self:4,Allies:8,Foes:16"), "set_export_flags", "get_export_flags");
     ClassDB::add_signal(get_class_static(), MethodInfo("jump"));
