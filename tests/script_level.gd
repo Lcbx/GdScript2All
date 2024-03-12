@@ -1,11 +1,11 @@
 extends Node
 
-class Nested1 extends test:
+class Nested1 extends test: pass
 
 class Nested4:
-	class Nested2:
+	class Nested2: pass
 
-	class Nested3:
+	class Nested3: pass
 
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}

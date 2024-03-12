@@ -107,6 +107,7 @@ class Parser:
 	
 	
 	def class_body(self):
+		if self.expect('pass'): return
 		static = self.expect('static')
 		if self.expect('class'): self.nested_class()
 		elif self.expect('enum'): self.enum()

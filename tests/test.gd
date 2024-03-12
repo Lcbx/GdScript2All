@@ -7,7 +7,7 @@ extends Node
    comment
 """
 
-class Nested1 extends test:
+class Nested1 extends test: pass
 
 enum {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY}
 enum NamedEnum {THING_1, THING_2, ANOTHER_THING = -1}
