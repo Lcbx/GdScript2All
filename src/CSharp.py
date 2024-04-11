@@ -1,6 +1,7 @@
 from StringBuilder import StringBuilder
 from godot_types import *
 from re import sub as regex_replace
+from pprint import pprint
 
 
 class Transpiler:
@@ -48,6 +49,8 @@ class Transpiler:
 		self += '\n'
 	
 	def enum(self, name, params, params_init):
+		# print(name)
+		# pprint(params)
 		def_ = ''
 		for i, (pName, pType) in enumerate(params.items()):
 				if i != 0: def_ += ', '
@@ -407,6 +410,7 @@ class Transpiler:
 	
 	def save_result(self):
 		if not self.out_name.endswith('.cs'): self.out_name += '.cs'
+		os.makedirs(os.path.dirname(self.out_name), exist_ok=True)
 		with open(self.out_name,'w+') as wf:
 			wf.write(self.get_result()[0])
 	

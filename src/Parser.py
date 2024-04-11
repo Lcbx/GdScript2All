@@ -37,6 +37,8 @@ class Parser:
 		# script class data
 		self.is_tool = None
 		self.class_name = None
+		self.base_class = None
+		self.base_defined = False
 		
 		# class names in order of definition in file
 		self.classes = []
@@ -72,19 +74,10 @@ class Parser:
 	"""
 	
 	def transpile(self):
-	
+
 		# in case there is a file header / comments at start
 		self.endline()
-		
-		# script start specific statements
-		self.is_tool = self.expect('@', 'tool'); self.endline()
-		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
-		class_name = self.consume() if self.expect('class_name') else self.script_name
-		# NOTE: no endline after class name since we declare the class before that
-		
-		# initialize script class data
-		self.add_class(class_name, base_class, is_main = True); self.endline()
-		
+
 		# script-level loop
 		for i in range(2):
 			
@@ -101,6 +94,7 @@ class Parser:
 			msg = f'PANIC! <{escaped}> unexpected at {token}'
 			self.out.comment(f'{msg}\n')
 			print(f'\033[91m{msg}\033[0m')
+			print(self.current.value)
 		
 		# tell the transpiler we're done
 		self.out.end_script()
@@ -109,13 +103,25 @@ class Parser:
 	def class_body(self):
 		if self.expect('pass'): return
 		static = self.expect('static')
-		if self.expect('class'): self.nested_class()
+		if self.expect('@', 'tool'): self.is_tool = True
+		elif self.expect('extends'): self.base_class = self.consume()
+		elif self.expect('class_name'): self.class_name = self.consume()
+		elif self.expect('class'): self.nested_class()
 		elif self.expect('enum'): self.enum()
 		elif self.expect('func'): self.method(static)
 		elif self.expect('signal'): self.signal()
 		else: self.member(static)
+
+		# if we've parsed all the data necessary to define the class, do so now
+		# if not self.base_defined and self.class_name and self.base_class:
+		# 	self.add_class(self.class_name, self.base_class, is_main = True)
+		# 	self.base_defined = True
+		
 		self.endline()
 	
+	def tool_attrib(self):
+		self.is_tool = self.expect('@', 'tool');
+
 	
 	def nested_class(self):
 		class_name = self.consume()
@@ -894,7 +900,14 @@ class Parser:
 		if len(self.classes) > 1: self.classes.pop()
 		self.emit_class_change()
 	
-	def getClassName(self): return  self.classes[-1]
+	def getClassName(self): 
+		# If something is requesting the class name and it's not defined yet, then there were no tokens for class name or base class. 
+		# We can safely create the class at this time as long as the gdscript isn't malformed
+		if not self.base_defined:
+			self.base_defined = True
+			self.add_class(self.class_name, self.base_class, is_main = True)
+		return self.classes[-1]
+			
 
 	def emit_class_change(self):
 		self.out.current_class(self.getClassName(), self.getClass())
@@ -960,10 +973,16 @@ class Parser:
 	
 	# parse type string and format it the way godot docs do
 	def parseType(self):
+		# gdscript supports Nested type defs, so you must keep reading tokens until you exit the <type>. 
+		# Let's assume for now that subtypes are created as seperate types for c#, so referencing them directly should be correct.
 		type = self.consume()
+		while self.expect("."):
+			type = self.consume()
+			
 		# Array[<type>] => <type>[]
 		if type == 'Array' and self.expect('['):
-			type = self.consume() + '[]'; self.expect(']')
+			# Arrays can be typed with any valid type in gdscript
+			type = self.parseType() + '[]'; self.expect(']')
 		return type
 		
 	def consumeUntil(self, token, separator = ''):
