@@ -552,14 +552,20 @@ class Transpiler:
 		return (self.hpp, self.cpp)
 	
 	def save_result(self):
-		if not self.out_name.endswith('.cpp'): self.out_name += '.cpp'
+		
+		self.out_name = self.out_name.replace('.cpp', '').replace('.hpp', ''):
+		
+		cpp_outname = self.out_name += '.cpp'
+		hpp_out_name = self.out_name += '.hpp'
 		
 		result = self.get_result()
-		
-		with open(self.out_name.replace('.cpp', '.hpp'),'w+') as wf:
+
+		os.makedirs(os.path.dirname(hpp_out_name), exist_ok=True)
+		with open(hpp_out_name,'w+') as wf:
 			wf.write(result[0])
-			
-		with open(self.out_name,'w+') as wf:
+		
+		os.makedirs(os.path.dirname(cpp_outname), exist_ok=True)
+		with open(cpp_outname,'w+') as wf:
 			wf.write(result[1])
 	
 	def UpScope(self):

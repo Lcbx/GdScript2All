@@ -175,8 +175,7 @@ class Parser:
 
 			if annotation: self.out.annotation(annotation, ann_params, memberName, ann_endline)
 
-			# ugly but ':' can be a type annotation or setget delimiter
-			foundSetGet = self.declare( memberName, \
+			self.declare( memberName, \
 					 self.DECL_FLAGS.property \
 				| (  self.DECL_FLAGS.constant if constant \
 				else self.DECL_FLAGS.static if static \
@@ -961,6 +960,11 @@ class Parser:
 	# parse type string and format it the way godot docs do
 	def parseType(self):
 		type = self.consume()
+
+		# gdscript supports Nested type defs, so you must keep reading tokens until you exit the <type>. 
+		# Let's assume for now that subtypes are created as seperate types for c#, so referencing them directly should be correct.
+		while self.expect("."): type = self.consume()
+
 		# Array[<type>] => <type>[]
 		if type == 'Array' and self.expect('['):
 			type = self.consume() + '[]'; self.expect(']')
