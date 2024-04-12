@@ -975,12 +975,18 @@ class Parser:
 		return separator.join(result)
 	
 	# parse params definition (call, signal, lambda)
+	# NOTE: also used to parse enums
 	def parseParamDefinition(self, closing_char = ')'):
 		params = {}
 		params_init = {}
 		
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
 		for _ in self.doWhile(lambda: not self.expect(closing_char)):
+
+			# NOTE: ignoring endlines and comments
+			if self.expect_type('LINE_END'): continue 
+			# TODO: keep input formating  instead
+			
 			pName = self.consume()
 			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
 			

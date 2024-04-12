@@ -40,6 +40,7 @@ class script_level : public Node {
 public:
 	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
 	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
+	enum WithEndlines {THING_1, THING_2};
 
 protected:
 	Variant export;
@@ -78,5 +79,6 @@ public:
 };
 
 VARIANT_ENUM_CAST(script_level::Named)
+VARIANT_ENUM_CAST(script_level::WithEndlines)
 
 #endif // SCRIPT_LEVEL_H
