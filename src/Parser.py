@@ -993,16 +993,20 @@ class Parser:
 			result.append(self.consume())
 		return separator.join(result)
 	
-	# parse params definition (call, signal, lambda)
+	# parse params definition (call, signal, lambda) AND ENUMS!!!!
 	def parseParamDefinition(self, closing_char = ')'):
 		params = {}
 		params_init = {}
 		
 		# param -> <name> [: [<type>]?]? [= <Expression>]?
 		for _ in self.doWhile(lambda: not self.expect(closing_char)):
+			isLineEnding = False
+			# We still need the remaining processing to tokenize properly, even if a line ending is detected
+			# Long term, it would be better to rebuild this to allow output style to match input style
+			if self.match_type('LINE_END'):
+				isLineEnding = True
 			pName = self.consume()
 			pType = self.parseType() if self.expect(':') and self.match_type('TEXT') else None
-			
 			# initialisation
 			if self.expect('='):
 				pInit = self.expression()
@@ -1012,7 +1016,8 @@ class Parser:
 			
 			pType = pType or 'Variant'
 			self.expect(',')
-			params[pName] = pType
+			if not isLineEnding:
+				params[pName] = pType
 		
 		# NOTE: params_init only used in method definition
 		return params, params_init
