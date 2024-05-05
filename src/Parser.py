@@ -78,9 +78,12 @@ class Parser:
 		
 		# script start specific statements
 		self.is_tool = self.expect('@', 'tool'); self.endline()
-		base_class = self.consume() if self.expect('extends') else 'Object'; self.endline()
-		class_name = self.consume() if self.expect('class_name') else self.script_name
-		# NOTE: no endline after class name since we declare the class before that
+		class_name = self.script_name
+		base_class = 'Object'
+		# NOTE: duplicating class_name parsing to any order of class_name/extends
+		if self.expect('class_name'): class_name = self.consume(); self.endline()
+		if self.expect('extends'): base_class = self.consume(); self.endline()
+		if self.expect('class_name'): class_name = self.consume()
 		
 		# initialize script class data
 		self.add_class(class_name, base_class, is_main = True); self.endline()

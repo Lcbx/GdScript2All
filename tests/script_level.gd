@@ -1,4 +1,4 @@
-extends Node
+class_name script_level extends Node
 
 class Nested1 extends test: pass
 
