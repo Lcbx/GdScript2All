@@ -964,13 +964,12 @@ class Parser:
 	def parseType(self):
 		type = self.consume()
 
-		# gdscript supports Nested type defs, so you must keep reading tokens until you exit the <type>. 
-		# Let's assume for now that subtypes are created as seperate types for c#, so referencing them directly should be correct.
-		while self.expect("."): type = self.consume()
+		while self.expect("."): type += '.' + self.consume()
 
 		# Array[<type>] => <type>[]
 		if type == 'Array' and self.expect('['):
-			type = self.consume() + '[]'; self.expect(']')
+			type = self.parseType() + '[]'; self.expect(']')
+
 		return type
 		
 	def consumeUntil(self, token, separator = ''):

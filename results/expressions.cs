@@ -20,6 +20,7 @@ public partial class expressions : Godot.Node
 	public int Parenthesis = (42);
 	public int DelayedExpression = 1;
 	public double AsKeyword = 3;
+	public Array<Animation.TrackType> ArrayOfEnum;
 
 	// multi-part expressions
 	public double Arithmetic =  - j * 0.5;

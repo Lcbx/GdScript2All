@@ -510,9 +510,12 @@ class Transpiler:
 		if type == 'float' and not use_floats: return 'double'
 		if toVariantTypeConstant(type): return type
 
+		split = type.split('.')
 		# to generate includes
-		if type in godot_types: self.used_types.add(type)
+		if split[-1] in godot_types: self.used_types.add(split[-1])
+		if len(split) > 1 and split[-2] in godot_types: self.used_types.add(split[-2])
 
+		type = '::'.join(split)
 		return f'Ref<{type}>'
 	
 	def comment(self, content):

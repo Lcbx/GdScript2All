@@ -28,6 +28,7 @@ protected:
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;
+	Array array_of_enum;
 
 // multi-part expressions
 	double arithmetic =  - j * 0.5;

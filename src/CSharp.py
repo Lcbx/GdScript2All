@@ -441,7 +441,7 @@ def translate_type(type):
 	if type.endswith('enum'): return type[:-len('enum')]
 	if type == 'float' and not use_floats: return 'double'
 	if isVariantType(type): return type
-	if type in godot_types: return f'Godot.{type}'
+	if type.split('.') [-1] in godot_types: return f'Godot.{type}'
 	return type
 
 def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
