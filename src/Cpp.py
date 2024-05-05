@@ -555,8 +555,11 @@ class Transpiler:
 		return (self.hpp, self.cpp)
 	
 	def save_result(self):
-		if '.' in self.out_name[-4:]: self.out_name = '.'.join(self.out_name.split('.', )[:-1])
-		print(self.out_name)
+		
+		# clean the extension, JIC
+		if '.' in self.out_name[-4:]:
+			self.out_name = '.'.join(self.out_name.split('.')[:-1])
+
 		cpp_outname = self.out_name + '.cpp'
 		hpp_out_name = self.out_name + '.hpp'
 		

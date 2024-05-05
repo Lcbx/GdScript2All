@@ -80,7 +80,7 @@ class Parser:
 		self.is_tool = self.expect('@', 'tool'); self.endline()
 		class_name = self.script_name
 		base_class = 'Object'
-		# NOTE: duplicating class_name parsing to any order of class_name/extends
+		# NOTE: parsing class_name twice, to allow any order of class_name/extends statements
 		if self.expect('class_name'): class_name = self.consume(); self.endline()
 		if self.expect('extends'): base_class = self.consume(); self.endline()
 		if self.expect('class_name'): class_name = self.consume()
