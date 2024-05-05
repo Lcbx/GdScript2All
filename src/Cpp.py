@@ -552,19 +552,16 @@ class Transpiler:
 		return (self.hpp, self.cpp)
 	
 	def save_result(self):
-		
-		self.out_name = self.out_name.replace('.cpp', '').replace('.hpp', ''):
-		
-		cpp_outname = self.out_name += '.cpp'
-		hpp_out_name = self.out_name += '.hpp'
+		if '.' in self.out_name[-4:]: self.out_name = '.'.join(self.out_name.split('.', )[:-1])
+		print(self.out_name)
+		cpp_outname = self.out_name + '.cpp'
+		hpp_out_name = self.out_name + '.hpp'
 		
 		result = self.get_result()
 
-		os.makedirs(os.path.dirname(hpp_out_name), exist_ok=True)
 		with open(hpp_out_name,'w+') as wf:
 			wf.write(result[0])
-		
-		os.makedirs(os.path.dirname(cpp_outname), exist_ok=True)
+
 		with open(cpp_outname,'w+') as wf:
 			wf.write(result[1])
 	

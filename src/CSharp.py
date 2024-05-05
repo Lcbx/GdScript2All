@@ -407,7 +407,6 @@ class Transpiler:
 	
 	def save_result(self):
 		if not self.out_name.endswith('.cs'): self.out_name += '.cs'
-		os.makedirs(os.path.dirname(self.out_name), exist_ok=True)
 		with open(self.out_name,'w+') as wf:
 			wf.write(self.get_result()[0])
 	

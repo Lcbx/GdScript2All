@@ -85,6 +85,7 @@ def main():
 	for i, filename in enumerate(files):
 		
 		outname = filename.replace(args.input, args.output).replace('.gd', '')
+		os.makedirs(os.path.dirname(outname), exist_ok=True)
 		
 		with open(filename,'r+') as f:
 			text = f.read()
