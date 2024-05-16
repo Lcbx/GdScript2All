@@ -3,9 +3,11 @@ A python tool for migrating [Godot](https://github.com/godotengine/godot)'s GdSc
 It should be fairly easy to add new langugages (see [here](#Adding-new-languages))
 
 ### Usage
+with python 3.5+ installed, call the main script using your favorite command line utility :
 ```bash
 py main.py <file_or_folder_path> -o <output_file_or_folder_path>
 ```
+this will generate C# code by default, add ```-t Cpp``` to the arguments to generate c++ instead
 
 ### Example
 script input :
