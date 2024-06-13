@@ -283,6 +283,9 @@ class Transpiler:
 		if op == '!': self += op
 		else: self += f' {op} '
 	
+	def check_type(self, exp, checked):
+		get(exp); self += f' is {translate_type(checked)}'
+
 	def ternary(self, iterator):
 		# condition, valueIfTrue, valueIfFalse
 		self += '( '

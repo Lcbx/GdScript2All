@@ -106,6 +106,9 @@ class Transpiler:
 	def operator(self, op):
 		pass
 	
+	def check_type(self, exp, checked):
+		get(exp)
+
 	def ternary(self, iterator):
 		get(iterator)
 		get(iterator)

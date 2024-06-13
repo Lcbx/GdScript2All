@@ -42,6 +42,14 @@ public partial class statements : Godot.Node
 			i += j;
 		}
 
+		foreach(int j in GD.Range(i))
+		{
+			i += j;
+		}
+
+		GD.Print(i is int);
+		GD.Print(i is Godot.MeshInstance3D);
+
 		switch(i)
 		{
 			case "1":

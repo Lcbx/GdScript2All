@@ -291,6 +291,10 @@ class Transpiler:
 		if op == '!': self += op
 		else: self += f' {op} '
 	
+	def check_type(self, exp, checked):
+		# NOTE : not perfect depending on the types given. a good start nonetheless
+		self+= f'(bool)dynamic_cast<{checked}*>(&'; get(exp); self+=')'
+
 	def ternary(self, iterator):
 		# condition, valueIfTrue, valueIfFalse
 		self += '( '

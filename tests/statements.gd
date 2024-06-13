@@ -23,6 +23,12 @@ func method():
 	
 	for j in range(i):
 		i += j
+
+	for j : int in range(i):
+		i += j
+
+	print(i is int)
+	print(i is MeshInstance3D)
 	
 	match i:
 		"1":

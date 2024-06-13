@@ -39,6 +39,14 @@ Array statements::method()
 		i += j;
 	}
 
+	for(int j=0; j<i; j+=1)
+	{
+		i += j;
+	}
+
+	UtilityFunctions::print((bool)dynamic_cast<int*>(&i));
+	UtilityFunctions::print((bool)dynamic_cast<MeshInstance3D*>(&i));
+
 	switch(i)
 	{
 		case "1":

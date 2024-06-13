@@ -288,12 +288,13 @@ class Parser:
 	
 	def forStmt(self):
 		name = self.consume()
+		iterator_type = self.parseType() if self.expect(':') else None
 		
 		self.expect('in')
 		
 		exp = self.expression()
 		exp_type = next(exp)
-		iterator_type = exp_type.replace('[]', '')
+		iterator_type = iterator_type or exp_type.replace('[]', '')
 		
 		self.locals[name] = iterator_type
 		self.out.forStmt(name, iterator_type, exp)
@@ -479,10 +480,18 @@ class Parser:
 		# NOTE: type casting will work in C# with a as keyword, but wont with c++
 		# TBD if we need to do something here
 		if self.expect('as'): type = self.parseType()
-		yield type
-		next(exp)
-		yield
-		
+
+		# handling type checks here
+		if self.expect('is'):
+			checked = self.parseType()
+			yield 'bool'
+			self.out.check_type(exp, checked)
+			yield
+
+		else:
+			yield type
+			next(exp)
+			yield
 	
 	def ternary(self):
 		valTrue = self.boolean()
