@@ -27,7 +27,7 @@ func method():
 	for j : int in range(i):
 		i += j
 
-	print(i is int)
+	if i is int: i = 0
 	print(i is MeshInstance3D)
 	
 	match i:

@@ -44,7 +44,9 @@ Array statements::method()
 		i += j;
 	}
 
-	UtilityFunctions::print((bool)dynamic_cast<int*>(&i));
+	if((bool)dynamic_cast<int*>(&i))
+	{i = 0;
+	}
 	UtilityFunctions::print((bool)dynamic_cast<MeshInstance3D*>(&i));
 
 	switch(i)

@@ -480,18 +480,9 @@ class Parser:
 		# NOTE: type casting will work in C# with a as keyword, but wont with c++
 		# TBD if we need to do something here
 		if self.expect('as'): type = self.parseType()
-
-		# handling type checks here
-		if self.expect('is'):
-			checked = self.parseType()
-			yield 'bool'
-			self.out.check_type(exp, checked)
-			yield
-
-		else:
-			yield type
-			next(exp)
-			yield
+		yield type
+		next(exp)
+		yield
 	
 	def ternary(self):
 		valTrue = self.boolean()
@@ -524,6 +515,13 @@ class Parser:
 			next(ar1)
 			self.out.operator(op)
 			next(ar2)
+			
+		# handling type checks here
+		elif self.expect('is'):
+			checked = self.parseType()
+			yield 'bool'
+			self.out.check_type(ar1, checked)
+		
 		else:
 			yield ar_type
 			next(ar1)

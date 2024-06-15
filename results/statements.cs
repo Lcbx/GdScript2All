@@ -47,7 +47,9 @@ public partial class statements : Godot.Node
 			i += j;
 		}
 
-		GD.Print(i is int);
+		if(i is int)
+		{i = 0;
+		}
 		GD.Print(i is Godot.MeshInstance3D);
 
 		switch(i)
