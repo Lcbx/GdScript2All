@@ -4,16 +4,11 @@ import sys
 # small and fast serialization
 from pickle import dump as save, load
 
-# allow using scripts in src folder
-sys.path.insert(0,'src')
-
-# see ClassData.py
 from ClassData import ClassData
 
-
-SAVEFILE = 'src/godot_types.pickle'
-DOC_FOLDER = 'classData'
-
+local_path = os.path.dirname(__file__)
+SAVEFILE =   local_path + '/godot_types.pickle'
+DOC_FOLDER = local_path + '/classData'
 
 # the data people we import in this script
 # { 'class': ClassData }

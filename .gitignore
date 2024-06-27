@@ -18,6 +18,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 
+nuitka_build/
+
 .vscode
 __pycache__/
 .tmp*

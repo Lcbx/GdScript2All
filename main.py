@@ -1,20 +1,11 @@
-#!python
-
-
 import os
 import sys
-import argparse
-
-# call src folder scripts as if they were in the local dir
-sys.path.insert(0,'src')
-
-import Parser as Parser
-from UserTypesResolver import Transpiler as TypeResolver
-
 
 def main():
+	
+	import argparse
 	commandLineArgs = argparse.ArgumentParser(description='GDscript transpiler')
-	commandLineArgs.add_argument('input', nargs = '?',  help='path to GDscript code (folder or file)', default = './tests')
+	commandLineArgs.add_argument('input', nargs = '*', help='path to GDscript code (folder or file)', default = ['./tests'])
 	commandLineArgs.add_argument('-o', '--output', nargs = '?', default = './results', help='where to output transpiled code ')
 	commandLineArgs.add_argument('-t', '--transpiler', nargs = '?', default = 'CSharp', help='which transpiler script to use')
 	commandLineArgs.add_argument('-v', '--verbose', action='store_true', default = False, help='print additional execution logs' )
@@ -25,6 +16,10 @@ def main():
 	commandLineArgs.add_argument('--no_save', action='store_true', default = False, help='do not save output code as a file' )
 	commandLineArgs.add_argument('--tokens', action='store_true', default = False, help='if set will print the tokenizer output' )
 	args = commandLineArgs.parse_args()
+	
+	import src
+	import Parser
+	from UserTypesResolver import Transpiler as TypeResolver
 
 	# dynamic import
 	Transpiler = __import__(args.transpiler.replace('.py', ''))
@@ -33,25 +28,26 @@ def main():
 	def getPrinter(condition): return print if condition else lambda a,*b:None
 
 	# files to transpile
-	files = []
-
-	if os.path.isdir(args.input):
-		# Find all gd files in input dir
-		files = [
-			os.path.join(root, file)
-			for root, dirs, files in os.walk(args.input)
-			for file in files
-			if os.path.splitext(file)[1] == '.gd'
-		]
-	else:
-		files = [args.input]
+	input_files = set()
+	for path in args.input:
+		if os.path.isdir(path):
+			# Find all gd files in input dir
+			input_files.update([
+				os.path.join(root, file)
+				for root, dirs, files in os.walk(path)
+				for file in files
+				if os.path.splitext(file)[1] == '.gd'
+			])
+		else:
+			# simple file
+			input_files.add( path )
 
 
 	if args.verbose:
-		print("")
-		print(f"files to process :\n{files}")
+		print(f"args: {sys.argv}")
+		print(f"files to process :\n{input_files}")
 
-	total = len(files)
+	total = len(input_files)
 
 	script_classes = {}
 
@@ -61,7 +57,7 @@ def main():
 	# type resolving step : useful for both calling user classes from another
 	# and for using method result type before it is defined  
 	if not args.no_type_resolving:
-		for i, filename in enumerate(files):
+		for i, filename in enumerate(input_files):
 
 			with open(filename,'r+') as f:
 				text = f.read()
@@ -82,9 +78,9 @@ def main():
 
 		Parser.godot_types.update(script_classes)
 
-	for i, filename in enumerate(files):
+	for i, filename in enumerate(input_files):
 		
-		outname = filename.replace(args.input, args.output).replace('.gd', '')
+		outname = filename.replace(os.path.dirname(filename), args.output).replace('.gd', '')
 		os.makedirs(os.path.dirname(outname), exist_ok=True)
 		
 		with open(filename,'r+') as f:

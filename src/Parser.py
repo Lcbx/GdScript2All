@@ -3,8 +3,8 @@ import os
 from copy import copy
 from enum import IntFlag as Flags
 
-from ClassData import ClassData
 from Tokenizer import Tokenizer
+from ClassData import ClassData
 
 # NOTE: we add locally defined classes to godot_types
 # to avoid having to join definitions

@@ -1,7 +1,7 @@
-from StringBuilder import StringBuilder
-from godot_types import *
 from re import sub as regex_replace
+from godot_types import *
 
+from StringBuilder import StringBuilder
 
 class Transpiler:
 	

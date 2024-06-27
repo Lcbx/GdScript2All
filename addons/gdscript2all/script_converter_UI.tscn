@@ -1,0 +1,108 @@
+[gd_scene load_steps=4 format=3 uid="uid://bjrwcqs0ljhql"]
+
+[ext_resource type="Script" path="res://addons/gdscript2all/script_list.gd" id="1_4jhse"]
+[ext_resource type="Script" path="res://addons/gdscript2all/script_converter_UI.gd" id="1_u6hgb"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_jbrp0"]
+
+[node name="script_converter_plugin" type="SplitContainer"]
+offset_right = 1152.0
+script = ExtResource("1_u6hgb")
+
+[node name="scripts" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="scripts"]
+layout_mode = 2
+theme_type_variation = &"HeaderLarge"
+text = "Scripts"
+
+[node name="items" type="ItemList" parent="scripts"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tooltip_text = "drag & drop scripts or folders from the FileSystem dock here"
+script = ExtResource("1_4jhse")
+
+[node name="Controls" type="VBoxContainer" parent="."]
+layout_mode = 2
+tooltip_text = "generates new scripts in the original script's folder by default"
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Controls"]
+layout_mode = 2
+theme_type_variation = &"HeaderLarge"
+text = "Controls"
+
+[node name="languages" type="HBoxContainer" parent="Controls"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Controls/languages"]
+layout_mode = 2
+text = "Language Target :"
+
+[node name="ButtonGroup" type="CheckBox" parent="Controls/languages"]
+visible = false
+layout_mode = 2
+button_group = SubResource("ButtonGroup_jbrp0")
+text = "
+"
+
+[node name="Csharp" type="CheckBox" parent="Controls/languages"]
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_jbrp0")
+text = "C#"
+metadata/transpiler_name = "CSharp"
+
+[node name="Cpp" type="CheckBox" parent="Controls/languages"]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_jbrp0")
+text = "c++
+"
+metadata/transpiler_name = "Cpp"
+
+[node name="output" type="HBoxContainer" parent="Controls"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Controls/output"]
+layout_mode = 2
+text = "Output Folder :"
+
+[node name="Edit" type="TextEdit" parent="Controls/output"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+placeholder_text = "ex: 'res://Csharp'"
+wrap_mode = 1
+autowrap_mode = 1
+scroll_fit_content_height = true
+
+[node name="Convert" type="MarginContainer" parent="Controls"]
+layout_mode = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_right = 50
+
+[node name="Button" type="Button" parent="Controls/Convert"]
+layout_mode = 2
+text = "Convert"
+
+[node name="logs" type="VBoxContainer" parent="Controls"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="title" type="Label" parent="Controls/logs"]
+layout_mode = 2
+theme_type_variation = &"HeaderLarge"
+text = "Execution Logs"
+
+[node name="content" type="RichTextLabel" parent="Controls/logs"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+selection_enabled = true
+
+[connection signal="pressed" from="Controls/Convert/Button" to="." method="_generate_scripts_pressed"]

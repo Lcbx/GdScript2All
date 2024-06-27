@@ -1,6 +1,5 @@
-from StringBuilder import StringBuilder
+import re as regex
 from godot_types import *
-import re
 
 # ClassDefinition
 # contains the code being generated for a class
@@ -480,7 +479,7 @@ class Transpiler:
 		while self.level > 0: self.DownScope()
 
 		# generate includes
-		to_camel_case = lambda s: re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+		to_camel_case = lambda s: regex.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 		to_include = lambda s: '#include <godot_cpp/classes/' \
 			+ to_camel_case(s) \
 			.replace('2_d', '2d') \
