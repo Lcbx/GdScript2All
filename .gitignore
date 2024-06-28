@@ -18,12 +18,10 @@ bld/
 [Oo]bj/
 [Ll]og/
 
-nuitka_build/
 
 .vscode
 __pycache__/
 .tmp*
-
-# should not matter
-*.exe
 *.pdb
+
+nuitka_build/
