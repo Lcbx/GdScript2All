@@ -14,12 +14,15 @@ def main():
 	commandLineArgs.add_argument('--parser_verbose', action='store_true', default = False, help='print additional transpiler execution logs' )
 	commandLineArgs.add_argument('--no_type_resolving', action='store_true', default = False, help='removes the initial type resolving step for user types' )
 	commandLineArgs.add_argument('--no_save', action='store_true', default = False, help='do not save output code as a file' )
-	commandLineArgs.add_argument('--print_tokens', action='store_true', default = False, help='if set will print the tokenizer output' )
+	commandLineArgs.add_argument('--print_tokens', action='store_true', default = False, help='print the tokenizer output' )
+	commandLineArgs.add_argument('--log_file', default = None, help='redirect stdout and stderr to specified filepath' )
 	args = commandLineArgs.parse_args()
 	
 	import src
 	import Parser
 	from UserTypesResolver import Transpiler as TypeResolver
+
+	if args.log_file: sys.stdout = sys.stderr = open(args.log_file, 'w')
 
 	# dynamic import
 	Transpiler = __import__(args.transpiler.replace('.py', ''))

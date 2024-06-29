@@ -75,7 +75,7 @@ text = "Output Folder :"
 [node name="Edit" type="TextEdit" parent="Controls/output"]
 custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
-placeholder_text = "ex: 'res://Csharp'"
+placeholder_text = "res://CSharp"
 wrap_mode = 1
 autowrap_mode = 1
 scroll_fit_content_height = true
@@ -105,4 +105,6 @@ size_flags_vertical = 3
 focus_mode = 2
 selection_enabled = true
 
+[connection signal="toggled" from="Controls/languages/Csharp" to="." method="_on_toggled"]
+[connection signal="toggled" from="Controls/languages/Cpp" to="." method="_on_toggled"]
 [connection signal="pressed" from="Controls/Convert/Button" to="." method="_generate_scripts_pressed"]
