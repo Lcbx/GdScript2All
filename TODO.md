@@ -1,5 +1,4 @@
 ## TODO
-- [ ] FIX : there seem to be some scripts that never finish transpiling !
 - [ ] submit to asset library (https://docs.godotengine.org/en/stable/community/asset_library/submitting_to_assetlib.html)
 - [ ] add linux/mac builds using nuitka action (make addon using releases ? dunno if asset lib accepts that)
 - [x] detect base class method override (_ready, _process, ...)
