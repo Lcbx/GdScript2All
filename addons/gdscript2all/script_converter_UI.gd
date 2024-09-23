@@ -35,7 +35,7 @@ func _generate_scripts_pressed():
 		)
 	
 	if EditorInterface.get_editor_settings().get_setting(gdscript2all_plugin.display_command):
-		logs.text += 'command : %s %s\n\n' % [ transpiler_exe_path, ' '.join(command)]
+		logs.text += 'command : %s %s\n\n' % [ transpiler_exe_path, ' '.join(command) ]
 	
 	var pid = OS.create_process(transpiler_exe_path, command)
 	
@@ -58,4 +58,3 @@ func _on_execution_timeout(pid:int):
 	if OS.is_process_running(pid):
 		OS.kill(pid)
 		logs.text += 'execution timeout, you can set a longer time in %s' %  [gdscript2all_plugin.timeout_setting]
-

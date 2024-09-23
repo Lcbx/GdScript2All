@@ -2,13 +2,14 @@
 A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference, written in Python.
 It should be fairly easy to add new languages (see [here](#Adding-new-languages)).
 
-#### Editor addon (windows only)
-Download as a zip (not yet available from the Godot asset library), extract into your project and enable the plugin in your project settings.
+#### Editor addon
+Windows-only, not yet available in the Godot asset library.
+Download this repo as zip (Code->Download as zip), extract it in your project then enable it in Project Settings->Plugins.
 
 #### From the command line
-with python 3.9+ installed, call the main script using your favorite command line utility (add ```-t Cpp``` for c++) :
+call the main script using your favorite command line utility (add ```-t Cpp``` for c++) :
 ```bash
-py main.py <file_or_folder_path> -o <output_file_or_folder_path>
+python main.py <file_or_folder_path> -o <output_file_or_folder_path>
 ```
 
 ### Example
@@ -33,7 +34,7 @@ __test.cpp__
 If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
 modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
 ```bash
-py main.py -t Cpp <file_or_folder_path>
+python main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations

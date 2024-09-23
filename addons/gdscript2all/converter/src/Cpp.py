@@ -1,5 +1,6 @@
 import re as regex
 from godot_types import *
+from StringBuilder import StringBuilder
 
 # ClassDefinition
 # contains the code being generated for a class

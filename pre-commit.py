@@ -6,8 +6,9 @@ def read_file(filename):
 		return f.read()
 
 # transpile the test code
-subprocess.run(['py', 'main.py'])
-subprocess.run(['py', 'main.py', '-t', 'Cpp'])
+mainPath = 'addons/gdscript2all/converter/main.py'
+subprocess.run(['python', mainPath])
+subprocess.run(['python', mainPath, '-t', 'Cpp'])
 
 template = read_file('README_TEMPLATE.md')
 
