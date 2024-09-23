@@ -29,6 +29,9 @@ protected:
 	int delayed_expression = 1;
 	double asKeyword = 3;
 	Array array_of_enum;
+	double func_call = Math::sin(34);
+// comment \
+	double func_delayed = Math::exp(1, 2);
 
 // multi-part expressions
 	double arithmetic =  - i * 0.5;

@@ -443,6 +443,7 @@ class Parser:
 		# even though it is not conceptually correct
 		exp = self.expression(); next(exp)
 		if self.expect('='):
+			self.endline()
 			ass = self.expression(); next(ass)
 			next(exp); self.out.assignment(ass)
 		else: next(exp)
@@ -919,9 +920,9 @@ class Parser:
 	
 	# parse call params
 	def parseCallParams(self):
-		while not self.expect(')'):
+		for _ in self.doWhile(lambda: not self.expect(')')):
 			exp = self.expression(); next(exp); yield exp
-			self.expect(',')
+			self.expect(','); self.endline()
 	
 	
 	""" parsing """

@@ -16,6 +16,10 @@ var delayed_expression = \
 	1
 var asKeyword = 3 as float
 var array_of_enum : Array[Animation.TrackType]
+var func_call = sin(34)
+var func_delayed = \
+	exp( 1, # comment \
+		2)
 
 # multi-part expressions
 var arithmetic = - i * .5

@@ -21,6 +21,9 @@ public partial class expressions : Godot.Node
 	public int DelayedExpression = 1;
 	public double AsKeyword = 3;
 	public Array<Animation.TrackType> ArrayOfEnum;
+	public double FuncCall = Mathf.Sin(34);
+	// comment \
+	public double FuncDelayed = Mathf.Exp(1, 2);
 
 	// multi-part expressions
 	public double Arithmetic =  - I * 0.5;
