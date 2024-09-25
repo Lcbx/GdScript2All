@@ -3,7 +3,8 @@ A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript t
 
 #### Editor addon
 Not yet available in the Godot asset library. Requires Python 3.9+.  
-Download this repo as zip (Code->Download as zip), extract it in your project then enable it in Project Settings->Plugins.
+Download as zip (Code->Download as zip), extract in your project then enable it in Project Settings->Plugins.  
+To use, drag&drop files and folders from the FileSystem dock then click convert.  
 <img style='height: 95%; width: 95%;' src="Screenshot.png">
 
 
