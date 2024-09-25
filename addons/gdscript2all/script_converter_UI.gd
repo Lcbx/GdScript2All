@@ -23,21 +23,21 @@ func _generate_scripts_pressed():
 	var output_path := 'res://' + (output_edit.text if output_edit.text else transpiler_name)
 	var output_folder := ProjectSettings.globalize_path(output_path)
 	var logs_path := ProjectSettings.globalize_path(logs_localpath)
-	
-	var exe_name := 'main.exe' if OS.get_name() == 'Windows' else 'main'
-	var transpiler_exe_path := ProjectSettings.globalize_path(transpiler_localpath) + exe_name
+	var transpiler_path := ProjectSettings.globalize_path(transpiler_localpath)
 	
 	var output := []
-	var command := ( script_paths
+	var command := (
+		[ transpiler_path + 'main.py' ]
+		+ script_paths
 		+ [ '-t', transpiler_name ]
 		+ [ '-o', output_folder ]
 		+ [ '--log_file', logs_path ]
 		)
 	
 	if EditorInterface.get_editor_settings().get_setting(gdscript2all_plugin.display_command):
-		logs.text += 'command : %s %s\n\n' % [ transpiler_exe_path, ' '.join(command) ]
+		logs.text += 'command : %s\n\n' % [ ' '.join(command) ]
 	
-	var pid = OS.create_process(transpiler_exe_path, command)
+	var pid = OS.create_process('python', command)
 	
 	var timeout_s : float = EditorInterface.get_editor_settings().get_setting(gdscript2all_plugin.timeout_setting)
 	get_tree().create_timer(timeout_s).timeout.connect(_on_execution_timeout.bind(pid))

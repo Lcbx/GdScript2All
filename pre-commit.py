@@ -1,5 +1,5 @@
 print("regenerating README")
-import subprocess
+from subprocess import run
 
 def read_file(filename):
 	with open(filename, 'r') as f:
@@ -7,8 +7,8 @@ def read_file(filename):
 
 # transpile the test code
 mainPath = 'addons/gdscript2all/converter/main.py'
-subprocess.run(['python', mainPath])
-subprocess.run(['python', mainPath, '-t', 'Cpp'])
+run(['python', mainPath])
+run(['python', mainPath, '-t', 'Cpp'])
 
 template = read_file('README_TEMPLATE.md')
 
@@ -30,8 +30,12 @@ for placeholder, filename in transforms.items():
 
 with open('README.md', 'w+') as f: f.write(newReadme)
 
+# keep files in addon updated
+run(['cp', 'LICENSE',   'addons/gdscript2all/'])
+run(['cp', 'README.md', 'addons/gdscript2all/'])
+
 # add the change to the commit
-subprocess.run(['git', 'add', 'README.md'])
+run(['git', 'add', 'README.md'])
 
 # show files commited
-subprocess.run(['git', 'status'])
+run(['git', 'status'])
