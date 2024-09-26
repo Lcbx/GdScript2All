@@ -36,6 +36,7 @@ run(['cp', 'README.md', 'addons/gdscript2all/'])
 
 # add the change to the commit
 run(['git', 'add', 'README.md'])
+run(['git', 'add', 'addons/gdscript2all/README.md'])
 
 # show files commited
 run(['git', 'status'])

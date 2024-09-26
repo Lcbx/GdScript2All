@@ -1,9 +1,9 @@
 ## GdScript2All
-A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference, written in Python.
+A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference. Requires [Python 3.9+ installed](https://www.python.org/downloads/).  
 
 #### Editor addon
-Not yet available in the Godot asset library. Requires Python 3.9+.  
-Download as zip (Code->Download as zip), extract in your project then enable it in Project Settings->Plugins.  
+Available from the Asset Lib tab in editor or alternatively [download as zip](https://github.com/Lcbx/GdScript2All/zipball/main/) and extract into your project.  
+Enable in Project Settings->Plugins then you're set.  
 To use, drag&drop files and folders from the FileSystem dock then click convert.  
 <img style='height: 95%; width: 95%;' src="Screenshot.png">
 
