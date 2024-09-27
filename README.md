@@ -1,5 +1,5 @@
 ## GdScript2All
-A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference. Requires [Python 3.9+ installed](https://www.python.org/downloads/).  
+A tool for converting [Godot](https://github.com/godotengine/godot)'s GdScript to other languages (currently C# and c++) with features like type inference. Requires [Python installed](https://www.python.org/downloads/) (tested with 3.12.5).  
 
 #### Editor addon
 Available from the Asset Lib tab in editor or alternatively [download as zip](https://github.com/Lcbx/GdScript2All/zipball/main/) and extract into your project.  
@@ -430,7 +430,7 @@ void test::_bind_methods() {
 If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
 modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
 ```bash
-python main.py -t Cpp <file_or_folder_path>
+python ./addons/gdscript2all/converter/main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
@@ -450,10 +450,10 @@ match [34, 6]:
 will probably not be supported (too complicated to generate an equivalent)
 
 ### Updating the API definition
-* clone the offical godot repo
+* download the offical godot repo
 * copy it's ```doc/classes``` folder and paste it into our ```classData``` folder
 * install untangle (xml parsing library) if you don't have it (```pip install untangle```)
-* run ```py src/godot_types.py``` to generate the pickle class db
+* run ```py ./addons/gdscript2all/converter/src/godot_types.py``` to generate the pickle class db
 * profit.
 
 ### Explaining the GPL-3.0 license

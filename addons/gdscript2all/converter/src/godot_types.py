@@ -8,7 +8,7 @@ from ClassData import ClassData
 
 local_path = os.path.dirname(__file__)
 SAVEFILE =   local_path + '/godot_types.pickle'
-DOC_FOLDER = local_path + '/classData'
+DOC_FOLDER = local_path + '/../../../../classData'
 
 # the data people we import in this script
 # { 'class': ClassData }
