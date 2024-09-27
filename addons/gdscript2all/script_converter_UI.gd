@@ -1,7 +1,6 @@
 @tool extends Control
 
-const transpiler_localpath := "res://addons/gdscript2all/converter/"
-const logs_localpath := "user://gdscript2all_logs.txt"
+const transpiler_path := "./addons/gdscript2all/converter/"
 
 # dummy radiobutton used to get ButtonGroup
 # NOTE : language buttons must have 'transpiler_name' metadata (and the same ButtonGroup as the others)
@@ -16,36 +15,26 @@ func _generate_scripts_pressed():
 	
 	# get all paths
 	var script_paths : Array = (script_itemlist.folders + script_itemlist.files) \
-	  .map(func(path): return ProjectSettings.globalize_path(path) )
+	  .map(func(path): return path.replace("res://", "./") )
 	
 	var transpiler_name := get_transpiler_name()
 	
-	var output_path := 'res://' + (output_edit.text if output_edit.text else transpiler_name)
-	var output_folder := ProjectSettings.globalize_path(output_path)
-	var logs_path := ProjectSettings.globalize_path(logs_localpath)
-	var transpiler_path := ProjectSettings.globalize_path(transpiler_localpath)
+	var output_path := './' + (output_edit.text if output_edit.text else transpiler_name).replace("res://", "")
 	
-	var output := []
-	var command := (
-		[ transpiler_path + 'main.py' ]
-		+ script_paths
-		+ [ '-t', transpiler_name ]
-		+ [ '-o', output_folder ]
-		+ [ '--log_file', logs_path ]
-		)
+	var command := ( [
+		transpiler_path + 'main.py'
+		] + script_paths + [
+		'-t', transpiler_name,
+		'-o', output_path
+		] )
 	
 	if EditorInterface.get_editor_settings().get_setting(gdscript2all_plugin.display_command):
 		logs.text += 'command : %s\n\n' % [ ' '.join(command) ]
 	
-	var pid = OS.create_process('python', command)
+	var output := []
+	OS.execute("python", command, output, true, false)
 	
-	var timeout_s : float = EditorInterface.get_editor_settings().get_setting(gdscript2all_plugin.timeout_setting)
-	get_tree().create_timer(timeout_s).timeout.connect(_on_execution_timeout.bind(pid))
-	
-	while OS.is_process_running(pid):
-		await get_tree().process_frame
-	
-	logs.text += FileAccess.open(logs_path, FileAccess.READ).get_as_text()
+	logs.text += ''.join(output)
 
 
 func get_transpiler_name() -> String:
@@ -53,8 +42,3 @@ func get_transpiler_name() -> String:
 
 func _on_toggled(toggled_on):
 	output_edit.placeholder_text = 'res://' + get_transpiler_name()
-
-func _on_execution_timeout(pid:int):
-	if OS.is_process_running(pid):
-		OS.kill(pid)
-		logs.text += 'execution timeout, you can set a longer time in %s' %  [gdscript2all_plugin.timeout_setting]

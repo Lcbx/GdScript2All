@@ -11,6 +11,7 @@ nuitka_build/
 
 # sublimetext
 *.sublime-workspace
+*.sublime-project
 
 # Binaries
 *.o

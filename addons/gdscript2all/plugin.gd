@@ -14,13 +14,9 @@ func _exit_tree():
 # addon settings
 
 const settings_path := 'docks/gdscript2all/'
-const timeout_setting := settings_path + 'timeout_sec'
 const display_command := settings_path + 'display_exe_command'
 
 func setup_settings():
-	if not EditorInterface.get_editor_settings().has_setting(timeout_setting):
-		EditorInterface.get_editor_settings().set_setting(timeout_setting, 2.)
+	if not EditorInterface.get_editor_settings().has_setting(display_command):
 		EditorInterface.get_editor_settings().set_setting(display_command, false)
 		make_bottom_panel_item_visible(UI)
-
-
