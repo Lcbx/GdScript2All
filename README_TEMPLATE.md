@@ -40,11 +40,7 @@ python ./addons/gdscript2all/converter/main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
-- generated code might need corrections ! (indentation might need a second pass too)
-- this tool parses and emits code ; if it encounters something unexpected it will drop the current line and try to resume at the next (panic mode)
-- generated C++ does a best guess on what should be a pointer/reference
-- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
-- read [TODO.md](TODO.md) for current/missing features
+- endlines within parenthesis - ex ```( 1 \n + 2 )``` - are not supported ; you have to add a ```\``` before the endline
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
@@ -53,7 +49,12 @@ match [34, 6]:
   [var x, 6] when x > 10 :
      print(x)
 ```
-will probably not be supported (too complicated to generate an equivalent)
+will not be supported (too complicated to generate an equivalent)
+- generated code might need corrections !
+- when the parser encounters something unexpected it will drop the current line and try to resume at the next (panic mode). this might result in mangled output.
+- generated C++ does a best guess on what should be a pointer/reference
+- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
+- read [TODO.md](TODO.md) for current/missing features
 
 ### Updating the API definition
 * download the offical godot repo

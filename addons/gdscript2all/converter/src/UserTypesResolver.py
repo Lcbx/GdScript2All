@@ -108,11 +108,9 @@ class Transpiler:
 	
 	def check_type(self, exp, checked):
 		get(exp)
-
-	def ternary(self, iterator):
-		get(iterator)
-		get(iterator)
-		get(iterator)
+	
+	def ternary(self, condition, valueIfTrue, valueIfFalse):
+		get(condition); get(valueIfTrue); get(valueIfFalse)
 	
 	def returnStmt(self, return_exp):
 		get(return_exp)

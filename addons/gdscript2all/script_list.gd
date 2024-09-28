@@ -14,7 +14,7 @@ func _drop_data(position, data) -> void:
 	var paths : Array = data.files
 	for path : String in paths.filter( func(p : String): return (
 		# avoid duplicates
-		( p.ends_with('.gd') and p not in files )
+		( p.ends_with('.gd') and p not in files ) \
 		or (p.ends_with('/') and p not in folders )
 		) ):
 		# NOTE : there can be duplicates by adding files that are in a selected folder,

@@ -41,27 +41,24 @@ var export_flags : int
 
 # basic property definitions / expressions
 static var i = 0
-const str = 'the fox said "get off my lawn"'
+const STRING_CONSTANT = 'the fox said "get off my lawn"'
 var big_str : string = """
     this is a multiline string """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
 
+# type inference
+var j = i
 func method(param = 5.):
     for k in string_array:
         print(k)
     return val * param
 
-# type inference on members
-var j = i
-var k = string_array[0]
-
 # determine type based on godot doc
 var x = self.get_parent()
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
-var function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
@@ -77,8 +74,6 @@ var sprite : Sprite2D :
         sprite.position += Vector2(1,2) # cpp will need help here
     get:
         return sprite
-
-func enum_return(): return THING_2
 
 # signals
 signal jump
@@ -139,13 +134,15 @@ public partial class test : Godot.Node
 
     // basic property definitions / expressions
     public static int I = 0;
-    public const string str = "the fox said \"get off my lawn\"";
+    public const string STRING_CONSTANT = "the fox said \"get off my lawn\"";
     public string BigStr = @"
     this is a multiline string ";
     public Array Array = new Array{0, 1, 2, };
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
 
+    // type inference
+    public int J = I;
     public double Method(double param = 5.0)
     {
         foreach(string k in StringArray)
@@ -155,15 +152,10 @@ public partial class test : Godot.Node
         return val * param;
     }
 
-    // type inference on members
-    public int J = I;
-    public string K = StringArray[0];
-
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-    public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
-    public double Function = Mathf.AngleDifference(0.1, 0.2);
+    public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
     // Gdscript special syntax
     public Godot.Node GetNode = GetNode("node");
@@ -187,10 +179,6 @@ public partial class test : Godot.Node
     }
     private Godot.Sprite2D _Sprite;
 
-
-    public NamedEnum EnumReturn()
-    {return THING_2;
-    }
 
     // signals
     [Signal]
@@ -266,27 +254,25 @@ protected:
 
 // basic property definitions / expressions
     static int i;
-    const String str = "the fox said \"get off my lawn\"";
+    const String STRING_CONSTANT = "the fox said \"get off my lawn\"";
     String big_str = "\
     this is a multiline string ";
     Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
     Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
     Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
 
-// type inference on members
+// type inference
+    int j = i;
+
+// determine type based on godot doc
 
 public:
     double method(double param = 5.0);
 
 protected:
-    int j = i;
-    String k = string_array[0];
-
-// determine type based on godot doc
     Ref<Node> x = this->get_parent();
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
-    double function = Math::angle_difference(0.1, 0.2);
 
 // Gdscript special syntax
     Ref<Node> get_node = get_node("node");
@@ -300,10 +286,8 @@ protected:
 public:
     void set_sprite(Ref<Sprite2D> value);
 
-    Ref<Sprite2D> get_sprite();
-
 // signals
-    NamedEnum enum_return();
+    Ref<Sprite2D> get_sprite();
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
 
@@ -358,10 +342,6 @@ Ref<Sprite2D> test::get_sprite()
     return sprite;
 }
 
-NamedEnum test::enum_return()
-{return THING_2;
-}
-
 void test::async_function()
 {
     /* await this->jump; */ // no equivalent to await in c++ !
@@ -402,7 +382,6 @@ int test::get_export_flags() {
 
 void test::_bind_methods() {
     ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-    ClassDB::bind_method(D_METHOD("enum_return"), &test::enum_return);
     ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
     ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
     ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
@@ -434,11 +413,7 @@ python ./addons/gdscript2all/converter/main.py -t Cpp <file_or_folder_path>
 ```
 
 ### Limitations
-- generated code might need corrections ! (indentation might need a second pass too)
-- this tool parses and emits code ; if it encounters something unexpected it will drop the current line and try to resume at the next (panic mode)
-- generated C++ does a best guess on what should be a pointer/reference
-- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
-- read [TODO.md](TODO.md) for current/missing features
+- endlines within parenthesis - ex ```( 1 \n + 2 )``` - are not supported ; you have to add a ```\``` before the endline
 - pattern matching ex:  
 ```GDScript
 match [34, 6]:
@@ -447,7 +422,12 @@ match [34, 6]:
   [var x, 6] when x > 10 :
      print(x)
 ```
-will probably not be supported (too complicated to generate an equivalent)
+will not be supported (too complicated to generate an equivalent)
+- generated code might need corrections !
+- when the parser encounters something unexpected it will drop the current line and try to resume at the next (panic mode). this might result in mangled output.
+- generated C++ does a best guess on what should be a pointer/reference
+- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
+- read [TODO.md](TODO.md) for current/missing features
 
 ### Updating the API definition
 * download the offical godot repo

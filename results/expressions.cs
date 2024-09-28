@@ -9,7 +9,7 @@ public partial class expressions : Godot.Node
 {
 	public Godot.Variant Foo;
 	public static int I = 0;
-	public const string str = "the fox said \"get off my lawn\"";
+	public const string Str = "the fox said \"get off my lawn\"";
 	public String BigStr = @"
 	this is a multiline string
 ";

@@ -33,13 +33,15 @@ public partial class test : Godot.Node
 
 	// basic property definitions / expressions
 	public static int I = 0;
-	public const string str = "the fox said \"get off my lawn\"";
+	public const string STRING_CONSTANT = "the fox said \"get off my lawn\"";
 	public string BigStr = @"
 	this is a multiline string ";
 	public Array Array = new Array{0, 1, 2, };
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<string> StringArray = new Array{"0", "1", };
 
+	// type inference
+	public int J = I;
 	public double Method(double param = 5.0)
 	{
 		foreach(string k in StringArray)
@@ -49,15 +51,10 @@ public partial class test : Godot.Node
 		return val * param;
 	}
 
-	// type inference on members
-	public int J = I;
-	public string K = StringArray[0];
-
 	// determine type based on godot doc
 	public Godot.Node X = this.GetParent();
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
-	public const RenderingServer.ShaderMode enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
-	public double Function = Mathf.AngleDifference(0.1, 0.2);
+	public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
 	// Gdscript special syntax
 	public Godot.Node GetNode = GetNode("node");
@@ -81,10 +78,6 @@ public partial class test : Godot.Node
 	}
 	private Godot.Sprite2D _Sprite;
 
-
-	public NamedEnum EnumReturn()
-	{return THING_2;
-	}
 
 	// signals
 	[Signal]

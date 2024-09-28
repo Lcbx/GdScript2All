@@ -487,18 +487,17 @@ class Parser:
 	
 	def ternary(self):
 		valTrue = self.boolean()
-		yield next(valTrue)
+		valTrue_type = next(valTrue)
 		if self.expect('if'):
-			# NOTE: nested ternary bug if passed in another way
-			def impl():
-				cond = self.boolean(); next(cond)
-				yield next(cond)
-				self.expect('else')
-				valFalse = self.ternary(); next(valFalse)
-				yield next(valTrue)
-				yield next(valFalse)
-			self.out.ternary(impl())
-		else: next(valTrue)
+			cond = self.boolean(); next(cond)
+			self.expect('else')
+			valFalse = self.ternary()
+			valFalse_type = next(valFalse)
+			yield valTrue_type or valFalse_type
+			self.out.ternary(cond, valTrue, valFalse)
+		else:
+			yield valTrue_type
+			next(valTrue)
 		yield
 	
 	
@@ -522,6 +521,17 @@ class Parser:
 			checked = self.parseType()
 			yield 'bool'
 			self.out.check_type(ar1, checked)
+
+		# handling "<element> in <array>" checks
+		elif self.expect('not') or self.expect('in'):
+			negative = self.expect('in')
+			val = self.expression()
+			val_type = next(val)
+			yield 'bool'
+			if negative: self.out.operator('not')
+			next(val)
+			self.out.reference('', ar_type, val_type)
+			self.out.call('has', (ar1,))
 		
 		else:
 			yield ar_type
@@ -654,11 +664,16 @@ class Parser:
 			self.out.create_dict(contents)
 			
 		# subexpression : (expression)
+		# WARNING: in GDScript endlines are allowed in the middle of parenthesis expressions
+		# but here we can only allow them around the parenthesis themselves 
 		elif self.expect('('):
+			self.endline()
 			enclosed = self.expression()
-			yield next(enclosed)
-			self.out.subexpression(enclosed)
+			enclosed_type = next(enclosed)
+			self.endline()
 			self.expect(')')
+			yield enclosed_type
+			self.out.subexpression(enclosed)
 		
 		# get_node shortcuts : $node => get_node("node") -> Node
 		elif self.expect('$'):

@@ -22,27 +22,24 @@ var export_flags : int
 
 # basic property definitions / expressions
 static var i = 0
-const str = 'the fox said "get off my lawn"'
+const STRING_CONSTANT = 'the fox said "get off my lawn"'
 var big_str : string = """
 	this is a multiline string """
 var array = [0,1,2]
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
 
+# type inference
+var j = i
 func method(param = 5.):
 	for k in string_array:
 		print(k)
 	return val * param
 
-# type inference on members
-var j = i
-var k = string_array[0]
-
 # determine type based on godot doc
 var x = self.get_parent()
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
-var function = angle_difference(.1,.2)
 
 # Gdscript special syntax
 var get_node = $node
@@ -58,8 +55,6 @@ var sprite : Sprite2D :
 		sprite.position += Vector2(1,2) # cpp will need help here
 	get:
 		return sprite
-
-func enum_return(): return THING_2
 
 # signals
 signal jump

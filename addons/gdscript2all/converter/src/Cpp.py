@@ -295,11 +295,9 @@ class Transpiler:
 		# NOTE : not perfect depending on the types given. a good start nonetheless
 		self+= f'(bool)dynamic_cast<{checked}*>(&'; get(exp); self+=')'
 
-	def ternary(self, iterator):
-		# condition, valueIfTrue, valueIfFalse
+	def ternary(self, condition, valueIfTrue, valueIfFalse):
 		self += '( '
-		get(iterator); self += ' ? ';
-		get(iterator); self += ' : '; get(iterator);
+		get(condition); self += ' ? '; get(valueIfTrue); self += ' : '; get(valueIfFalse);
 		self += ' )'
 	
 	def returnStmt(self, return_exp):

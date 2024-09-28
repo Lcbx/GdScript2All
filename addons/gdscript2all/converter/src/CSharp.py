@@ -70,7 +70,7 @@ class Transpiler:
 		self.write(endline if endline else ' ')
 	
 	def declare_property(self, type, name, assignment, accessors, constant, static, onready):
-		pascalName = name if constant else toPascal(name)
+		pascalName = toPascal(name)
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
 		self += f'{exposed} {const_decl}{translate_type(type)} {pascalName}'
@@ -286,11 +286,9 @@ class Transpiler:
 	def check_type(self, exp, checked):
 		get(exp); self += f' is {translate_type(checked)}'
 
-	def ternary(self, iterator):
-		# condition, valueIfTrue, valueIfFalse
+	def ternary(self, condition, valueIfTrue, valueIfFalse):
 		self += '( '
-		get(iterator); self += ' ? ';
-		get(iterator); self += ' : '; get(iterator);
+		get(condition); self += ' ? '; get(valueIfTrue); self += ' : '; get(valueIfFalse);
 		self += ' )'
 	
 	def returnStmt(self, return_exp):

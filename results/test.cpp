@@ -26,10 +26,6 @@ Ref<Sprite2D> test::get_sprite()
 	return sprite;
 }
 
-NamedEnum test::enum_return()
-{return THING_2;
-}
-
 void test::async_function()
 {
 	/* await this->jump; */ // no equivalent to await in c++ !
@@ -70,7 +66,6 @@ int test::get_export_flags() {
 
 void test::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("method", "param"), &test::method);
-	ClassDB::bind_method(D_METHOD("enum_return"), &test::enum_return);
 	ClassDB::bind_method(D_METHOD("async_function"), &test::async_function);
 	ClassDB::bind_method(D_METHOD("set_sprite", "value"), &test::set_sprite);
 	ClassDB::bind_method(D_METHOD("get_sprite"), &test::get_sprite);
