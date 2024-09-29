@@ -500,10 +500,12 @@ def prettify(value):
 get = next
 
 # Default imports and aliases that almost every class needs.
-header = """using System;
-using Godot;
-using Godot.Collections;
-""";
+header = """using Godot;
+using Godot.Collections;"""
+# we don't need System afaik
+#using System;\n'
+#using Array = Godot.Collections.Array;
+#using Dictionary = Godot.Collections.Dictionary;
 
 export_replacements = {
 	'export_range':'Export(PropertyHint.Range',
@@ -569,6 +571,7 @@ function_replacements = {
 	'instance_from_id' : 'GodotObject.InstanceFromId',
 	'is_instance_id_valid' : 'GodotObject.IsInstanceIdValid',
 	'is_instance_valid' : 'GodotObject.IsInstanceValid',
+	'assert' : 'System.Diagnostics.Debug.Assert',
 	'abs' : 'Mathf.Abs',
 	'absf' : 'Mathf.Abs',
 	'absi' : 'Mathf.Abs',
@@ -590,6 +593,7 @@ function_replacements = {
 	'clamp' : 'Mathf.Clamp',
 	'clampf' : 'Mathf.Clamp',
 	'clampi' : 'Mathf.Clamp',
+	'convert' : 'GD.Convert',
 	'cos' : 'Mathf.Cos',
 	'cosh' : 'Mathf.Cosh',
 	'cubic_interpolate' : 'Mathf.CubicInterpolate',
@@ -606,6 +610,7 @@ function_replacements = {
 	'floori' : 'Mathf.FloorToInt',
 	'fmod' : '/* no equivalent function, use operator % */',
 	'fposmod' : 'Mathf.PosMod',
+	'get_stack': 'System.Environment.StackTrace',
 	'hash' : 'GD.Hash',
 	'instance_from_id' : 'GodotObject.InstanceFromId',
 	'inverse_lerp' : 'Mathf.InverseLerp',
@@ -670,6 +675,7 @@ function_replacements = {
 	'tan' : 'Mathf.Tan',
 	'tanh' : 'Mathf.Tanh',
 	'type_convert' : 'GD.Convert',
+	'type_exists' : 'ClassDB.ClassExists',
 	'type_string' : 'Variant.Type.ToString',
 	'typeof' : 'Variant.VariantType',
 	'var_to_bytes' : 'GD.VarToBytes',

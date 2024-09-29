@@ -203,17 +203,23 @@ class Transpiler:
 		self += '('; get(expression); self += ')'
 	
 	def create_array(self, values):
-		self += ' /* no array initializer in c++ ! */ {'; self.level += 1
-		self += values
-		self += '}'; self.level -= 1
+		self += 'Array'
+		if values:
+			self.level += 1
+			self += ' {/* initializer lists are unsupported */ ' + values + ' }'
+			self.level -= 1
+		else: self += '()'
 
 	def array_item(self, item):
 		get(item); self += ', '
 		
 	def create_dict(self, values):
-		self += ' /* no dictionary initializer in c++ ! */ {'; self.level += 1
-		self += values
-		self += '}'; self.level -= 1
+		self += 'Dictionary'; 
+		if values:
+			self.level += 1
+			self += ' {/* initializer lists are unsupported */ ' + values + ' }'
+			self.level -= 1
+		else: self += '()'
 
 	def dict_item(self, key, value):
 		self += '{'; get(key); self += ', '; get(value); self += '},'

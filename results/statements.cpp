@@ -10,13 +10,13 @@ Array statements::method()
 
 	int i = 0;
 
-	if(ABC)
+	if(true)
 	{
 		assert(false);
 	}
 	else if(false)
 	{
-		UtilityFunctions::print("Hello" + " " + "World");
+		convert("Hello" + " " + "World", TYPE_STRING);
 	}
 	else if(true)
 	{
@@ -24,7 +24,7 @@ Array statements::method()
 	}
 	else
 	{
-		UtilityFunctions::print(i);
+		UtilityFunctions::print(get_stack());
 	}
 
 	while(false)
@@ -39,7 +39,7 @@ Array statements::method()
 		i += j;
 	}
 
-	for(int j=0; j<i; j+=1)
+	for(Variant j : array)
 	{
 		i += j;
 	}
@@ -83,7 +83,7 @@ Array statements::method()
 	get_tree()->emit_signal("process_frame", 0.7);
 	get_tree()->connect("process_frame", something);
 
-	return  /* no array initializer in c++ ! */ {};
+	return Array();
 }
 
 void statements::_bind_methods() {

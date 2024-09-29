@@ -99,10 +99,8 @@ func async_function():
 ```
 C# output :
 ```cs
-using System;
 using Godot;
 using Godot.Collections;
-
 
 
 // line comment
@@ -257,9 +255,9 @@ protected:
     const String STRING_CONSTANT = "the fox said \"get off my lawn\"";
     String big_str = "\
     this is a multiline string ";
-    Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
-    Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
-    Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
+    Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
+    Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
+    Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
 
 // type inference
     int j = i;

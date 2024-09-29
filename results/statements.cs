@@ -1,7 +1,5 @@
-using System;
 using Godot;
 using Godot.Collections;
-
 
 // method to test statements
 [GlobalClass]
@@ -13,13 +11,13 @@ public partial class statements : Godot.Node
 
 		var i = 0;
 
-		if(ABC)
+		if(true)
 		{
-			Assert(false);
+			System.Diagnostics.Debug.Assert(false);
 		}
 		else if(false)
 		{
-			GD.Print("Hello" + " " + "World");
+			GD.Convert("Hello" + " " + "World", typeof(string));
 		}
 		else if(true)
 		{
@@ -27,7 +25,7 @@ public partial class statements : Godot.Node
 		}
 		else
 		{
-			GD.Print(i);
+			GD.Print(System.Environment.StackTrace());
 		}
 
 		while(false)
@@ -42,7 +40,7 @@ public partial class statements : Godot.Node
 			i += j;
 		}
 
-		foreach(int j in GD.Range(i))
+		foreach(Variant j in Array)
 		{
 			i += j;
 		}
@@ -88,5 +86,8 @@ public partial class statements : Godot.Node
 
 		return new Array{};
 	}
+
+	public Array Array = new Array{};
+
 
 }

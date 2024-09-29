@@ -1,7 +1,5 @@
-using System;
 using Godot;
 using Godot.Collections;
-
 
 [GlobalClass]
 public partial class script_level : Godot.Node

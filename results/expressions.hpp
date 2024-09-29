@@ -22,9 +22,9 @@ protected:
 	this is a multiline string\
 ";
 	bool _protected_bool = true;
-	Array array =  /* no array initializer in c++ ! */ {0, 1, 2, };
-	Dictionary dict =  /* no dictionary initializer in c++ ! */ {{0, 1},{1, 2},{2, 3},};
-	Array string_array =  /* no array initializer in c++ ! */ {"0", "1", };
+	Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
+	Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
+	Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;

@@ -294,7 +294,9 @@ class Parser:
 		
 		exp = self.expression()
 		exp_type = next(exp)
-		iterator_type = iterator_type or exp_type.replace('[]', '')
+
+		inner_type = (exp_type.replace('[]', '') if exp_type and exp_type != 'Array' else 'Variant')
+		iterator_type = iterator_type or inner_type
 		
 		self.locals[name] = iterator_type
 		self.out.forStmt(name, iterator_type, exp)

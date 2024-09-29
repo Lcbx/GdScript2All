@@ -7,14 +7,14 @@ func method():
 	
 	var i = 0
 	
-	if ABC:
+	if true:
 		assert(false)
 	elif false:
-		print("Hello"+" "+"World")
+		convert("Hello"+" "+"World", TYPE_STRING)
 	elif true:
 		print("Goodbye ", "World")
 	else:
-		print(i)
+		print(get_stack())
 	
 	while false:
 		i += 1
@@ -24,7 +24,7 @@ func method():
 	for j in range(i):
 		i += j
 
-	for j : int in range(i):
+	for j in array:
 		i += j
 
 	if i is int: i = 0
@@ -55,3 +55,5 @@ func method():
 	get_tree().process_frame.connect(something)
 	
 	return []
+
+var array = []

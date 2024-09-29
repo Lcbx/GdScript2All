@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="gd2all_test"
+run/main_scene="res://addons/gdscript2all/script_converter_UI.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 
 [dotnet]

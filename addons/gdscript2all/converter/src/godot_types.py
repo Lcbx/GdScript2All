@@ -138,6 +138,9 @@ def _update_type_definitions_():
 	add_function('range', 'int[]')
 	add_function('load', 'Resource')
 	add_function('preload', 'Resource')
+	add_function('convert', 'Variant')
+	add_function('get_stack', 'Array')
+	add_function('assert', 'void')
 	
 	with open(SAVEFILE, 'wb+') as f:
 		save(godot_types, f)
