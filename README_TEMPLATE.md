@@ -52,8 +52,9 @@ match [34, 6]:
 will not be supported (too complicated to generate an equivalent)
 - generated code might need corrections !
 - when the parser encounters something unexpected it will drop the current line and try to resume at the next (panic mode). this might result in mangled output.
-- generated C++ does a best guess on what should be a pointer/reference
-- in c++ accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
+- C# : godot won't build C# scripts until you have created at least one C# script manually in the editor
+- c++ : generated code does a best guess on what whould be pointers/references
+- c++ : accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
 - read [TODO.md](TODO.md) for current/missing features
 
 ### Updating the API definition
