@@ -51,6 +51,7 @@ public partial class test : Godot.Node
 
 	// determine type based on godot doc
 	public Godot.Node X = this.GetParent();
+	public bool HasCall = Array.Contains(3);
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
 	public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
@@ -104,7 +105,7 @@ public partial class test : Godot.Node
 	public int K;
 
 
-	protected override void _Ready()
+	public override void _Ready()
 	{
 		K = 42;
 	}

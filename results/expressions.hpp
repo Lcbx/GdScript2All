@@ -23,6 +23,7 @@ protected:
 ";
 	bool _protected_bool = true;
 	Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
+	bool has_call = array.has(3);
 	Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
 	Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
 	int parenthesis = (42);

@@ -533,7 +533,7 @@ class Parser:
 			if negative: self.out.operator('not')
 			next(val)
 			self.out.reference('', ar_type, val_type)
-			self.out.call('has', (ar1,))
+			self.out.call('Array', 'has', (ar1,))
 		
 		else:
 			yield ar_type
@@ -681,13 +681,13 @@ class Parser:
 		elif self.expect('$'):
 			name = self.consume()
 			yield 'Node'
-			self.out.call("get_node", (passthrough(self.out.literal, name) ,) )
+			self.out.call('Node', 'get_node', (passthrough(self.out.literal, name) ,) )
 			
 		# scene-unique nodes : %node => get_node("%node") -> Node
 		elif self.expect('%'):
 			name = self.consume()
 			yield 'Node'
-			self.out.call("get_node", (passthrough(self.out.literal, f'%{name}') ,) )
+			self.out.call('Node', 'get_node', (passthrough(self.out.literal, f'%{name}') ,) )
 		
 		# lambda: func <name>?(params): <Block>
 		elif self.expect('func'):
@@ -717,7 +717,6 @@ class Parser:
 			if self.expect('('):
 				call = self.call(name)
 				yield next(call)
-				#if this: self.out.this()
 				next(call)
 			
 			# variable
@@ -755,6 +754,47 @@ class Parser:
 		else: yield
 		yield
 
+
+	def referencesCallsAndSubscriptions(self, from_type = None):
+		# reference
+		if self.expect('.'):
+			ref = self.reference(from_type)
+			yield next(ref)
+			next(ref)
+		
+		# call
+		elif self.expect('('):
+			call = self.call('', from_type)
+			yield next(call)
+			next(call)
+
+		# subscription
+		elif self.expect('['):
+			sub = self.subscription(from_type)
+			yield next(sub)
+			next(sub)
+		
+		# end
+		else:
+			yield from_type
+		yield
+
+	
+	def subscription(self, type):
+		# NOTE: we only deternmine the type if it's a typed array
+		type = type.replace('[]', '') if type and '[]' in type else None
+		key = self.expression(); next(key)
+		self.expect(']')
+		
+		# in case the expression continues
+		follows = self.referencesCallsAndSubscriptions(type)
+		yield next(follows)
+
+		self.out.subscription(key)
+
+		next(follows)
+		yield
+
 	
 	def call(self, name, calling_type = None):
 		
@@ -775,32 +815,18 @@ class Parser:
 		
 		params = ( *self.parseCallParams() ,)
 		
-		# emission of code 
-		emit = lambda : \
-			self.out.constructor(name, type, params) if constructor \
-			else self.out.call(name, params, global_function)
-		
-		# reference
-		if self.expect('.'):
-			ref = self.reference(type)
-			yield next(ref)
-			emit()
-			next(ref)
-		
-		# subscription
-		elif self.expect('['):
-			sub = self.subscription(type)
-			yield next(sub)
-			emit()
-			next(sub)
-		
-		# end
-		else:
-			yield type
-			emit()
+		# in case the expression continues
+		follows = self.referencesCallsAndSubscriptions(type)
+		yield next(follows)
+
+		if constructor: self.out.constructor(name, type, params)
+		else: self.out.call(GLOBALS if global_function else calling_type, name, params)
+
+		next(follows)
 		yield
 	
 	
+	# NOTE: having to handle signals, function names, enums and constants here makes this unwieldy
 	def reference(self, type, singleton = False):
 		name = self.consume()
 
@@ -867,39 +893,6 @@ class Parser:
 
 			if enum or constant: self.out.constant(name)
 			else: self.out.reference(name, type, member_type, singleton)
-		yield
-	
-	
-	def subscription(self, type):
-		# NOTE: we only deternmine the type if it's a typed array
-		type = type.replace('[]', '') if type and '[]' in type else None
-		key = self.expression();next(key)
-		self.expect(']')
-		
-		# call
-		if self.expect('('):
-			call = self.call('', type)
-			yield next(call)
-			next(call)
-		
-		# reference
-		elif self.expect('.'):
-			refer = self.reference(type)
-			yield next(refer)
-			self.out.subscription(key)
-			next(refer)
-
-		# subscription
-		elif self.expect('['):
-			sub = self.subscription(type)
-			yield next(sub)
-			self.out.subscription(key)
-			next(sub)
-		
-		# end leaf
-		else:
-			yield type
-			self.out.subscription(key)
 		yield
 	
 	

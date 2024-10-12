@@ -274,8 +274,8 @@ class Transpiler:
 			else  '.'
 		return name and member_type and not member_type.startswith('signal') and is_pointer(obj_type)
 	
-	def call(self, name, params, global_function = False):
-		if global_function: name = function_replacements.get(name, name)
+	def call(self, calling_type, name, params):
+		if calling_type == GLOBALS: name = function_replacements.get(name, name)
 		self += name + '('
 		for i, p in enumerate(params):
 			if i>0: self += ', '
@@ -284,7 +284,7 @@ class Transpiler:
 	
 	def constructor(self, name, type, params):
 		if is_pointer(type): self += 'new '
-		self.call(name, params)
+		self.call(type, name, params)
 	
 	def subscription(self, key):
 		self+= '['; get(key); self += ']'

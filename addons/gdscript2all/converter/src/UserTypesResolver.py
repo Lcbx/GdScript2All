@@ -94,7 +94,7 @@ class Transpiler:
 	def reassignment(self, name, obj_type, member_type, is_singleton, op, val):
 		get(val)
 	
-	def call(self, name, params, global_function = False):
+	def call(self, calling_type, name, params):
 		for i, p in enumerate(params): get(p)
 	
 	def constructor(self, name, type, params):

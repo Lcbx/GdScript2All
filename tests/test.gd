@@ -38,6 +38,7 @@ func method(param = 5.):
 
 # determine type based on godot doc
 var x = self.get_parent()
+var has_call = 3 in array
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
 

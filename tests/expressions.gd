@@ -9,6 +9,7 @@ var big_str : String = """
 """
 var _protected_bool := true
 var array = [0,1,2]
+var has_call = 3 in array
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[String] = ['0','1']
 var parenthesis := (42)

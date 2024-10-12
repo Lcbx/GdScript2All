@@ -13,6 +13,7 @@ public partial class expressions : Godot.Node
 ";
 	protected bool _ProtectedBool = true;
 	public Array Array = new Array{0, 1, 2, };
+	public bool HasCall = Array.Contains(3);
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<String> StringArray = new Array{"0", "1", };
 	public int Parenthesis = (42);

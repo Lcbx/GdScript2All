@@ -169,7 +169,7 @@ class Transpiler:
 		if not code:
 			self.addLayer(); self += '\n{\n}'; code = self.popLayer()
 		
-		exposed = 'protected' if name[0] == '_' else 'public'
+		exposed = 'protected' if name[0] == '_' and not override else 'public'
 		static_str = 'static ' if static else ''
 		override_str = 'override ' if override else ''
 		self += f'{exposed} {override_str}{static_str}{translate_type(return_type)} {toPascal(name)}('
@@ -261,8 +261,15 @@ class Transpiler:
 	def reassignment(self, name, obj_type, member_type, is_singleton, op, val):
 		self += f'.{toPascal(name)} {op} '; get(val)
 	
-	def call(self, name, params, global_function = False):
-		if global_function: name = function_replacements.get(name, name)
+	def call(self, calling_type, name, params):
+		if calling_type == GLOBALS: name = function_replacements.get(name, name)
+		
+		# for some reason, API diverges here
+		elif name == 'has':
+			name = ('Contains' if calling_type == 'Array'
+				else 'ContainsKey' if calling_type == 'Dictionary'
+				else name )
+
 		self += toPascal(name) + '('
 		for i, p in enumerate(params):
 			if i>0: self += ', '
@@ -270,7 +277,7 @@ class Transpiler:
 		self += ')'
 	
 	def constructor(self, name, type, params):
-		self += 'new '; self.call(name, params)
+		self += 'new '; self.call(type, name, params)
 	
 	def subscription(self, key):
 		self+= '['; get(key); self += ']'

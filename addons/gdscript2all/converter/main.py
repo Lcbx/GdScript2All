@@ -59,7 +59,9 @@ def main():
 	# script name without extension
 	to_script_name = lambda s: os.path.basename(s).split('.')[0]
 	# dir/script name
-	to_simple_path = lambda s: f'{s.split(os.path.sep)[-2]}/{os.path.basename(s)}'
+	to_simple_path = lambda s: ( \
+		f'{split_path[-2]}/{os.path.basename(s)}' if len(split_path := s.split(os.path.sep)) > 1 \
+		else os.path.basename(s))
 
 	# type resolving step : useful for both calling user classes from another
 	# and for using method result type before it is defined  

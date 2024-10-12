@@ -57,6 +57,7 @@ func method(param = 5.):
 
 # determine type based on godot doc
 var x = self.get_parent()
+var has_call = 3 in array
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
 
@@ -152,6 +153,7 @@ public partial class test : Godot.Node
 
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
+    public bool HasCall = Array.Contains(3);
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
@@ -205,7 +207,7 @@ public partial class test : Godot.Node
     public int K;
 
 
-    protected override void _Ready()
+    public override void _Ready()
     {
         K = 42;
     }
@@ -269,6 +271,7 @@ public:
 
 protected:
     Ref<Node> x = this->get_parent();
+    bool has_call = array.has(3);
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 

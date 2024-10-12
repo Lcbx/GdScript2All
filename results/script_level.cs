@@ -81,7 +81,7 @@ public partial class script_level : Godot.Node
 	[Signal]
 	public delegate void BEventHandler(int c, Type d);
 
-	protected override void _Ready()
+	public override void _Ready()
 	{
 		GetsetVar = 0.0;
 	}

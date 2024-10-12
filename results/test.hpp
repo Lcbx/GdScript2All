@@ -54,6 +54,7 @@ public:
 
 protected:
 	Ref<Node> x = this->get_parent();
+	bool has_call = array.has(3);
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
 	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 
