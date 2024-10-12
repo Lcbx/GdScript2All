@@ -45,6 +45,7 @@ const STRING_CONSTANT = 'the fox said "get off my lawn"'
 var big_str : string = """
     this is a multiline string """
 var array = [0,1,2]
+var has_call = 3 in array
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
 
@@ -57,7 +58,6 @@ func method(param = 5.):
 
 # determine type based on godot doc
 var x = self.get_parent()
-var has_call = 3 in array
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
 
@@ -137,6 +137,7 @@ public partial class test : Godot.Node
     public string BigStr = @"
     this is a multiline string ";
     public Array Array = new Array{0, 1, 2, };
+    public bool HasCall = Array.Contains(3);
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
 
@@ -153,7 +154,6 @@ public partial class test : Godot.Node
 
     // determine type based on godot doc
     public Godot.Node X = this.GetParent();
-    public bool HasCall = Array.Contains(3);
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
@@ -238,12 +238,12 @@ using namespace godot;
 class Nested1 : public test {
     GDCLASS(Nested1, test);
 public:
-
 };
 
 class test : public Node {
     GDCLASS(test, Node);
 public:
+
     enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
     enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1};
 
@@ -258,6 +258,7 @@ protected:
     String big_str = "\
     this is a multiline string ";
     Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
+    bool has_call = array.has(3);
     Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
     Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
 
@@ -271,7 +272,6 @@ public:
 
 protected:
     Ref<Node> x = this->get_parent();
-    bool has_call = array.has(3);
     Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
     const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 

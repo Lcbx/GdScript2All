@@ -14,19 +14,16 @@ using namespace godot;
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
-
 };
 
 class Nested2 : public Object {
 	GDCLASS(Nested2, Object);
 public:
-
 };
 
 class Nested3 : public Object {
 	GDCLASS(Nested3, Object);
 public:
-
 };
 
 class Nested4 : public Object {
@@ -38,6 +35,7 @@ public:
 class script_level : public Node {
 	GDCLASS(script_level, Node);
 public:
+
 	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
 	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
 	enum WithEndlines {THING_1, THING_2};

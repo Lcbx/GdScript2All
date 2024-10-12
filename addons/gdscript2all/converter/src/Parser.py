@@ -89,35 +89,44 @@ class Parser:
 		self.add_class(class_name, base_class, is_main = True); self.endline()
 		
 		# script-level loop
-		for i in range(2):
-			
-			for _ in self.doWhile(lambda:True):
-				self.class_body()
-			
-			# get out if EOF reached
+		tries = 0
+		for _ in self.doWhile(lambda:tries<20):
+			tries += 1
+
+			self.class_body()
+				
+			# get out if reached end of file (EOF)
 			if self.match_type('EOF'): self.vprint("reached EOF"); break
 			
 			# panic system : drop current line if we can't parse it
 			token = self.current
-			escaped = self.consumeUntil('LINE_END', separator=' '); self.endline()
+			escaped = self.consumeUntil('LINE_END', separator=' ')
+			self.level = int(self.consume())
+
 			# add comment to output + print red warning in console output
 			msg = f'PANIC! <{escaped}> unexpected at {token}'
 			self.out.comment(f'{msg}\n')
+
 			print(f'\033[91m{msg}\033[0m')
+
+			# there's a good chance that the error occured inside a block
+			self.level = max(0, self.level -1); self.Block()
 		
 		# tell the transpiler we're done
 		self.out.end_script()
 	
 	
 	def class_body(self):
-		if self.expect('pass'): return
-		static = self.expect('static')
-		if self.expect('class'): self.nested_class()
-		elif self.expect('enum'): self.enum()
-		elif self.expect('func'): self.method(static)
-		elif self.expect('signal'): self.signal()
-		else: self.member(static)
-		self.endline()
+		class_lvl = self.level
+		for _ in self.doWhile(lambda:self.level >= class_lvl):
+			if self.expect('pass'): return
+			static = self.expect('static')
+			if self.expect('class'): self.nested_class()
+			elif self.expect('enum'): self.enum()
+			elif self.expect('func'): self.method(static)
+			elif self.expect('signal'): self.signal()
+			else: self.member(static)
+			self.endline()
 	
 	
 	def nested_class(self):
@@ -128,8 +137,7 @@ class Parser:
 		self.expect(':')
 		
 		self.level += 1
-		class_lvl = self.level
-		for _ in self.doWhile(lambda:self.level >= class_lvl): self.class_body()
+		self.class_body()
 		
 		self.end_class()
 	
@@ -1055,11 +1063,9 @@ class Parser:
 			# found code, indentation now matters
 			# NOTE: for prettier output, we emit downscope directly
 			else:
-				if lastendline:
-					lvl = int(lastendline.value)
-					while lvl < self.level:
-						self.level -=1
-						self.out.DownScope();
+				lvl = int(lastendline.value) if lastendline else self.level
+				for i in range(self.level - lvl): self.out.DownScope();
+				if lvl < self.level: self.level = lvl
 				emitComments()
 				self.out += '\n' * jumpedLines
 				jumpedLines = 0

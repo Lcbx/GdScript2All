@@ -21,12 +21,12 @@ using namespace godot;
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
-
 };
 
 class test : public Node {
 	GDCLASS(test, Node);
 public:
+
 	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
 	enum NamedEnum {THING_1, THING_2, ANOTHER_THING =  - 1};
 
@@ -41,6 +41,7 @@ protected:
 	String big_str = "\
 	this is a multiline string ";
 	Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
+	bool has_call = array.has(3);
 	Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
 	Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
 
@@ -54,7 +55,6 @@ public:
 
 protected:
 	Ref<Node> x = this->get_parent();
-	bool has_call = array.has(3);
 	Dictionary aClass = ProjectSettings::get_singleton()->get_global_class_list()[10];
 	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 

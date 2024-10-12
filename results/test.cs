@@ -35,6 +35,7 @@ public partial class test : Godot.Node
 	public string BigStr = @"
 	this is a multiline string ";
 	public Array Array = new Array{0, 1, 2, };
+	public bool HasCall = Array.Contains(3);
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<string> StringArray = new Array{"0", "1", };
 
@@ -51,7 +52,6 @@ public partial class test : Godot.Node
 
 	// determine type based on godot doc
 	public Godot.Node X = this.GetParent();
-	public bool HasCall = Array.Contains(3);
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
 	public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 

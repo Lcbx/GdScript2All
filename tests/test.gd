@@ -26,6 +26,7 @@ const STRING_CONSTANT = 'the fox said "get off my lawn"'
 var big_str : string = """
 	this is a multiline string """
 var array = [0,1,2]
+var has_call = 3 in array
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[string] = ['0','1']
 
@@ -38,7 +39,6 @@ func method(param = 5.):
 
 # determine type based on godot doc
 var x = self.get_parent()
-var has_call = 3 in array
 var aClass = ProjectSettings.get_global_class_list()[10]
 const enum = RenderingServer.SHADER_SPATIAL
 

@@ -33,8 +33,10 @@ func _generate_scripts_pressed():
 	
 	var output := []
 	OS.execute("python", command, output, true, false)
-	
-	logs.text += ''.join(output)
+		
+	logs.text += ''.join( output.map( \
+		func(s): return s.replace('[91m', '[b]').replace('[0m', '[/b]')\
+		))
 
 
 func get_transpiler_name() -> String:
