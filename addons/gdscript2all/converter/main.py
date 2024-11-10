@@ -66,6 +66,7 @@ def main():
 	# type resolving step : useful for both calling user classes from another
 	# and for using method result type before it is defined  
 	script_classes = {}
+	failed = False
 	if not args.no_type_resolving:
 		for i, filename in enumerate(input_files):
 			try:
@@ -74,8 +75,11 @@ def main():
 				parser.transpile()
 				script_classes[parser.getClassName()] = parser.getClass()
 				
-			except Exception as e:
-				handleException(e)
+			except Exception as ex:
+				handleException(parser, ex)
+				failed = True
+
+		if failed: return
 
 		# we add the deduced types the parser class,
 		# they'll be available in the actual transpiling step
@@ -103,8 +107,8 @@ def main():
 		
 			parser.transpile()
 			
-		except Exception as e:
-			handleException(e)
+		except Exception as ex:
+			handleException(parser, ex)
 			
 		if not args.no_save:
 			transpiler.save_result()
@@ -112,10 +116,12 @@ def main():
 		print(f"Converted {to_simple_path(filename)} to {to_simple_path(outname)} ({i+1}/{total})")
 
 
-def handleException(e):
-		ex_msg = str(e); ex_msg = ex_msg if ex_msg != 'None' else ''
-		ex_type = type(e).__name__
-		tb = e.__traceback__
+def handleException(parser, ex):
+		print('parser fail on', parser.current)
+		
+		ex_msg = str(ex); ex_msg = ex_msg if ex_msg != 'None' else ''
+		ex_type = type(ex).__name__
+		tb = ex.__traceback__
 
 		print(f'\033[91m{ex_type} {ex_msg}\033[0m')
 		while tb != None:

@@ -13,6 +13,9 @@ nuitka_build/
 *.sublime-workspace
 *.sublime-project
 
+# bash launcher
+launch_editor.sh
+
 # Binaries
 *.o
 *.os

@@ -42,7 +42,7 @@ class Transpiler:
 		pass
 	
 	def declare_variable(self, type, name, assignment):
-		get(assignment)
+		if assignment: get(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
 		for i, (pName, pType) in enumerate(params.items()):

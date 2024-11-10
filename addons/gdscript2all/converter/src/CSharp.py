@@ -162,7 +162,7 @@ class Transpiler:
 	
 	def declare_variable(self, type, name, assignment):
 		self += f'var {name}'
-		if assignment: self += ' = '; get(assignment)
+		if assignment: self.assignment(assignment)
 	
 	def define_method(self, name, params = {}, params_init = {}, return_type = None, code = '', static = False, override = False):
 		

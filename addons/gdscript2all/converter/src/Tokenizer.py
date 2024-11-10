@@ -13,14 +13,18 @@ class Tokenizer(Lexer):
 	
 	# Token definitions
 	ARROW = r'->'
-	COMPARISON = r'(==|!=|<=|>=|\|\||&&|<|>|and|or){1}' # == != <= >= || && < > and or
 	ARITHMETIC = r'(<<|>>|\*\*|\*|\+|-|\/|%|&|\^|\|){1}=?' # << >> ** + - / 5 & ^ | (optionally = at the end)
+
+	@_(r'(==|!=|<=|>=|\|\||&&|<|>|and|or){1}\W') # == != <= >= || && < > and or
+	def COMPARISON(self, t): t.value = t.value.strip(); return t # remove trailing space
+
 	UNARY = r'(~|!|not){1}'
 	
 	TEXT = r'[a-zA-Z_][a-zA-Z0-9_]*'
 	FLOAT = r'\d+[.](\d*)?|[.]\d+' # accept 1. or 1.5 or .5
 	INT = r'\d+'
-	
+
+
 	# expression broken to the next line
 	@_(r'\\\n\t*') # \ then any number of tabs
 	def ignore_line_break(self, t): self.update_lineno(t)
@@ -42,7 +46,6 @@ class Tokenizer(Lexer):
 		# remove "" and replace \" by "
 		t.value = t.value[1:-1].replace('\\'+t.value[0], t.value[0])
 		return t
-	
 	
 	@_(r'\n\t*') # at endlines, count tabs for scope level
 	def LINE_END(self, t): self.update_lineno(t); t.value = str(t.value.count('\t')); return t
