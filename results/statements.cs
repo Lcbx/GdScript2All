@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 
+
 // method to test statements
 [GlobalClass]
 public partial class statements : Godot.Node
@@ -31,6 +32,8 @@ public partial class statements : Godot.Node
 		while(false)
 		{
 			i += 1;
+
+		// unindented comment
 			break;
 			continue;
 		}
@@ -63,13 +66,14 @@ public partial class statements : Godot.Node
 			case 0: if(true)
 			{
 				GD.Print("zero!");
-				break; }
+
 			//var x when false:
-			//	print("unreachable")
-			//[var x, var y] when true:
-			//	print("array pattern")
-			//{var x : var y} when true:
-			//	print("dictionary pattern")
+				//	print("unreachable")
+				//[var x, var y] when true:
+				//	print("array pattern")
+				//{var x : var y} when true:
+
+				break; }//	print("dictionary pattern")
 			default:
 			{
 				GD.Print("unknown");

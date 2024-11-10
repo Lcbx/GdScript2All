@@ -18,14 +18,17 @@ public partial class methods : Godot.Node
 		assign = 2;
 	}
 
-	//test1
+
+//test1
 	public double Init(double v = 1.0)
-	{//test2
+	{
+		//test2
 		//test3
 		Returning(7.0);
-		//test4
 	}
 
+
+	//test4
 	public double Returning(double v)
 	{
 		Empty();

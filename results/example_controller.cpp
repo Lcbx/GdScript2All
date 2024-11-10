@@ -7,6 +7,7 @@
 
 void Character::_process(double delta)
 {
+
 	// in air
 	if(!is_on_floor())
 	{
@@ -15,14 +16,15 @@ void Character::_process(double delta)
 	}
 	else
 	{
+
 		// landing
 		if(movementState == MovementEnum::fall)
 		{
 			jumpCoolDown->start();
-			// TODO: apply fall damage + play landing animation
-		}
 
-		// on ground
+			// TODO: apply fall damage + play landing animation
+
+		}// on ground
 		movementState = wantedMovement;
 		coyoteTime->start();
 	}
@@ -37,8 +39,6 @@ void Character::_process(double delta)
 		coyoteTime->stop();
 		emit_signal("jump", ground_speed);
 	}
-
-	// when running, always go forward 
 	Vector3 direction = ( movementState != MovementEnum::run ? global_mov_dir : basis.z );
 
 	double top_speed = movements[movementState]->get_top_speed();
@@ -83,6 +83,7 @@ Vector3 Character::get_global_mov_dir()
 void Character::set_global_mov_dir(Vector3 value)
 {
 	_global_mov_dir = value;
+
 	// TODO: verify up (y) is not inversed
 	_local_dir =  - value * basis.inverse();
 }

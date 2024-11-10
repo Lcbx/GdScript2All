@@ -18,7 +18,7 @@ void test::set_sprite(Ref<Sprite2D> value)
 {
 	sprite = value;
 	sprite->set_position(Vector2(1, 2));
-	sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
+	sprite->set_position( /* get_position() */ + Vector2(1, 2));
 }
 
 Ref<Sprite2D> test::get_sprite()
@@ -36,8 +36,6 @@ void test::async_function()
 	Callable myLambda = []() 
 	{	UtilityFunctions::print("look ma i'm jumping");
 	};
-
-	// lambdas are not perfectly translated
 	connect("jump", myLambda);
 
 	emit_signal("movement", Vector3::UP, 0.1);

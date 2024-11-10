@@ -20,6 +20,7 @@ public:
 //test1
 	void assign();
 
+//test4
 	double init(double v = 1.0);
 
 	double returning(double v);

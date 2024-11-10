@@ -10,16 +10,15 @@ public partial class Character : Godot.CharacterBody3D
 	for players, input is handled an overlay script which sets local_dir and view_dir
 	speed and acceleration is based on movementState which is a Ressource (see MovementState.gd)
 	*/
-
 	// TODO:
 	// * add ways to get over obstacles
 	// * implement fall damage
 	// * hold crouch key to increase gravity ?
 	// * hold jump key to lower gravity strength ?
+
 	// * change gravity into a non-linear acceleration ?
 
 	/* movement physics */
-
 	public const double MIN_JUMP_VELOCITY = 3.5;
 	public const double MAX_Y_SPEED = 10.0;
 
@@ -35,6 +34,7 @@ public partial class Character : Godot.CharacterBody3D
 
 	public override void _Process(double delta)
 	{
+
 		// in air
 		if(!IsOnFloor())
 		{
@@ -43,19 +43,22 @@ public partial class Character : Godot.CharacterBody3D
 		}
 		else
 		{
+
 			// landing
 			if(MovementState == MovementEnum.fall)
 			{
 				JumpCoolDown.Start();
-				// TODO: apply fall damage + play landing animation
-			}
 
-			// on ground
+
+				// TODO: apply fall damage + play landing animation
+
+			}// on ground
 			MovementState = WantedMovement;
 			CoyoteTime.Start();
 		}
 
 		var ground_speed = CalculateGroundSpeed();
+
 
 		// jump
 		// TODO?: maybe add a special function to jump called on just_pressed
@@ -66,7 +69,8 @@ public partial class Character : Godot.CharacterBody3D
 			EmitSignal("Jump", ground_speed);
 		}
 
-		// when running, always go forward 
+
+	// when running, always go forward 
 		var direction = ( MovementState != MovementEnum.run ? GlobalMovDir : Basis.Z );
 
 		var top_speed = Movements[MovementState].TopSpeed;
@@ -92,8 +96,7 @@ public partial class Character : Godot.CharacterBody3D
 	}
 
 
-	/* movement state / animations */
-
+/* movement state / animations */
 	[Signal]
 	public delegate void ChangedStateEventHandler(MovementEnum state);
 	[Signal]
@@ -127,7 +130,6 @@ public partial class Character : Godot.CharacterBody3D
 
 
 	/* steering variables */
-
 	protected Vector3 _GlobalMovDir = new Vector3();
 	[Export]
 	public Vector3 GlobalMovDir
@@ -138,12 +140,14 @@ public partial class Character : Godot.CharacterBody3D
 		set
 		{
 			_GlobalMovDir = value;
+
 			// TODO: verify up (y) is not inversed
 			_LocalDir =  - value * Basis.Inverse();
 		}
 	}
 
-	// NOTE: local_dir is normalized on the xz plane by Overlay
+
+// NOTE: local_dir is normalized on the xz plane by Overlay
 	protected Vector3 _LocalDir;
 	[Export]
 	public Vector3 LocalDir
@@ -163,8 +167,8 @@ public partial class Character : Godot.CharacterBody3D
 		return Mathf.Sqrt(Velocity.X * Velocity.X + Velocity.Z * Velocity.Z);
 	}
 
-	/* view */
 
+/* view */
 	[Signal]
 	public delegate void ViewDirChangedEventHandler(Vector3 euler);
 

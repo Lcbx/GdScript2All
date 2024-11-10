@@ -30,6 +30,8 @@ Array statements::method()
 	while(false)
 	{
 		i += 1;
+
+	// unindented comment
 		break;
 		continue;
 	}
@@ -62,13 +64,14 @@ Array statements::method()
 		case 0: if(true)
 		{
 			UtilityFunctions::print("zero!");
-			break; }
+
 		//var x when false:
-		//	print("unreachable")
-		//[var x, var y] when true:
-		//	print("array pattern")
-		//{var x : var y} when true:
-		//	print("dictionary pattern")
+			//	print("unreachable")
+			//[var x, var y] when true:
+			//	print("array pattern")
+			//{var x : var y} when true:
+
+			break; }//	print("dictionary pattern")
 		default:
 		{
 			UtilityFunctions::print("unknown");

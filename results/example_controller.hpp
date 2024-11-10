@@ -19,12 +19,12 @@ usable for both players and AI
 for players, input is handled an overlay script which sets local_dir and view_dir
 speed and acceleration is based on movementState which is a Ressource (see MovementState.gd)
 */
-
 // TODO:
 // * add ways to get over obstacles
 // * implement fall damage
 // * hold crouch key to increase gravity ?
 // * hold jump key to lower gravity strength ?
+
 // * change gravity into a non-linear acceleration ?
 
 /* movement physics */
@@ -41,6 +41,8 @@ protected:
 
 	Variant coyoteTime = Utils.createTimer(this, 0.15);
 	Variant jumpCoolDown = Utils.createTimer(this, 0.15);
+
+// when running, always go forward 
 
 /* movement state / animations */
 
@@ -66,7 +68,6 @@ protected:
 	Character::MovementEnum wantedMovement = MovementEnum::walk;
 
 /* steering variables */
-
 	Vector3 _global_mov_dir = Vector3();
 
 	Vector3 global_mov_dir = Vector3();
@@ -88,7 +89,6 @@ public:
 	void set_local_dir(Vector3 value);
 
 /* view */
-
 	double calculate_ground_speed();
 	/* signal viewDirChanged(Vector3 euler) */
 

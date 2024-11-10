@@ -18,6 +18,7 @@ func method():
 	
 	while false:
 		i += 1
+	# unindented comment
 		break
 		continue
 	

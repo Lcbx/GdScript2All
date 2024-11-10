@@ -16,6 +16,7 @@ public:
 
 protected:
 	Variant foo;
+	int orignal;
 	static int i;
 	const String str = "the fox said \"get off my lawn\"";
 	String big_str = "\
@@ -31,6 +32,7 @@ protected:
 	double asKeyword = 3;
 	Array array_of_enum;
 	double func_call = Math::sin(34);
+
 // comment \
 	double func_delayed = Math::exp(1, 2);
 
@@ -40,6 +42,8 @@ protected:
 	Variant ternary = ( true ? cond_true : cond_false );
 	int nested_ternary = ( cond1 && 5 > 6 ? cond1_true * 3 : ( cond2 || (7 < 0) ? cond2_true | 4 : cond12_false && 0 ) );
 
+// hexadecimal
+	int byte = (bytes[6] & 0x0f) | 0x40;
 };
 
 #endif // EXPRESSIONS_H

@@ -20,10 +20,10 @@ void methods::assign()
 }
 
 double methods::init(double v)
-{//test2
+{
+	//test2
 	//test3
 	returning(7.0);
-	//test4
 }
 
 double methods::returning(double v)

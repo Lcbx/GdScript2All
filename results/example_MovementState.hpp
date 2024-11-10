@@ -17,8 +17,10 @@ public:
 
 protected:
 	double acceleration;
+
 //# redirects a % current velocity toward chosen direction
 	double nimbleness;
+
 //# maximum achievable velocity 
 	double top_speed;
 

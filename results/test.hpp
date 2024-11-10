@@ -17,7 +17,6 @@ using namespace godot;
 /* multiline
    comment
 */
-
 class Nested1 : public test {
 	GDCLASS(Nested1, test);
 public:
@@ -59,13 +58,14 @@ protected:
 	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 
 // Gdscript special syntax
-	Ref<Node> get_node = get_node("node");
-	Ref<Node> get_node2 = get_node("../node");
-	Ref<Node> get_unique_node = get_node("%unique_node");
+	Ref<Node> get_node = get_node(node);
+	Ref<Node> get_node2 = get_node(../node);
+	Ref<Node> get_unique_node = get_node(%unique_node);
 	Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
 	Ref<Resource> load_resource = load("res://path");
 
 	Ref<Sprite2D> sprite;
+// cpp will need help here
 
 public:
 	void set_sprite(Ref<Sprite2D> value);
@@ -74,6 +74,8 @@ public:
 	Ref<Sprite2D> get_sprite();
 	/* signal jump() */
 	/* signal movement(Vector3 dir, double speed) */
+
+// lambdas are not perfectly translated
 
 // _ready generation when @onready is used
 	void async_function();

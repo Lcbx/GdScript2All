@@ -2,6 +2,7 @@ extends Node
 
 # basic expressions
 var foo
+var orignal : int
 static var i = 0
 const str = 'the fox said "get off my lawn"'
 var big_str : String = """
@@ -31,3 +32,6 @@ var nested_ternary = cond1_true * 3 \
 	else cond2_true | 4 \
 	if cond2 or (7 < 0) \
 	else cond12_false and 0
+
+# hexadecimal
+var byte = (bytes[6] & 0x0f) | 0x40

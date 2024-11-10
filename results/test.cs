@@ -7,7 +7,6 @@ using Godot.Collections;
 /* multiline
    comment
 */
-
 [Tool]
 [GlobalClass]
 public partial class test : Godot.Node
@@ -29,6 +28,7 @@ public partial class test : Godot.Node
 	[Export(PropertyHint.Flags, "Self:4,Allies:8,Foes:16")]
 	public int ExportFlags;
 
+
 	// basic property definitions / expressions
 	public static int I = 0;
 	public const string STRING_CONSTANT = "the fox said \"get off my lawn\"";
@@ -38,6 +38,7 @@ public partial class test : Godot.Node
 	public bool HasCall = Array.Contains(3);
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<string> StringArray = new Array{"0", "1", };
+
 
 	// type inference
 	public int J = I;
@@ -50,15 +51,17 @@ public partial class test : Godot.Node
 		return val * param;
 	}
 
-	// determine type based on godot doc
+
+// determine type based on godot doc
 	public Godot.Node X = this.GetParent();
 	public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
 	public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
 
+
 	// Gdscript special syntax
-	public Godot.Node GetNode = GetNode("node");
-	public Godot.Node GetNode2 = GetNode("../node");
-	public Godot.Node GetUniqueNode = GetNode("%unique_node");
+	public Godot.Node GetNode = GetNode(node);
+	public Godot.Node GetNode2 = GetNode(../node);
+	public Godot.Node GetUniqueNode = GetNode(%unique_node);
 	public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
 	public Godot.Resource LoadResource = Load("res://path");
 
@@ -68,8 +71,9 @@ public partial class test : Godot.Node
 		{
 			_Sprite = value;
 			_Sprite.Position = new Vector2(1, 2);
-			_Sprite.Position += new Vector2(1, 2);// cpp will need help here
+			_Sprite.Position += new Vector2(1, 2);
 		}
+		// cpp will need help here
 		get
 		{
 			return _Sprite;
@@ -78,7 +82,7 @@ public partial class test : Godot.Node
 	private Godot.Sprite2D _Sprite;
 
 
-	// signals
+// signals
 	[Signal]
 	public delegate void JumpEventHandler();
 	[Signal]
@@ -95,13 +99,15 @@ public partial class test : Godot.Node
 		{	GD.Print("look ma i'm jumping");
 		};
 
-		// lambdas are not perfectly translated
+
+	// lambdas are not perfectly translated
 		Jump += myLambda;
 
 		EmitSignal("Movement", Vector3.Up, 0.1);
 	}
 
-	// _ready generation when @onready is used
+
+// _ready generation when @onready is used
 	public int K;
 
 
