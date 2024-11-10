@@ -161,9 +161,9 @@ public partial class test : Godot.Node
 
 
     // Gdscript special syntax
-    public Godot.Node GetNode = GetNode("node");
-    public Godot.Node GetNode2 = GetNode("../node");
-    public Godot.Node GetUniqueNode = GetNode("%unique_node");
+    public Godot.Node GetNode = GetNode(node);
+    public Godot.Node GetNode2 = GetNode(../node);
+    public Godot.Node GetUniqueNode = GetNode(%unique_node);
     public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     public Godot.Resource LoadResource = Load("res://path");
 
@@ -281,9 +281,9 @@ protected:
     const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 
 // Gdscript special syntax
-    Ref<Node> get_node = get_node("node");
-    Ref<Node> get_node2 = get_node("../node");
-    Ref<Node> get_unique_node = get_node("%unique_node");
+    Ref<Node> get_node = get_node(node);
+    Ref<Node> get_node2 = get_node(../node);
+    Ref<Node> get_unique_node = get_node(%unique_node);
     Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
     Ref<Resource> load_resource = load("res://path");
 

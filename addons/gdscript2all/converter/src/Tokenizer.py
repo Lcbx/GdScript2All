@@ -2,7 +2,7 @@ from libs.sly import Lexer
 
 class Tokenizer(Lexer):
 	# token types
-	tokens = { COMMENT, LINE_END, TEXT, ARROW, FLOAT, INT, STRING, LONG_STRING, UNARY, COMPARISON, ARITHMETIC }
+	tokens = { COMMENT, LINE_END, TEXT, ARROW, FLOAT, HEX, INT, STRING, LONG_STRING, UNARY, COMPARISON, ARITHMETIC }
 	
 	# can be found alone, type will be same as value
 	# ex: Token( value = ',' type = ',', ...)
@@ -22,6 +22,7 @@ class Tokenizer(Lexer):
 	
 	TEXT = r'[a-zA-Z_][a-zA-Z0-9_]*'
 	FLOAT = r'\d+[.](\d*)?|[.]\d+' # accept 1. or 1.5 or .5
+	HEX = r'0[xX][0-9a-fA-F]+'
 	INT = r'\d+'
 
 

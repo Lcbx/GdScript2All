@@ -75,6 +75,9 @@ class Transpiler:
 	
 	def literal(self, value):
 		pass
+
+	def string(self, value):
+		pass
 	
 	def constant(self, name):
 		pass

@@ -231,17 +231,17 @@ class Transpiler:
 		self.write(code)
 	
 	def literal(self, value):
-		if isinstance(value, str):
-			# add quotes / escape the quotes inside if necessary
-			if '\n' in value: value = f'@"{value}"'
-			else:
-				value = value.replace('"', '\\"')
-				value = f'"{value}"'
-
-		elif isinstance(value, bool):
+		if isinstance(value, bool):
 			value = str(value).lower()
-		
 		self.write(str(value))
+
+	def string(self, value):
+		# add quotes / escape the quotes inside if necessary
+		if '\n' in value: value = f'@"{value}"'
+		else:
+			value = value.replace('"', '\\"')
+			value = f'"{value}"'
+		self.write(value)
 	
 	def constant(self, name):
 		self += '.' + (name if not name.isupper() else toPascal(name.lower()) )

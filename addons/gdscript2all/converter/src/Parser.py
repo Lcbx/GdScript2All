@@ -613,9 +613,9 @@ class Parser:
 
 	def value(self):
 		
-		# int
-		if self.match_type('INT'):
-			val = int(self.consume())
+		# int and hexadecimals are supported as-is by cpp and C#
+		if self.match_type('INT') or self.match_type('HEX'):
+			val = self.consume()
 			yield 'int'
 			self.out.literal(val)
 			
@@ -635,13 +635,13 @@ class Parser:
 		elif self.match_type('LONG_STRING'):
 			val = self.consume()
 			yield 'string'
-			self.out.literal(val)
+			self.out.string(val)
 
 		# "" or '' string
 		elif self.match_type('STRING'):
 			val = self.consume()
 			yield 'string'
-			self.out.literal(val)
+			self.out.string(val)
 		
 		# NOTE: we try to keep indentation
 		# but pbbly better to just use a layer
