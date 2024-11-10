@@ -8,6 +8,7 @@ const str = 'the fox said "get off my lawn"'
 var big_str : String = """
 	this is a multiline string
 """
+var escaped_str = "\n \\ \" "
 var _protected_bool := true
 var array = [0,1,2]
 var has_call = 3 in array

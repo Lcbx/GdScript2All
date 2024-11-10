@@ -22,6 +22,7 @@ protected:
 	String big_str = "\
 	this is a multiline string\
 ";
+	String escaped_str = "\n \\ \" ";
 	bool _protected_bool = true;
 	Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
 	bool has_call = array.has(3);

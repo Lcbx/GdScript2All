@@ -13,6 +13,7 @@ public partial class expressions : Godot.Node
 	public String BigStr = @"
 	this is a multiline string
 ";
+	public string EscapedStr = "\n \\ \" ";
 	protected bool _ProtectedBool = true;
 	public Array Array = new Array{0, 1, 2, };
 	public bool HasCall = Array.Contains(3);

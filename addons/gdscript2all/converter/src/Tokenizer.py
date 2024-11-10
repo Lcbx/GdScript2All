@@ -41,7 +41,7 @@ class Tokenizer(Lexer):
 		# remove both """s
 		t.value = t.value[3:-3]; return t
 	
-	@_(r'"(.|\\")*?"|\'(.|\\\')*?\'') # accept both '' "" strings
+	@_(r'".*?"(?<!\\")|\'.*?\'(?<!\\\')') # accept both '' "" strings
 	def STRING(self, t):
 		self.update_lineno(t)
 		# remove "" and replace \" by "
