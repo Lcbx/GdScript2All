@@ -109,7 +109,6 @@ using Godot.Collections;
 /* multiline
    comment
 */
-
 [Tool]
 [GlobalClass]
 public partial class test : Godot.Node
@@ -131,6 +130,7 @@ public partial class test : Godot.Node
     [Export(PropertyHint.Flags, "Self:4,Allies:8,Foes:16")]
     public int ExportFlags;
 
+
     // basic property definitions / expressions
     public static int I = 0;
     public const string STRING_CONSTANT = "the fox said \"get off my lawn\"";
@@ -140,6 +140,7 @@ public partial class test : Godot.Node
     public bool HasCall = Array.Contains(3);
     public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
     public Array<string> StringArray = new Array{"0", "1", };
+
 
     // type inference
     public int J = I;
@@ -152,10 +153,12 @@ public partial class test : Godot.Node
         return val * param;
     }
 
-    // determine type based on godot doc
+
+// determine type based on godot doc
     public Godot.Node X = this.GetParent();
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
+
 
     // Gdscript special syntax
     public Godot.Node GetNode = GetNode("node");
@@ -170,8 +173,9 @@ public partial class test : Godot.Node
         {
             _Sprite = value;
             _Sprite.Position = new Vector2(1, 2);
-            _Sprite.Position += new Vector2(1, 2);// cpp will need help here
+            _Sprite.Position += new Vector2(1, 2);
         }
+        // cpp will need help here
         get
         {
             return _Sprite;
@@ -180,7 +184,7 @@ public partial class test : Godot.Node
     private Godot.Sprite2D _Sprite;
 
 
-    // signals
+// signals
     [Signal]
     public delegate void JumpEventHandler();
     [Signal]
@@ -197,13 +201,15 @@ public partial class test : Godot.Node
         {    GD.Print("look ma i'm jumping");
         };
 
-        // lambdas are not perfectly translated
+
+    // lambdas are not perfectly translated
         Jump += myLambda;
 
         EmitSignal("Movement", Vector3.Up, 0.1);
     }
 
-    // _ready generation when @onready is used
+
+// _ready generation when @onready is used
     public int K;
 
 
@@ -234,7 +240,6 @@ using namespace godot;
 /* multiline
    comment
 */
-
 class Nested1 : public test {
     GDCLASS(Nested1, test);
 public:
@@ -283,6 +288,7 @@ protected:
     Ref<Resource> load_resource = load("res://path");
 
     Ref<Sprite2D> sprite;
+// cpp will need help here
 
 public:
     void set_sprite(Ref<Sprite2D> value);
@@ -291,6 +297,8 @@ public:
     Ref<Sprite2D> get_sprite();
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
+
+// lambdas are not perfectly translated
 
 // _ready generation when @onready is used
     void async_function();
@@ -335,7 +343,7 @@ void test::set_sprite(Ref<Sprite2D> value)
 {
     sprite = value;
     sprite->set_position(Vector2(1, 2));
-    sprite->set_position( /* get_position() */ + Vector2(1, 2));// cpp will need help here
+    sprite->set_position( /* get_position() */ + Vector2(1, 2));
 }
 
 Ref<Sprite2D> test::get_sprite()
@@ -353,8 +361,6 @@ void test::async_function()
     Callable myLambda = []() 
     {    UtilityFunctions::print("look ma i'm jumping");
     };
-
-    // lambdas are not perfectly translated
     connect("jump", myLambda);
 
     emit_signal("movement", Vector3::UP, 0.1);

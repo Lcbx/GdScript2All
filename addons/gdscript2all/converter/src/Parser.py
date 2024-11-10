@@ -1038,11 +1038,11 @@ class Parser:
 	
 	# called when an endline is excpected
 	def endline(self):
-		jumpedLines = 0
 		lastendline = None
+		jumpedLines = 0
+		emitComment = None
 		
-		while self.match_type('LINE_END', 'COMMENT', 'LONG_STRING'):
-			emitComments = (lambda : None)
+		while True:
 
 			# setting scope level only when we encounter non-whitespace
 			if self.match_type('LINE_END'):
@@ -1051,24 +1051,29 @@ class Parser:
 				jumpedLines += 1
 
 			# parse comments
-			else:
+			elif self.match_type('COMMENT', 'LONG_STRING'):
+				if emitComment: emitComment()
+				lvlDiff = int(lastendline.value) - self.level if lastendline else 0
 				emit = self.out.comment if self.match_type('COMMENT') else self.out.multiline_comment
 				content = self.consume()
-				# override emitComments stub
-				def emitComments(): emit(content)
-
-			if self.match_type('LINE_END'):
-				emitComments()
+				def emitComment():
+					nonlocal jumpedLines
+					self.out.level += lvlDiff
+					if jumpedLines > 0: self.out += '\n' * jumpedLines 
+					emit(content)
+					self.out.level -= lvlDiff
+					self.out += '\n'
+					jumpedLines = -1
 			
-			# found code, indentation now matters
+			# found code, indentation now matters, and break loop
 			# NOTE: for prettier output, we emit downscope directly
 			else:
 				lvl = int(lastendline.value) if lastendline else self.level
 				for i in range(self.level - lvl): self.out.DownScope();
 				if lvl < self.level: self.level = lvl
-				emitComments()
-				self.out += '\n' * jumpedLines
-				jumpedLines = 0
+				if emitComment: emitComment()
+				else: self.out += '\n' * jumpedLines
+				break
 
 def passthrough(closure, *values):
 	closure(*values); yield
