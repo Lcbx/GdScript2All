@@ -32,30 +32,15 @@ c++ output (implementation) :
 __test.cpp__
 ```
 
-### Adding new languages
-If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
-modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
-```bash
-python ./addons/gdscript2all/converter/main.py -t Cpp <file_or_folder_path>
-```
-
 ### Limitations
-- endlines within parenthesis - ex ```( 1 \n + 2 )``` - are not supported ; you have to add a ```\``` before the endline
-- pattern matching ex:  
-```GDScript
-match [34, 6]:
-  [0, var y]:
-     print(y)
-  [var x, 6] when x > 10 :
-     print(x)
-```
-will not be supported (too complicated to generate an equivalent)
 - generated code might need corrections !
-- when the parser encounters something unexpected it will drop the current line and try to resume at the next (panic mode). this might result in mangled output.
+- endlines within parenthesis - ex ```( 1 \n + 2 )``` - are not supported ; you have to add a ```\``` before the endline
+- pattern matching - a complicated form of the match case statement - is not be supported
+- when the parser encounters something unexpected it will drop the current line and resume at the next (panic mode). this might result in mangled output.
+- read [TODO.md](TODO.md) for missing features
 - C# : godot won't build C# scripts until you have created at least one C# script manually in the editor
 - c++ : generated code does a best guess on what whould be pointers/references
 - c++ : accessing/modifying parent class properties does not use getters/setters (this is a conscious choice)
-- read [TODO.md](TODO.md) for current/missing features
 
 ### Updating the API definition
 * download the offical godot repo
@@ -63,6 +48,13 @@ will not be supported (too complicated to generate an equivalent)
 * install untangle (xml parsing library) if you don't have it (```pip install untangle```)
 * run ```py ./addons/gdscript2all/converter/src/godot_types.py``` to generate the pickle class db
 * profit.
+
+### Adding new languages
+If you want to transpile to an unsupported language, rename a copy of the [C# transpiler backend](src/CsharpTranspiler.py),
+modify it as needed, then to use it you just have to pass its name with the ```-t``` flag (example below with c++ transpiler):
+```bash
+python ./addons/gdscript2all/converter/main.py -t Cpp <file_or_folder_path>
+```
 
 ### Explaining the GPL-3.0 license
 The code this tool generates from your GDScipt is yours.

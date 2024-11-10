@@ -23,7 +23,7 @@
 - [x] add a setting for double or float as default floating point data type
 - [ ] special literals :
   * floating exponents : 58e-10
-  * base16 int : 0x8E
+  * <del>base16 int : 0x8E</del> (done)
   * binary int : 0b1010
   * raw strings : r"hello"
   * string names : &"name"
