@@ -689,13 +689,13 @@ class Parser:
 		elif self.expect('$'):
 			name = self.consume()
 			yield 'Node'
-			self.out.call('Node', 'get_node', (passthrough(self.out.literal, name) ,) )
+			self.out.call('Node', 'get_node', (passthrough(self.out.string, name) ,) )
 			
 		# scene-unique nodes : %node => get_node("%node") -> Node
 		elif self.expect('%'):
 			name = self.consume()
 			yield 'Node'
-			self.out.call('Node', 'get_node', (passthrough(self.out.literal, f'%{name}') ,) )
+			self.out.call('Node', 'get_node', (passthrough(self.out.string, f'%{name}') ,) )
 		
 		# lambda: func <name>?(params): <Block>
 		elif self.expect('func'):

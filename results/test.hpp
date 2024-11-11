@@ -58,9 +58,9 @@ protected:
 	const RenderingServer::ShaderMode enum = RenderingServer::ShaderMode::SHADER_SPATIAL;
 
 // Gdscript special syntax
-	Ref<Node> get_node = get_node(node);
-	Ref<Node> get_node2 = get_node(../node);
-	Ref<Node> get_unique_node = get_node(%unique_node);
+	Ref<Node> get_node = get_node("node");
+	Ref<Node> get_node2 = get_node("../node");
+	Ref<Node> get_unique_node = get_node("%unique_node");
 	Ref<Resource> preload_resource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
 	Ref<Resource> load_resource = load("res://path");
 

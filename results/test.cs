@@ -59,9 +59,9 @@ public partial class test : Godot.Node
 
 
 	// Gdscript special syntax
-	public Godot.Node GetNode = GetNode(node);
-	public Godot.Node GetNode2 = GetNode(../node);
-	public Godot.Node GetUniqueNode = GetNode(%unique_node);
+	public Godot.Node GetNode = GetNode("node");
+	public Godot.Node GetNode2 = GetNode("../node");
+	public Godot.Node GetUniqueNode = GetNode("%unique_node");
 	public Godot.Resource PreloadResource = /* preload has no equivalent, add a 'ResourcePreloader' Node in your scene */("res://path");
 	public Godot.Resource LoadResource = Load("res://path");
 
