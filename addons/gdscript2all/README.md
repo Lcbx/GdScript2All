@@ -414,7 +414,7 @@ void test::_bind_methods() {
 
 ### Limitations
 - generated code might need corrections !
-- pattern matching - a complicated form of the match case statement - is not be supported
+- pattern matching - a complicated form of the match case statement - is not supported
 - when the parser encounters something unexpected it will drop the current line and resume at the next (panic mode). this might result in mangled output.
 - read [TODO.md](TODO.md) for missing features
 - C# : godot won't build C# scripts until you have created at least one C# script manually in the editor
