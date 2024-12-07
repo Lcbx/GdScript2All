@@ -1066,15 +1066,12 @@ class Parser:
 			# parse comments
 			elif self.match_type('COMMENT', 'LONG_STRING'):
 				if emitComment: emitComment()
-				lvlDiff = int(lastendline.value) - self.level if lastendline else 0
 				emit = self.out.comment if self.match_type('COMMENT') else self.out.multiline_comment
 				content = self.consume()
 				def emitComment():
 					nonlocal jumpedLines
-					self.out.level += lvlDiff
 					if jumpedLines > 0: self.out += '\n' * jumpedLines 
 					emit(content)
-					self.out.level -= lvlDiff
 					self.out += '\n'
 					jumpedLines = -1
 			

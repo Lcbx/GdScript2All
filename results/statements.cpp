@@ -31,7 +31,7 @@ Array statements::method()
 	{
 		i += 1;
 
-	// unindented comment
+		// unindented comment
 		break;
 		continue;
 	}
@@ -65,7 +65,7 @@ Array statements::method()
 		{
 			UtilityFunctions::print("zero!");
 
-		//var x when false:
+			//var x when false:
 			//	print("unreachable")
 			//[var x, var y] when true:
 			//	print("array pattern")

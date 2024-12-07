@@ -56,5 +56,7 @@ class Tokenizer(Lexer):
 	def update_lineno(self, t): self.lineno += t.value.count('\n')
 	
 	def error(self, t): # report unknown char and continue
-		print("Ignoring character '%s'" % t.value[0])
+		value = t.value[0]
+		if value != '\t': # sometimes people leave trailing tabs, dont fret on that
+			print(f"Ignoring character '{t.value[0]}' line {t.lineno} column {t.index}")
 		self.index += 1

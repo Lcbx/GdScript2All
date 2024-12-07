@@ -39,6 +39,8 @@ void Character::_process(double delta)
 		coyoteTime->stop();
 		emit_signal("jump", ground_speed);
 	}
+
+	// when running, always go forward 
 	Vector3 direction = ( movementState != MovementEnum::run ? global_mov_dir : basis.z );
 
 	double top_speed = movements[movementState]->get_top_speed();

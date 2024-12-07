@@ -154,7 +154,7 @@ public partial class test : Godot.Node
     }
 
 
-// determine type based on godot doc
+    // determine type based on godot doc
     public Godot.Node X = this.GetParent();
     public Dictionary AClass = Godot.ProjectSettings.GetGlobalClassList()[10];
     public const RenderingServer.ShaderMode Enum = Godot.RenderingServer.ShaderMode.ShaderSpatial;
@@ -184,7 +184,7 @@ public partial class test : Godot.Node
     private Godot.Sprite2D _Sprite;
 
 
-// signals
+    // signals
     [Signal]
     public delegate void JumpEventHandler();
     [Signal]
@@ -202,14 +202,14 @@ public partial class test : Godot.Node
         };
 
 
-    // lambdas are not perfectly translated
+        // lambdas are not perfectly translated
         Jump += myLambda;
 
         EmitSignal("Movement", Vector3.Up, 0.1);
     }
 
 
-// _ready generation when @onready is used
+    // _ready generation when @onready is used
     public int K;
 
 
@@ -298,8 +298,6 @@ public:
     /* signal jump() */
     /* signal movement(Vector3 dir, double speed) */
 
-// lambdas are not perfectly translated
-
 // _ready generation when @onready is used
     void async_function();
 
@@ -361,6 +359,8 @@ void test::async_function()
     Callable myLambda = []() 
     {    UtilityFunctions::print("look ma i'm jumping");
     };
+
+    // lambdas are not perfectly translated
     connect("jump", myLambda);
 
     emit_signal("movement", Vector3::UP, 0.1);

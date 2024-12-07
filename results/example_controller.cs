@@ -70,7 +70,7 @@ public partial class Character : Godot.CharacterBody3D
 		}
 
 
-	// when running, always go forward 
+		// when running, always go forward 
 		var direction = ( MovementState != MovementEnum.run ? GlobalMovDir : Basis.Z );
 
 		var top_speed = Movements[MovementState].TopSpeed;
@@ -96,7 +96,7 @@ public partial class Character : Godot.CharacterBody3D
 	}
 
 
-/* movement state / animations */
+	/* movement state / animations */
 	[Signal]
 	public delegate void ChangedStateEventHandler(MovementEnum state);
 	[Signal]
@@ -147,7 +147,7 @@ public partial class Character : Godot.CharacterBody3D
 	}
 
 
-// NOTE: local_dir is normalized on the xz plane by Overlay
+	// NOTE: local_dir is normalized on the xz plane by Overlay
 	protected Vector3 _LocalDir;
 	[Export]
 	public Vector3 LocalDir
@@ -168,7 +168,7 @@ public partial class Character : Godot.CharacterBody3D
 	}
 
 
-/* view */
+	/* view */
 	[Signal]
 	public delegate void ViewDirChangedEventHandler(Vector3 euler);
 

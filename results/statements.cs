@@ -33,7 +33,7 @@ public partial class statements : Godot.Node
 		{
 			i += 1;
 
-		// unindented comment
+			// unindented comment
 			break;
 			continue;
 		}
@@ -67,7 +67,7 @@ public partial class statements : Godot.Node
 			{
 				GD.Print("zero!");
 
-			//var x when false:
+				//var x when false:
 				//	print("unreachable")
 				//[var x, var y] when true:
 				//	print("array pattern")

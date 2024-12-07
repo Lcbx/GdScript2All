@@ -75,8 +75,6 @@ public:
 	/* signal jump() */
 	/* signal movement(Vector3 dir, double speed) */
 
-// lambdas are not perfectly translated
-
 // _ready generation when @onready is used
 	void async_function();
 

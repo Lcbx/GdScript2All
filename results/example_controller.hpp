@@ -42,8 +42,6 @@ protected:
 	Variant coyoteTime = Utils.createTimer(this, 0.15);
 	Variant jumpCoolDown = Utils.createTimer(this, 0.15);
 
-// when running, always go forward 
-
 /* movement state / animations */
 
 public:

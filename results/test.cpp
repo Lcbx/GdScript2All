@@ -36,6 +36,8 @@ void test::async_function()
 	Callable myLambda = []() 
 	{	UtilityFunctions::print("look ma i'm jumping");
 	};
+
+	// lambdas are not perfectly translated
 	connect("jump", myLambda);
 
 	emit_signal("movement", Vector3::UP, 0.1);
