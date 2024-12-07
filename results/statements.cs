@@ -43,7 +43,7 @@ public partial class statements : Godot.Node
 			i += j;
 		}
 
-		foreach(Variant j in Array)
+		foreach(Variant j in array)
 		{
 			i += j;
 		}
@@ -90,8 +90,6 @@ public partial class statements : Godot.Node
 
 		return new Array{};
 	}
-
-	public Array Array = new Array{};
 
 
 }

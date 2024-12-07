@@ -16,11 +16,6 @@ public:
 
 	Array method();
 
-protected:
-	Array array = Array();
-
-public:
-
 	static void _bind_methods();
 };
 

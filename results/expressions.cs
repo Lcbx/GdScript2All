@@ -39,4 +39,8 @@ public partial class expressions : Godot.Node
 	// hexadecimal
 	public int Byte = (bytes[6] & 0x0f) | 0x40;
 
+
+	// and a comment
+	public bool Multiline = (_terminal_pad.Length() && (!buffer_size || (_terminal_buffer[ - 1] != _terminal_pad)));
+
 }

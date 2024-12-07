@@ -45,6 +45,9 @@ protected:
 
 // hexadecimal
 	int byte = (bytes[6] & 0x0f) | 0x40;
+
+// and a comment
+	bool multiline = (_terminal_pad.length() && (!buffer_size || (_terminal_buffer[ - 1] != _terminal_pad)));
 };
 
 #endif // EXPRESSIONS_H

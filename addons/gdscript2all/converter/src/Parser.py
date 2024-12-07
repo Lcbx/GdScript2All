@@ -43,6 +43,9 @@ class Parser:
 		
 		# local variables (name:type)
 		self.locals = {}
+
+		# in a subexpression "(<expression>)"
+		self.in_subexpression = False
 	
 	""" SCRIPT/STATEMENT GRAMMAR 
 	
@@ -515,7 +518,7 @@ class Parser:
 	def boolean(self):
 		ar1 = self.arithmetic()
 		ar_type = next(ar1)
-		
+
 		op = self.consume() if self.match_type('COMPARISON') else None
 		
 		if op:
@@ -533,8 +536,9 @@ class Parser:
 			self.out.check_type(ar1, checked)
 
 		# handling "<element> in <array>" checks
-		elif self.expect('not') or self.expect('in'):
-			negative = self.expect('in')
+		elif (negative := self.expect('not')) or self.expect('in'):
+			finished = self.expect('in')
+			if negative and not finished: print("unexpected 'not' :  ", self.current)
 			val = self.expression()
 			val_type = next(val)
 			yield 'bool'
@@ -563,6 +567,8 @@ class Parser:
 	def _arithmetic(self):
 		val1 = self.dereference()
 		type = next(val1)
+
+		self.subexpression_endline()
 		
 		# NOTE: we accept arithmetic reassignment ex: i -= 1
 		# which is not exact but simpler to do this way
@@ -612,6 +618,8 @@ class Parser:
 
 
 	def value(self):
+
+		self.subexpression_endline()
 		
 		# int and hexadecimals are supported as-is by cpp and C#
 		if self.match_type('INT') or self.match_type('HEX'):
@@ -674,14 +682,16 @@ class Parser:
 			self.out.create_dict(contents)
 			
 		# subexpression : (expression)
-		# WARNING: in GDScript endlines are allowed in the middle of parenthesis expressions
-		# but here we can only allow them around the parenthesis themselves 
 		elif self.expect('('):
+			sub_subexpression = self.in_subexpression
+			self.in_subexpression = True
 			self.endline()
 			enclosed = self.expression()
 			enclosed_type = next(enclosed)
 			self.endline()
 			self.expect(')')
+			if not sub_subexpression:
+				self.in_subexpression = False
 			yield enclosed_type
 			self.out.subexpression(enclosed)
 		
@@ -1036,6 +1046,9 @@ class Parser:
 		# NOTE: params_init only used in method definition
 		return params, params_init
 	
+	def subexpression_endline(self):
+		if self.in_subexpression: self.endline()
+
 	# called when an endline is excpected
 	def endline(self):
 		lastendline = None

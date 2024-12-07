@@ -57,4 +57,3 @@ func method():
 	
 	return []
 
-var array = []

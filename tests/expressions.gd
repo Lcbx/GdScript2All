@@ -36,3 +36,10 @@ var nested_ternary = cond1_true * 3 \
 
 # hexadecimal
 var byte = (bytes[6] & 0x0f) | 0x40
+
+var multiline = (
+		_terminal_pad.length()
+		and (
+			not buffer_size or (_terminal_buffer[-1] != _terminal_pad)
+		) # and a comment
+	)
