@@ -5,7 +5,7 @@ func empty(): pass
 func reassign():
 	reassign += 2
 
-func assign():
+func assign() -> void:
 	assign = 2
 
 #test1

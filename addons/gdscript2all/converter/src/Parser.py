@@ -1000,6 +1000,11 @@ class Parser:
 	def parseType(self):
 		type = self.consume()
 
+		# parser convention : 'void' is None
+		# convert it for when someone uses the function return type annotation
+		# Ex : ```func _ready() -> void: ``` 
+		if type == 'void': return None
+
 		while self.expect("."): type += '.' + self.consume()
 
 		# Array[<type>] => <type>[]
