@@ -799,8 +799,10 @@ class Parser:
 
 	
 	def subscription(self, type):
-		# NOTE: we only deternmine the type if it's a typed array
-		type = type.replace('[]', '') if type and '[]' in type else None
+		if type:
+			type = (type[:-2] if type.endswith('[]')
+			  else type[type.index(',')+1:-1] if type.startswith('Dictionary<')
+			  else None)
 		key = self.expression(); next(key)
 		self.expect(']')
 		
@@ -1005,11 +1007,17 @@ class Parser:
 		# Ex : ```func _ready() -> void: ``` 
 		if type == 'void': return None
 
-		while self.expect("."): type += '.' + self.consume()
+		while self.expect('.'): type += '.' + self.consume()
 
-		# Array[<type>] => <type>[]
+		# Array[type] => type[]
 		if type == 'Array' and self.expect('['):
 			type = self.parseType() + '[]'; self.expect(']')
+
+		# Dictionary[type, type] => Dictionary<type, type>
+		if type == 'Dictionary' and self.expect('['):
+			keyType = self.parseType(); self.expect(',')
+			valueType = self.parseType(); self.expect(']')
+			type = f'Dictionary<{keyType},{valueType}>'
 
 		return type
 		

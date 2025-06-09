@@ -28,6 +28,7 @@ protected:
 	bool has_call = array.has(3);
 	Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
 	Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
+	Ref<Dictionary<String,int>> typed_dict = Dictionary();
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;
@@ -36,6 +37,9 @@ protected:
 
 // comment \
 	double func_delayed = Math::exp(1, 2);
+
+	Variant dict_subscription = dict[0];
+	int typed_dict_subscription = typed_dict["0"];
 
 // multi-part expressions
 	double arithmetic =  - i * 0.5;

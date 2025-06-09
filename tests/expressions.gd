@@ -14,6 +14,7 @@ var array = [0,1,2]
 var has_call = 3 in array
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[String] = ['0','1']
+var typed_dict : Dictionary[String, int] = {}
 var parenthesis := (42)
 var delayed_expression = \
 	1
@@ -23,6 +24,9 @@ var func_call = sin(34)
 var func_delayed = \
 	exp( 1, # comment \
 		2)
+
+var dict_subscription = dict[0]
+var typed_dict_subscription = typed_dict['0']
 
 # multi-part expressions
 var arithmetic = - i * .5
