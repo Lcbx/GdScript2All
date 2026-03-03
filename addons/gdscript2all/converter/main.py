@@ -17,7 +17,7 @@ def main():
 	commandLineArgs.add_argument('--no_save', action='store_true', default = False, help='do not save output code as a file' )
 	commandLineArgs.add_argument('--print_tokens', action='store_true', default = False, help='print the tokenizer output' )
 	commandLineArgs.add_argument('--log_file', default = '', help='redirect stdout and stderr to specified filepath' )
-	commandLineArgs.add_argument('--create_gdextension', default = '', help='creates a gdextension cpp project in the output dir with specified name' )
+	#commandLineArgs.add_argument('--create_gdextension', default = '', help='creates a gdextension cpp project in the output dir with specified name' )
 	args = commandLineArgs.parse_args()
 	
 	import src
@@ -86,8 +86,8 @@ def main():
 		Parser.godot_types.update(script_classes)
 
 	# generate the cpp project if specified
-	if project_name := args.create_gdextension:
-		generate_project(args.output, project_name, script_classes.keys())
+	#if project_name := args.create_gdextension:
+		#generate_project(args.output, project_name, script_classes.keys())
 
 	for i, filename in enumerate(input_files):
 		try:
@@ -132,6 +132,7 @@ def handleException(parser, ex):
 			tb = tb.tb_next
 
 def generate_project(base_path, project_name : str, classes : list) -> None:
+	""" (Warning : not up to date) creates a c++ project based on the official godot template """
 	project_path = os.path.join(base_path, project_name)
 
 	# official template
