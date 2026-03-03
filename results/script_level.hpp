@@ -38,6 +38,8 @@ public:
 
 	enum  {UNIT_NEUTRAL, UNIT_ENEMY, UNIT_ALLY};
 	enum Named {THING_1, THING_2, ANOTHER_THING =  - 1};
+
+// added trailing spaces test next line
 	enum WithEndlines {THING_1, THING_2};
 
 protected:
