@@ -14,17 +14,21 @@ var array = [0,1,2]
 var has_call = 3 in array
 var dict := {0:1, 1:2, 2:3}
 var string_array : Array[String] = ['0','1']
+var array_of_enum : Array[Animation.TrackType]
+var packed_array : PackedInt32Array
 var typed_dict : Dictionary[String, int] = {}
 var parenthesis := (42)
 var delayed_expression = \
 	1
 var asKeyword = 3 as float
-var array_of_enum : Array[Animation.TrackType]
 var func_call = sin(34)
 var func_delayed = \
 	exp( 1, # comment \
 		2)
 
+var array_subscription = string_array[0]
+var array_subscription2 = array_of_enum[0]
+var array_subscription3 = packed_array[0]
 var dict_subscription = dict[0]
 var typed_dict_subscription = typed_dict['0']
 

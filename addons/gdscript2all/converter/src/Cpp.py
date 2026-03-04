@@ -2,6 +2,9 @@ import re as regex
 from godot_types import *
 from StringBuilder import StringBuilder
 
+# rename python type so we can use type as a variable name
+getType = type
+
 # ClassDefinition
 # contains the code being generated for a class
 # as we need to reorder it a lot
@@ -411,7 +414,8 @@ class Transpiler:
 			for prop, an_name, an_args in self.getClass().annotations:
 				if prop: # @export_... property
 					type = self.klass.members[prop]
-					if not type.startswith('signal'):
+					is_container = getType(type) is tuple
+					if is_container or not type.startswith('signal'):
 						an_name = export_replacements.get(an_name) or an_name.upper()
 						
 						property_bindings += f'\tClassDB::add_property(get_class_static(), PropertyInfo({toVariantTypeEnum(type)}, "{prop}"'
@@ -509,11 +513,17 @@ class Transpiler:
 		self.getClass().accessors_get[prop_name] = toGet(prop_name)
 		self.getter(prop_name, f' {{\n\treturn {prop_name};\n}}\n')
 
-	def translate_type(self, type):
+	def translate_type(self, type, use_ref=True):
+
 		if type == None: return 'void'
 		if type == 'Variant': return type
 		if type == 'string': return 'String'
-		if type.endswith('[]'): return 'Array'
+		if type == 'byte': return 'char'
+		if getType(type) is tuple:
+			#return type[0]
+			if type[0] == 'Array': return f'TypedArray<{self.translate_type(type[1], False)}>'
+			elif type[0] == 'Dictionary': return f'TypedDictionary<{",".join( (self.translate_type(t, False) for t in type[1:]) )}>'
+			else: return f'{type[0]}<{",".join( (self.translate_type(t, False) for t in type[1:]) )}>'
 		if type.endswith('enum'): return type[:-len('enum')].replace('.', '::')
 		if type == 'float' and not use_floats: return 'double'
 		if toVariantTypeConstant(type): return type
@@ -524,7 +534,7 @@ class Transpiler:
 		if len(split) > 1 and split[-2] in godot_types: self.used_types.add(split[-2])
 
 		type = '::'.join(split)
-		return f'Ref<{type}>'
+		return f'Ref<{type}>' if use_ref else type
 	
 	def comment(self, content):
 		handler = self.getWhitespaceHandler()
@@ -642,10 +652,10 @@ def toGet(name): return f'get_{name}'
 def is_pointer(type): return type and not toVariantTypeConstant(type)
 
 def toVariantTypeConstant(type):
+	if getType(type) is tuple: type = type[0]
 	# NOTE: binding enums as int ; that's the standards afaik
 	# see https://github.com/godotengine/godot/issues/15922
-	if   type.endswith('enum'): type = 'int'
-	elif type.endswith('[]'): type = 'Array'
+	elif   type.endswith('enum'): type = 'int'
 
 	match = (vt for vt in variant_types if vt.replace('TYPE_', '', 1).replace('_','') == type.upper())
 	return next(match, None)

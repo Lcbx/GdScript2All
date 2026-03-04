@@ -107,7 +107,7 @@ public partial class Character : Godot.CharacterBody3D
 	public delegate void JumpEventHandler(double speed);
 
 	public enum MovementEnum {crouch, walk, run, fall}
-	[Export] public Array<MovementState> Movements;
+	[Export] public Array<Godot.MovementState> Movements;
 
 	[Export]
 	public Character.MovementEnum MovementState

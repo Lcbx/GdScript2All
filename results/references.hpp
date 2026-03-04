@@ -6,6 +6,7 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/references.hpp>
 
 using namespace godot;
 
@@ -22,7 +23,7 @@ protected:
 	Variant functionMethodParams = foo(a, b).bar(c, d);
 	Variant refMethod = foo.bar.baz();
 	Variant methodRef = foo.bar().baz;
-	Variant subscription = this->dict[0];
+	Ref<references> subscription = this->dict[0];
 };
 
 #endif // REFERENCES_H

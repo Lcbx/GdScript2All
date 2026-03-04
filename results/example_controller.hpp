@@ -7,6 +7,7 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/classes/character_body3d.hpp>
 #include <godot_cpp/classes/kinematic_collision3d.hpp>
+#include <godot_cpp/classes/movement_state.hpp>
 
 using namespace godot;
 
@@ -54,7 +55,7 @@ public:
 	enum MovementEnum {crouch, walk, run, fall};
 
 protected:
-	Array movements;
+	TypedArray<MovementState> movements;
 
 	Character::MovementEnum movementState = MovementEnum::walk;
 
@@ -96,8 +97,8 @@ protected:
 public:
 	void set_view_dir(Vector3 value);
 	Vector3 get_view_dir();
-	void set_movements(Array value);
-	Array get_movements();
+	void set_movements(TypedArray<MovementState> value);
+	TypedArray<MovementState> get_movements();
 	void set_wantedMovement(Character::MovementEnum value);
 	Character::MovementEnum get_wantedMovement();
 

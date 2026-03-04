@@ -19,17 +19,21 @@ public partial class expressions : Godot.Node
 	public bool HasCall = Array.Contains(3);
 	public Dictionary Dict = new Dictionary{{0, 1},{1, 2},{2, 3},};
 	public Array<String> StringArray = new Array{"0", "1", };
+	public Array<Animation.TrackType> ArrayOfEnum;
+	public PackedInt32Array PackedArray;
 	public Dictionary<String,int> TypedDict = new Dictionary{};
 	public int Parenthesis = (42);
 	public int DelayedExpression = 1;
 	public double AsKeyword = 3;
-	public Array<Animation.TrackType> ArrayOfEnum;
 	public double FuncCall = Mathf.Sin(34);
 
 	// comment \
 	public double FuncDelayed = Mathf.Exp(1, 2);
 
-	public Godot.Variant DictSubscription = Dict[0];
+	public String ArraySubscription = StringArray[0];
+	public Animation.TrackType ArraySubscription2 = ArrayOfEnum[0];
+	public int ArraySubscription3 = PackedArray[0];
+	public Dictionary DictSubscription = Dict[0];
 	public int TypedDictSubscription = TypedDict["0"];
 
 

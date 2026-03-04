@@ -5,6 +5,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/animation.hpp>
 #include <godot_cpp/classes/node.hpp>
 
 using namespace godot;
@@ -27,18 +28,22 @@ protected:
 	Array array = Array {/* initializer lists are unsupported */ 0, 1, 2,  };
 	bool has_call = array.has(3);
 	Dictionary dict = Dictionary {/* initializer lists are unsupported */ {0, 1},{1, 2},{2, 3}, };
-	Array string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
-	Ref<Dictionary<String,int>> typed_dict = Dictionary();
+	TypedArray<String> string_array = Array {/* initializer lists are unsupported */ "0", "1",  };
+	TypedArray<Animation::TrackType> array_of_enum;
+	PackedInt32Array packed_array;
+	TypedDictionary<String,int> typed_dict = Dictionary();
 	int parenthesis = (42);
 	int delayed_expression = 1;
 	double asKeyword = 3;
-	Array array_of_enum;
 	double func_call = Math::sin(34);
 
 // comment \
 	double func_delayed = Math::exp(1, 2);
 
-	Variant dict_subscription = dict[0];
+	String array_subscription = string_array[0];
+	Ref<Animation::TrackType> array_subscription2 = array_of_enum[0];
+	int array_subscription3 = packed_array[0];
+	Dictionary dict_subscription = dict[0];
 	int typed_dict_subscription = typed_dict["0"];
 
 // multi-part expressions

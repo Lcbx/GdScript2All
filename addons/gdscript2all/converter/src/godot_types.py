@@ -98,12 +98,12 @@ def _update_type_definitions_():
 		if 'methods' in klass:
 			for meth in klass.methods.method:
 				meth_name = meth['name']
-				data.methods[meth_name] = meth.return_['type'] if 'return_' in meth else None
+				data.methods[meth_name] = convertType(meth.return_['type']) if 'return_' in meth else None
 		
 		if 'members' in klass:
 			for memb in klass.members.member:
 				memb_name = memb['name']
-				data.members[memb_name] = memb['type']
+				data.members[memb_name] = convertType(memb['type'])
 		
 		# NOTE: some constants are part of an enum
 		# the enum name is then contained in constant.enum property
@@ -135,7 +135,7 @@ def _update_type_definitions_():
 				data.members[signalName] = toSignalType(signalName)
 	
 	# adding builtin that aren't in doc
-	add_function('range', 'int[]')
+	add_function('range', convertType('int[]') )
 	add_function('load', 'Resource')
 	add_function('preload', 'Resource')
 	add_function('convert', 'Variant')
@@ -153,6 +153,20 @@ def add_function(name, return_type):
 def toSignalType(signal_name): return f'{signal_name}signal'
 def toEnumType(signal_name): return f'{signal_name}enum'
 
+# so far in the godot api we have :
+# Dictionary and Dictionary[]
+# packed arrays like PackedVector2Array
+# some typed arrays like Window[]
+# no typed Dictionaries
+
+#ret_types = set()
+def convertType(type_str):
+	#ret_types.add(type_str)
+	if type_str.endswith('[]'):
+		#print(type_str[:-2])
+		return ('Array', type_str[:-2])
+	return type_str
+
 # if import then load types
 if __name__ != "__main__":
 	_import_type_definitions_()
@@ -160,4 +174,5 @@ if __name__ != "__main__":
 # else update the type pickle
 else:
 	_update_type_definitions_()
+	#print(ret_types)
 

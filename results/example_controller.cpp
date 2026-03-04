@@ -116,11 +116,11 @@ Vector3 Character::get_view_dir() {
 	return view_dir;
 }
 
-void Character::set_movements(Array value) {
+void Character::set_movements(TypedArray<MovementState> value) {
 	movements = value;
 }
 
-Array Character::get_movements() {
+TypedArray<MovementState> Character::get_movements() {
 	return movements;
 }
 

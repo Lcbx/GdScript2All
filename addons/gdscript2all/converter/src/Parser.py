@@ -10,6 +10,8 @@ from ClassData import ClassData
 # to avoid having to join definitions
 from godot_types import godot_types, GLOBALS, toSignalType, toEnumType
 
+# rename python type so we can use type as a variable name
+getType = type
 
 # recursive descent parser
 class Parser:
@@ -306,8 +308,15 @@ class Parser:
 		exp = self.expression()
 		exp_type = next(exp)
 
-		inner_type = (exp_type.replace('[]', '') if exp_type and exp_type != 'Array' else 'Variant')
-		iterator_type = iterator_type or inner_type
+		# ('Array', valueType)
+		# ('Dictionary', keyType, valueType)
+		# for both when we iterate its the second item in the tuple that's used
+		if exp_type:
+			inner_type = (exp_type[1] if getType(exp_type) is tuple
+				else packedArraysDict.get(exp_type, None) if exp_type.startswith('Packed') and exp_type.endswith('Array')
+				else None)
+			iterator_type = iterator_type or inner_type
+		iterator_type = iterator_type or 'Variant'
 		
 		self.locals[name] = iterator_type
 		self.out.forStmt(name, iterator_type, exp)
@@ -591,9 +600,13 @@ class Parser:
 		val = self.value()
 		type = next(val)
 
-		signal = type and type.endswith('signal')
-		singleton = type and type.endswith('singleton')
-		if singleton: type = type[:-len('singleton')]
+		if getType(type) is str:
+			signal = type and type.endswith('signal')
+			singleton = type and type.endswith('singleton')
+			if singleton: type = type[:-len('singleton')]
+		else:
+			singleton = False
+			signal = False
 		
 		# reference
 		if self.expect('.'):
@@ -800,9 +813,14 @@ class Parser:
 	
 	def subscription(self, type):
 		if type:
-			type = (type[:-2] if type.endswith('[]')
-			  else type[type.index(',')+1:-1] if type.startswith('Dictionary<')
-			  else None)
+			if getType(type) is tuple:
+				# last type is value type for both arrays and Dictionaries
+				type = type[-1]
+			elif type.startswith('Packed') and type.endswith('Array'):
+				type = packedArraysDict.get(type, type)
+		
+		type = type or 'Variant'
+
 		key = self.expression(); next(key)
 		self.expect(']')
 		
@@ -1009,15 +1027,16 @@ class Parser:
 
 		while self.expect('.'): type += '.' + self.consume()
 
-		# Array[type] => type[]
+		# Array[valueType] => tuple('Array', valueType)
 		if type == 'Array' and self.expect('['):
-			type = self.parseType() + '[]'; self.expect(']')
+			type = (type, self.parseType())
+			self.expect(']')
 
-		# Dictionary[type, type] => Dictionary<type, type>
+		# Dictionary[keyType, valueType] => tuple('Dictionary', keyType, valueType)
 		if type == 'Dictionary' and self.expect('['):
 			keyType = self.parseType(); self.expect(',')
 			valueType = self.parseType(); self.expect(']')
-			type = f'Dictionary<{keyType},{valueType}>'
+			type = (type, keyType, valueType)
 
 		return type
 		
@@ -1100,3 +1119,18 @@ class Parser:
 
 def passthrough(closure, *values):
 	closure(*values); yield
+
+
+packedArraysDict = {
+	'PackedColorArray': 'Color',
+	'PackedVector2Array': 'Vector2',
+	'PackedVector3Array': 'Vector3',
+	'PackedVector4Array': 'Vector4',
+	'PackedByteArray': 'byte',
+	'PackedStringArray': 'String',
+	'PackedFloat32Array': 'float',
+	'PackedFloat64Array': 'double',
+	'PackedInt32Array': 'int',
+	'PackedInt64Array': 'long',
+	'PackedStringArray': 'String',
+}

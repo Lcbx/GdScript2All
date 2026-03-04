@@ -3,6 +3,9 @@ from godot_types import *
 
 from StringBuilder import StringBuilder
 
+# rename python type so we can use type as a variable name
+getType = type
+
 class Transpiler:
 	
 	def __init__(self, script_name, out_name, vprint):
@@ -43,7 +46,7 @@ class Transpiler:
 		# I think this should be standard behaviour tbh
 		if is_main: self += '[GlobalClass]\n'
 		
-		self += f'public partial class {name} : {translate_type(base_class)}'
+		self += f'public partial class {name} : {self.translate_type(base_class)}'
 		self.UpScope()
 		self += '\n'
 	
@@ -73,7 +76,7 @@ class Transpiler:
 		pascalName = toPascal(name)
 		const_decl = 'const ' if constant else 'static ' if static else ''
 		exposed = 'protected' if name[0] == '_' else 'public'
-		self += f'{exposed} {const_decl}{translate_type(type)} {pascalName}'
+		self += f'{exposed} {const_decl}{self.translate_type(type)} {pascalName}'
 
 		assignment_str = ''
 		if assignment:
@@ -118,7 +121,7 @@ class Transpiler:
 			private_version = toPrivate(name)
 			if not private_version in self.klass.members:
 				privateMember = '}\n' + '\t' * self.level + \
-					f'private {translate_type(type)} {toPascal(private_version)}'
+					f'private {self.translate_type(type)} {toPascal(private_version)}'
 				if assignment_str: privateMember += assignment_str
 				privateMember += ';\n'
 				code = replaceClosingBrace(code, privateMember)
@@ -172,11 +175,11 @@ class Transpiler:
 		exposed = 'protected' if name[0] == '_' and not override else 'public'
 		static_str = 'static ' if static else ''
 		override_str = 'override ' if override else ''
-		self += f'{exposed} {override_str}{static_str}{translate_type(return_type)} {toPascal(name)}('
+		self += f'{exposed} {override_str}{static_str}{self.translate_type(return_type)} {toPascal(name)}('
 		
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
-			self += f'{translate_type(pType)} {pName}'
+			self += f'{self.translate_type(pType)} {pName}'
 			if pName in params_init:
 				self += ' = '; get(params_init[pName])
 		
@@ -193,7 +196,7 @@ class Transpiler:
 		self.write(code)
 	
 	def define_signal(self, name, params):
-		paramStr = ', '.join( ( f'{translate_type(pType)} {pName}' for pName, pType in params.items()))
+		paramStr = ', '.join( ( f'{self.translate_type(pType)} {pName}' for pName, pType in params.items()))
 		self += '[Signal]\n'
 		self += f'public delegate void {toPascal(name)}EventHandler({paramStr});'
 	
@@ -223,7 +226,7 @@ class Transpiler:
 		self += '('
 		for i, (pName, pType) in enumerate(params.items()):
 			if i != 0: self += ', '
-			self += f'{translate_type(pType)} {pName}'
+			self += f'{self.translate_type(pType)} {pName}'
 		self += ') =>'
 		# cleanup
 		code = code.replace('{', '{\t', 1)
@@ -253,7 +256,7 @@ class Transpiler:
 		self += variable_replacements.get(name, name)
 	
 	def singleton(self, name):
-		self += translate_type(name)
+		self += self.translate_type(name)
 	
 	def reference(self, name, obj_type, member_type, is_singleton = False):
 		self += '.' + toPascal(name)
@@ -262,7 +265,8 @@ class Transpiler:
 		self += f'.{toPascal(name)} {op} '; get(val)
 	
 	def call(self, calling_type, name, params):
-		if calling_type == GLOBALS: name = function_replacements.get(name, name)
+		if calling_type == GLOBALS:
+			name = function_replacements.get(name, name)
 		
 		# for some reason, API diverges here
 		elif name == 'has':
@@ -291,7 +295,7 @@ class Transpiler:
 		else: self += f' {op} '
 	
 	def check_type(self, exp, checked):
-		get(exp); self += f' is {translate_type(checked)}'
+		get(exp); self += f' is {self.translate_type(checked)}'
 
 	def ternary(self, condition, valueIfTrue, valueIfFalse):
 		self += '( '
@@ -443,14 +447,16 @@ class Transpiler:
 		self.layers.pop()
 		return scope
 
-def translate_type(type):
-	if type == None: return 'void'
-	if type.endswith('[]'): return f'Array<{type[:-2]}>'
-	if type.endswith('enum'): return type[:-len('enum')]
-	if type == 'float' and not use_floats: return 'double'
-	if isVariantType(type): return type
-	if type.split('.') [-1] in godot_types: return f'Godot.{type}'
-	return type
+	def translate_type(self, type):
+		if type == None: return 'void'
+		if getType(type) is tuple:
+			#return type[0]
+			return f'{type[0]}<{",".join( (self.translate_type(t) for t in type[1:]) )}>'
+		if type.endswith('enum'): return type[:-len('enum')]
+		if type == 'float' and not use_floats: return 'double'
+		if isVariantType(type): return type
+		if type.split('.')[-1] in godot_types: return f'Godot.{type}'
+		return type
 
 def rReplace(string, toReplace, newValue, n = 1): return newValue.join(string.rsplit(toReplace,n))
 
